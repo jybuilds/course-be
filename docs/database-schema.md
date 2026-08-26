@@ -95,27 +95,12 @@ areas 1:N courses 1:N course_items N:1 places
 
 ### 📋 tags
 
-사용자 입력, Area, Place, Course를 같은 기준으로 연결하는 공통 태그 사전이다. 대표 태그와 유사 화면 선택지는 DB와 CSV seed에서 관리한다.
+사용자 입력, Area, Place를 같은 기준으로 연결하는 공통 태그 사전이다. 허용 키워드는 코드의 `TagCode` enum에서 관리하며, 유사한 화면 선택지는 하나의 대표 태그로 정규화한다.
 
 | 컬럼 | 타입 | 태그 | 설명 |
 |------|------|------|------|
 | `id` | BIGINT | 🔑 PK | 태그 ID, identity |
-| `code` | VARCHAR(50) | 🟣 UQ | 추천 매칭에 사용하는 대표 태그 코드 |
-| `display_name` | VARCHAR(100) | | 대표 태그 표시명 |
-| `is_active` | BOOLEAN | | 선택지 노출 여부 |
-| `display_order` | INTEGER | | 화면 노출 순서 |
-
-### 📋 tag_options
-
-대표 태그에 속한 유사 선택지다. 예를 들어 `EXHIBITION` 태그는 `전시 관람`, `갤러리`, `미술관·박물관`을 가질 수 있다. 사용자가 어떤 선택지를 골라도 추천 요청에는 대표 태그 코드 하나만 전달한다.
-
-| 컬럼 | 타입 | 태그 | 설명 |
-|------|------|------|------|
-| `id` | BIGINT | 🔑 PK | 선택지 ID, identity |
-| `tag_id` | BIGINT | 🔗 FK | 대표 태그. `tags.id` |
-| `option_name` | VARCHAR(100) | 🟣 UQ (태그 내) | 화면에 표시할 유사 선택지 |
-| `display_order` | INTEGER | | 태그 내 노출 순서 |
-| `is_active` | BOOLEAN | | 선택지 노출 여부 |
+| `code` | VARCHAR(50) | 🟣 UQ | `TagCode` enum 값. 허용 키워드의 단일 기준 |
 
 ### 📋 area_tags
 
@@ -141,9 +126,9 @@ areas 1:N courses 1:N course_items N:1 places
 
 **💡 설계 포인트**
 
-- `tags.csv`는 대표 태그를, `tag_options.csv`는 태그별 유사 선택지를 관리한다.
-- 화면은 `tag_options`를 선택지로 노출한다. 어떤 선택지를 고르든 해당 대표 태그 `code` 하나만 요청·저장·점수 계산에 사용한다.
-- 사용자가 같은 태그에 속한 선택지를 여러 개 고르더라도, 추천 점수 계산 전에는 대표 태그 기준으로 중복 제거한다.
+- `TagCode` enum은 추천 점수에 사용하는 대표 키워드와 화면 선택지 목록을 함께 관리한다. 예: `EXHIBITION("전시", "전시 관람", "갤러리", "미술관·박물관")`.
+- 화면은 `TagCode.options`를 선택지로 노출한다. 어떤 선택지를 고르든 해당 `TagCode` 하나만 요청·저장·점수 계산에 사용한다.
+- 사용자가 같은 `TagCode`에 속한 선택지를 여러 개 고르더라도, 추천 점수 계산 전에는 `TagCode` 기준으로 중복 제거한다.
 - `tags`는 `TagCode`를 DB 관계에 사용할 수 있도록 보관하는 공통 사전이며, `area_tags`와 `place_tags`는 같은 태그를 다른 대상에 연결한다.
 - `weight`는 태그 보유 여부가 아닌, 태그가 Area 또는 Place를 얼마나 대표하는지 나타낸다.
 - 같은 Area 또는 Place에 같은 Tag를 중복 연결할 수 없다.
@@ -163,7 +148,7 @@ areas 1:N courses 1:N course_items N:1 places
 | `provider` | VARCHAR(30) | ✅ CHECK | 외부 제공자: `KAKAO`, `TOUR` |
 | `provider_place_id` | VARCHAR(100) | 🟣 UQ (제공자 내) | 외부 제공자가 발급한 장소 ID |
 | `area_id` | BIGINT | 🔗 FK | 소속 세부 지역. `areas.id` |
-| `place_type` | VARCHAR(20) | ✅ CHECK | 장소의 기본 유형: `ACTIVITY`, `MEAL`, `CAFE` |
+| `place_type` | VARCHAR(20) | ✅ CHECK | `ACTIVITY`, `FOOD`, `CAFE` |
 | `name` | VARCHAR(200) | | 장소명 |
 | `address_name` | VARCHAR(500) | | 지번 주소. nullable |
 | `road_address_name` | VARCHAR(500) | | 도로명 주소. nullable |
@@ -180,7 +165,7 @@ areas 1:N courses 1:N course_items N:1 places
 
 - `uk_places_provider_place_id (provider, provider_place_id)` — 같은 제공자의 같은 장소 중복 수집 방지
 - `ck_places_provider` — `KAKAO`, `TOUR`만 허용
-- `ck_places_place_type` — `ACTIVITY`, `MEAL`, `CAFE`만 허용
+- `ck_places_place_type` — `ACTIVITY`, `FOOD`, `CAFE`만 허용
 - 장소 행동 집계는 `place_stats`에서 관리한다.
 
 **💡 설계 포인트**
@@ -209,19 +194,18 @@ areas 1:N courses 1:N course_items N:1 places
 
 ### 📋 course_items
 
-코스의 일정 장소 목록이다. `item_order`로 방문 순서를 표현한다. `item_role`은 장소의 기본 유형과 별개로 이번 코스에서 사용하는 목적을 나타낸다. 예를 들어 `PlaceType.CAFE`인 빵집도 빵 투어에서는 `CourseItemRole.ACTIVITY`로 방문할 수 있다.
+코스의 일정 장소 목록이다. `item_order`로 방문 순서를 표현하며 일정 유형은 연결된 `places.place_type`에서 가져온다. 앵커는 `courses.anchor_place_id`로 별도 식별하므로 일정 항목에 앵커 전용 타입을 중복 저장하지 않는다.
 
 | 컬럼 | 타입 | 태그 | 설명 |
 |------|------|------|------|
 | `id` | BIGINT | 🔑 PK | 일정 항목 ID, identity |
 | `course_id` | BIGINT | 🔗 FK | 소속 코스. `courses.id` |
 | `place_id` | BIGINT | 🔗 FK | 방문 장소. `places.id` |
-| `item_role` | VARCHAR(20) | ✅ CHECK | 코스 내 역할: `ACTIVITY`, `MEAL`, `CAFE` |
 | `item_order` | INTEGER | ✅ CHECK | 코스 내 방문 순서(0 이상) |
 
 ### 📋 course_tags
 
-코스 전체의 활동·음식·분위기를 나타내는 공통 `tags` 연결 테이블이다. 수동 입력하지 않고 앵커와 일정 장소의 `PlaceTag`를 중복 장소 없이 집계한다. `최대 PlaceTag 가중치 × 0.4 + 태그 보유 장소 비율 × 60`으로 계산하며 30 미만은 저장하지 않는다.
+코스 전체의 활동·음식·분위기를 나타내는 공통 `tags` 연결 테이블이다. 대표 코스 추천 시 사용자 선택 태그와 매칭하며, `weight`가 높을수록 해당 코스를 대표하는 태그로 본다.
 
 | 컬럼 | 타입 | 태그 | 설명 |
 |------|------|------|------|
@@ -230,31 +214,20 @@ areas 1:N courses 1:N course_items N:1 places
 | `tag_id` | BIGINT | 🔗 FK | `tags.id` |
 | `weight` | INTEGER | ✅ CHECK | 코스에서 태그의 대표성. 0~100 |
 
-### 📋 course_companion_types / course_time_slots
-
-코스에 적합한 동행자 유형과 시간대를 연결한다. 연결 정보가 없으면 추천 점수에서 부적합으로 보지 않고 중립값을 적용한다.
-
-| 테이블 | 주요 컬럼 | 설명 |
-|------|------|------|
-| `course_companion_types` | `course_id`, `companion_type` | `FRIEND`, `LOVER`, `FAMILY` 중 복수 연결 가능 |
-| `course_time_slots` | `course_id`, `time_slot` | `MORNING`, `AFTERNOON`, `NIGHT` 중 복수 연결 가능 |
-
 **제약조건 및 설계 포인트**
 
 - `uk_course_items_course_order (course_id, item_order)` — 한 코스에서 순서 중복 방지
-- `ck_course_items_item_role` — `ACTIVITY`, `MEAL`, `CAFE`만 허용
 - `uk_course_tags_course_tag (course_id, tag_id)` — 같은 태그 중복 연결 방지
 - 코스 삭제 시 `course_items`, `course_tags` 연결만 함께 삭제한다. 공유 장소(`places`)는 삭제하지 않는다.
 - `courses.area_id`와 `courses.anchor_place_id`의 실제 지역 일치 여부는 코스 생성 서비스에서 검증한다.
 
 ### 📋 place_stats / course_stats
 
-장소와 코스에 대한 사용자 행동을 본체와 분리해 누적 집계한다. 현재는 추천 노출·조회·선택·저장·공유 횟수를 관리한다. `impression_count`는 코스 추천 응답에 최종 포함된 횟수이며 `course_stats`에만 존재한다. 정확한 화면 노출이나 기간별 분석이 필요해지면 별도 이벤트 테이블을 추가한다.
+장소와 코스에 대한 사용자 행동을 본체와 분리해 누적 집계한다. 현재는 조회·선택·저장·공유 횟수와 각 행동의 마지막 시각을 관리한다. 정확한 사용자 행동 로그나 기간별 분석이 필요해지면 별도 이벤트 테이블을 추가한다.
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | `place_id` / `course_id` | BIGINT | 대상 본체와의 1:1 FK |
-| `impression_count` | BIGINT | 추천 결과에 포함된 횟수. `course_stats` 전용 |
 | `view_count` | BIGINT | 조회 횟수 |
 | `selection_count` | BIGINT | 선택 횟수 |
 | `save_count` | BIGINT | 저장 횟수 |
@@ -295,8 +268,3 @@ last_synced_at이 오래된 장소 조회
 | V1 | `V1__create_location_and_place_domain.sql` | 도시, 세부 지역, 장소, 공통 태그 및 초기 인덱스 생성 |
 | V2 | `V2__create_course_domain.sql` | 대표 코스, 코스 일정 항목, 코스 태그 및 추천용 인덱스 생성 |
 | V3 | `V3__separate_course_and_place_stats.sql` | 장소·코스 통계 분리 및 기존 선택 통계 이관 |
-| V4 | `V4__create_tag_options.sql` | 태그 표시 정보와 유사 선택지 테이블 생성 |
-| V5 | `V5__seed_master_data.java` | CSV 기준 도시·태그·태그 선택지 적재 |
-| V6 | `V6__add_course_context_options.sql` | 코스별 동행자 유형과 시간대 적합도 연결 |
-| V7 | `V7__add_course_impression_count.sql` | 추천 결과에 포함된 코스의 노출 횟수 추가 |
-| V8 | `V8__add_course_item_role.sql` | 장소 유형 `FOOD`를 `MEAL`로 이관하고 코스 일정 역할 추가 |

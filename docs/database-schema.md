@@ -1,7 +1,7 @@
 # Course 데이터베이스 설계 문서
 
-> **Last updated:** 2026-08-14
-> **Migration source of truth:** `src/main/resources/db/migration/V1__create_location_and_place_domain.sql`
+> **Last updated:** 2026-08-26
+> **Migration source of truth:** `src/main/resources/db/migration/` (현재 V1~V2)
 > **Database:** PostgreSQL
 > **Document rule:** 테이블·컬럼·제약조건·인덱스를 변경할 때는 같은 작업에서 Flyway와 이 문서를 함께 갱신한다.
 
@@ -14,8 +14,9 @@
 3. [위치 도메인](#3-위치-도메인)
 4. [태그 도메인](#4-태그-도메인)
 5. [장소 도메인](#5-장소-도메인)
-6. [인덱스 및 수집·동기화 정책](#6-인덱스-및-수집동기화-정책)
-7. [Flyway 변경 이력](#7-flyway-변경-이력)
+6. [코스 도메인](#6-코스-도메인)
+7. [인덱스 및 수집·동기화 정책](#7-인덱스-및-수집동기화-정책)
+8. [Flyway 변경 이력](#8-flyway-변경-이력)
 
 ---
 
@@ -46,6 +47,12 @@ cities 1:N areas 1:N places
                 \       /
                  ▼     ▼
                    tags
+                     ▲
+                     │ N:M
+                  course_tags
+
+areas 1:N courses 1:N course_items N:1 places
+                  courses N:1 anchor_place(places)
 ```
 
 1. City 입력 후 사용자 키워드와 `area_tags`를 점수화해 Area를 추천한다.
@@ -149,8 +156,6 @@ cities 1:N areas 1:N places
 | `place_url` | VARCHAR(1000) | | 외부 상세 URL. nullable |
 | `phone` | VARCHAR(50) | | 전화번호. nullable |
 | `is_anchor_candidate` | BOOLEAN | | 앵커 후보 노출 여부. 기본 `false` |
-| `selection_count` | BIGINT | ✅ CHECK | 코스 일정 확정 누적 횟수. 기본 `0`, 음수 불가 |
-| `last_selected_at` | TIMESTAMP | | 마지막 일정 확정 시각. nullable |
 | `is_active` | BOOLEAN | | 추천·수집 대상 활성 여부. 기본 `true` |
 | `operating_hours` / `operating_days` | VARCHAR | | 운영 정보 원문. nullable |
 | `last_synced_at` | TIMESTAMP | | 외부 정보 마지막 동기화 시각 |
@@ -161,18 +166,76 @@ cities 1:N areas 1:N places
 - `uk_places_provider_place_id (provider, provider_place_id)` — 같은 제공자의 같은 장소 중복 수집 방지
 - `ck_places_provider` — `KAKAO`, `TOUR`만 허용
 - `ck_places_place_type` — `ACTIVITY`, `FOOD`, `CAFE`만 허용
-- `ck_places_selection_count_non_negative` — `selection_count >= 0`
+- 장소 행동 집계는 `place_stats`에서 관리한다.
 
 **💡 설계 포인트**
 
 - 외부 제공자 원본 카테고리는 저장하지 않고, 서비스 분류인 `place_type`만 추천 기준으로 사용한다.
 - `is_anchor_candidate=false`인 Place라도 사용자가 직접 선택하면 이번 코스의 앵커가 될 수 있다.
-- `selection_count`는 후보 카드 노출 횟수가 아니라 장소를 실제 코스 일정으로 확정했을 때만 증가한다.
 - `updated_at`은 모든 DB 수정 시 갱신되고, `last_synced_at`은 외부 정보 최신화 배치의 기준이다.
 
 ---
 
-## 6. 인덱스 및 수집·동기화 정책
+## 6. 코스 도메인
+
+대표 코스는 사용자 입력마다 새로 생성하지 않고, 운영자가 미리 저장하거나 별도 생성 배치가 저장한 코스를 추천 대상으로 사용한다. 코스는 하나의 세부 지역과 필수 앵커 장소를 가지며, 실제 방문 순서는 `course_items`로 관리한다.
+
+### 📋 courses
+
+| 컬럼 | 타입 | 태그 | 설명 |
+|------|------|------|------|
+| `id` | BIGINT | 🔑 PK | 코스 ID, identity |
+| `area_id` | BIGINT | 🔗 FK | 코스가 시작하는 세부 지역. `areas.id` |
+| `anchor_place_id` | BIGINT | 🔗 FK | 코스의 기준 앵커. `places.id` |
+| `title` | VARCHAR(200) | | 대표 코스명 |
+| `description` | VARCHAR(2000) | | 코스 소개. nullable |
+| `is_published` | BOOLEAN | | 대표 코스 노출 여부. 기본 `false` |
+| `created_at` / `updated_at` | TIMESTAMP | | 생성 / 마지막 수정 시각 |
+
+### 📋 course_items
+
+코스의 일정 장소 목록이다. `item_order`로 방문 순서를 표현하며 일정 유형은 연결된 `places.place_type`에서 가져온다. 앵커는 `courses.anchor_place_id`로 별도 식별하므로 일정 항목에 앵커 전용 타입을 중복 저장하지 않는다.
+
+| 컬럼 | 타입 | 태그 | 설명 |
+|------|------|------|------|
+| `id` | BIGINT | 🔑 PK | 일정 항목 ID, identity |
+| `course_id` | BIGINT | 🔗 FK | 소속 코스. `courses.id` |
+| `place_id` | BIGINT | 🔗 FK | 방문 장소. `places.id` |
+| `item_order` | INTEGER | ✅ CHECK | 코스 내 방문 순서(0 이상) |
+
+### 📋 course_tags
+
+코스 전체의 활동·음식·분위기를 나타내는 공통 `tags` 연결 테이블이다. 대표 코스 추천 시 사용자 선택 태그와 매칭하며, `weight`가 높을수록 해당 코스를 대표하는 태그로 본다.
+
+| 컬럼 | 타입 | 태그 | 설명 |
+|------|------|------|------|
+| `id` | BIGINT | 🔑 PK | 연결 ID, identity |
+| `course_id` | BIGINT | 🔗 FK | `courses.id` |
+| `tag_id` | BIGINT | 🔗 FK | `tags.id` |
+| `weight` | INTEGER | ✅ CHECK | 코스에서 태그의 대표성. 0~100 |
+
+**제약조건 및 설계 포인트**
+
+- `uk_course_items_course_order (course_id, item_order)` — 한 코스에서 순서 중복 방지
+- `uk_course_tags_course_tag (course_id, tag_id)` — 같은 태그 중복 연결 방지
+- 코스 삭제 시 `course_items`, `course_tags` 연결만 함께 삭제한다. 공유 장소(`places`)는 삭제하지 않는다.
+- `courses.area_id`와 `courses.anchor_place_id`의 실제 지역 일치 여부는 코스 생성 서비스에서 검증한다.
+
+### 📋 place_stats / course_stats
+
+장소와 코스에 대한 사용자 행동을 본체와 분리해 누적 집계한다. 현재는 조회·선택·저장·공유 횟수와 각 행동의 마지막 시각을 관리한다. 정확한 사용자 행동 로그나 기간별 분석이 필요해지면 별도 이벤트 테이블을 추가한다.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| `place_id` / `course_id` | BIGINT | 대상 본체와의 1:1 FK |
+| `view_count` | BIGINT | 조회 횟수 |
+| `selection_count` | BIGINT | 선택 횟수 |
+| `save_count` | BIGINT | 저장 횟수 |
+| `share_count` | BIGINT | 공유 횟수 |
+| `last_viewed_at` / `last_selected_at` | TIMESTAMP | 조회·선택 마지막 시각 |
+| `last_saved_at` / `last_shared_at` | TIMESTAMP | 저장·공유 마지막 시각 |
+
+## 7. 인덱스 및 수집·동기화 정책
 
 | 인덱스 / 제약 | 용도 |
 |------|------|
@@ -182,6 +245,8 @@ cities 1:N areas 1:N places
 | `idx_places_last_synced_at (last_synced_at)` | 장기간 동기화되지 않은 장소를 배치로 조회 |
 | `idx_area_tags_tag_area (tag_id, area_id)` | 선택한 키워드로 Area 후보를 역방향 조회 |
 | `idx_place_tags_tag_place (tag_id, place_id)` | 선택한 키워드로 Place 후보를 역방향 조회 |
+| `idx_place_stats_selection_count (selection_count)` | 선택 횟수 기반 장소 통계 조회 |
+| `idx_course_stats_selection_count (selection_count)` | 선택 횟수 기반 코스 통계 조회 |
 
 ```text
 외부 API 수집
@@ -196,8 +261,10 @@ last_synced_at이 오래된 장소 조회
 
 ---
 
-## 7. Flyway 변경 이력
+## 8. Flyway 변경 이력
 
 | 버전 | 파일 | 내용 |
 |------|------|------|
 | V1 | `V1__create_location_and_place_domain.sql` | 도시, 세부 지역, 장소, 공통 태그 및 초기 인덱스 생성 |
+| V2 | `V2__create_course_domain.sql` | 대표 코스, 코스 일정 항목, 코스 태그 및 추천용 인덱스 생성 |
+| V3 | `V3__separate_course_and_place_stats.sql` | 장소·코스 통계 분리 및 기존 선택 통계 이관 |

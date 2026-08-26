@@ -1,6 +1,6 @@
-package com.junsang.course_backend.domain.place.entity.tag;
+package com.junsang.course_backend.domain.tag;
 
-import com.junsang.course_backend.domain.place.entity.Area;
+import com.junsang.course_backend.domain.course.entity.Course;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -14,20 +14,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/// 세부 지역이 어떤 활동과 분위기를 대표하는지 연결하는 태그다.
+/// 코스 전체의 활동·음식·분위기 특성을 연결하는 태그다.
 @Entity
-@Table(name = "area_tags")
+@Table(name = "course_tags")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class AreaTag {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class CourseTag {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "area_id", nullable = false)
-    private Area area;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tag_id", nullable = false)
@@ -35,4 +33,12 @@ public class AreaTag {
 
     @Column(nullable = false)
     private int weight;
+
+    public static CourseTag create(Course course, Tag tag, int weight) {
+        CourseTag courseTag = new CourseTag();
+        courseTag.course = course;
+        courseTag.tag = tag;
+        courseTag.weight = weight;
+        return courseTag;
+    }
 }

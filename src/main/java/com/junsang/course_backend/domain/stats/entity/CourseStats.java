@@ -19,15 +19,24 @@ public class CourseStats {
     @JoinColumn(name = "course_id", nullable = false, unique = true)
     private Course course;
 
+    //조회 횟수
     @Column(name = "view_count", nullable = false)
     private long viewCount;
 
+    //노출 횟수
+    @Column(name = "impression_count", nullable = false)
+    private long impressionCount;
+
+    //선택 횟수
     @Column(name = "selection_count", nullable = false)
     private long selectionCount;
 
+    //저장 횟수
     @Column(name = "save_count", nullable = false)
     private long saveCount;
 
+
+    //공유 횟수
     @Column(name = "share_count", nullable = false)
     private long shareCount;
 
@@ -48,7 +57,7 @@ public class CourseStats {
 
     }
 
-    // 코스 조회를 집계한다.
+    // 코스 조회를 집계한다.ㄴ
     public void recordView() { viewCount++; lastViewedAt = LocalDateTime.now(); }
     // 코스 선택을 집계한다.
     public void recordSelection() { selectionCount++; lastSelectedAt = LocalDateTime.now(); }

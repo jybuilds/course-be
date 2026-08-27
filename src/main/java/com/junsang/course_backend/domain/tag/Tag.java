@@ -2,8 +2,6 @@ package com.junsang.course_backend.domain.tag;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,13 +21,24 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private TagCode code;
+    private String code;
 
-    public static Tag create(TagCode code) {
+    @Column(name = "display_name", nullable = false, length = 100)
+    private String displayName;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
+
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder;
+
+    public static Tag create(String code, String displayName, int displayOrder) {
         Tag tag = new Tag();
         tag.code = code;
+        tag.displayName = displayName;
+        tag.isActive = true;
+        tag.displayOrder = displayOrder;
         return tag;
     }
 }

@@ -16,5 +16,23 @@ services:
       timeout: 3s
       retries: 10
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: course-app
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-course}
+      DB_USERNAME: ${POSTGRES_USER:-course}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-course}
+      KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:-}
+      PORT: 8080
+      SERVER_CONTEXT_PATH: ${SERVER_CONTEXT_PATH:-/course}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   course-postgres-data:

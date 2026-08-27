@@ -1,6 +1,11 @@
-INSERT INTO areas (id, city_id, code, name) VALUES
-    (910001, (SELECT id FROM cities WHERE code = 'SEOUL'), 'SIMULATION_SEOUL', '서울 추천 시뮬레이션 지역'),
-    (910002, (SELECT id FROM cities WHERE code = 'DAEJEON'), 'SIMULATION_DAEJEON', '대전 추천 시뮬레이션 지역');
+INSERT INTO areas (
+    id, city_id, code, name,
+    collection_center_latitude, collection_center_longitude,
+    collection_min_latitude, collection_min_longitude,
+    collection_max_latitude, collection_max_longitude
+) VALUES
+    (910001, (SELECT id FROM cities WHERE code = 'SEOUL'), 'SIMULATION_SEOUL', '서울 추천 시뮬레이션 지역', 37.5500000, 127.0000000, 37.5400000, 126.9900000, 37.5600000, 127.0100000),
+    (910002, (SELECT id FROM cities WHERE code = 'DAEJEON'), 'SIMULATION_DAEJEON', '대전 추천 시뮬레이션 지역', 36.3300000, 127.4300000, 36.3200000, 127.4200000, 36.3400000, 127.4400000);
 
 INSERT INTO places (
     id, provider, provider_place_id, area_id, place_type, name,

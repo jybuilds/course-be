@@ -1,4 +1,4 @@
-package com.junsang.course_backend.domain.tag;
+package com.junsang.course_backend.domain.place.entity;
 
 import com.junsang.course_backend.domain.course.entity.Course;
 import jakarta.persistence.Column;

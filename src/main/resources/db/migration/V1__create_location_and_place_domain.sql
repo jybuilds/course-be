@@ -10,8 +10,16 @@ CREATE TABLE areas (
     city_id BIGINT NOT NULL,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
+    collection_center_latitude NUMERIC(10, 7) NOT NULL,
+    collection_center_longitude NUMERIC(10, 7) NOT NULL,
+    collection_min_latitude NUMERIC(10, 7) NOT NULL,
+    collection_min_longitude NUMERIC(10, 7) NOT NULL,
+    collection_max_latitude NUMERIC(10, 7) NOT NULL,
+    collection_max_longitude NUMERIC(10, 7) NOT NULL,
     CONSTRAINT fk_areas_city FOREIGN KEY (city_id) REFERENCES cities (id),
-    CONSTRAINT uk_areas_city_code UNIQUE (city_id, code)
+    CONSTRAINT uk_areas_city_code UNIQUE (city_id, code),
+    CONSTRAINT ck_areas_collection_latitude_range CHECK (collection_min_latitude <= collection_center_latitude AND collection_center_latitude <= collection_max_latitude),
+    CONSTRAINT ck_areas_collection_longitude_range CHECK (collection_min_longitude <= collection_center_longitude AND collection_center_longitude <= collection_max_longitude)
 );
 
 CREATE TABLE places (

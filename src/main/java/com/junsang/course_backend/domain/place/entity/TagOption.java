@@ -1,4 +1,4 @@
-package com.junsang.course_backend.domain.tag;
+package com.junsang.course_backend.domain.place.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

@@ -13,6 +13,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 /// 도시 안에서 추천을 시작할 수 있는 세부 지역이다. 예: 성수, 서촌, 용산
 @Entity
 @Table(name = "areas")
@@ -33,4 +35,23 @@ public class Area {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal collectionCenterLatitude;
+
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal collectionCenterLongitude;
+
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal collectionMinLatitude;
+
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal collectionMinLongitude;
+
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal collectionMaxLatitude;
+
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal collectionMaxLongitude;
+
 }

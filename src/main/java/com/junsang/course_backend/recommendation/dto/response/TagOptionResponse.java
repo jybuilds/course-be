@@ -1,6 +1,6 @@
 package com.junsang.course_backend.recommendation.dto.response;
 
-import com.junsang.course_backend.domain.tag.Tag;
+import com.junsang.course_backend.domain.place.entity.Tag;
 
 import java.util.List;
 

@@ -111,6 +111,14 @@ public class Place {
         return place;
     }
 
+    // 같은 외부 장소가 다시 수집되면 서비스 판단값은 보존하고 제공자 정보만 최신화한다.
+    public void refresh(Area area, PlaceType placeType, String name, String addressName, String roadAddressName,
+                        BigDecimal latitude, BigDecimal longitude, String placeUrl, String phone) {
+        this.area = area; this.placeType = placeType; this.name = name; this.addressName = addressName;
+        this.roadAddressName = roadAddressName; this.latitude = latitude; this.longitude = longitude;
+        this.placeUrl = placeUrl; this.phone = phone; this.lastSyncedAt = LocalDateTime.now();
+    }
+
     @PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now();

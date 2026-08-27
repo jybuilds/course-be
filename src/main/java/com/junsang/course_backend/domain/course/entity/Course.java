@@ -2,8 +2,8 @@ package com.junsang.course_backend.domain.course.entity;
 
 import com.junsang.course_backend.domain.place.entity.Area;
 import com.junsang.course_backend.domain.place.entity.Place;
-import com.junsang.course_backend.domain.tag.CourseTag;
-import com.junsang.course_backend.domain.tag.Tag;
+import com.junsang.course_backend.domain.place.entity.CourseTag;
+import com.junsang.course_backend.domain.place.entity.Tag;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.CollectionTable;

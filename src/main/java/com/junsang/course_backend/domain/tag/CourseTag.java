@@ -35,10 +35,23 @@ public class CourseTag {
     private int weight;
 
     public static CourseTag create(Course course, Tag tag, int weight) {
+        validateWeight(weight);
         CourseTag courseTag = new CourseTag();
         courseTag.course = course;
         courseTag.tag = tag;
         courseTag.weight = weight;
         return courseTag;
+    }
+
+    // 자동 계산된 코스 태그 가중치로 갱신한다.
+    public void updateWeight(int weight) {
+        validateWeight(weight);
+        this.weight = weight;
+    }
+
+    private static void validateWeight(int weight) {
+        if (weight < 0 || weight > 100) {
+            throw new IllegalArgumentException("태그 가중치는 0에서 100 사이여야 합니다.");
+        }
     }
 }

@@ -6,7 +6,11 @@ import com.junsang.course_backend.domain.tag.CourseTag;
 import com.junsang.course_backend.domain.tag.Tag;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,6 +28,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /// 사용자의 입력과 태그를 기준으로 추천할 수 있도록 미리 저장한 대표 코스다.
@@ -59,6 +65,18 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CourseTag> tags = new LinkedHashSet<>();
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "course_companion_types", joinColumns = @JoinColumn(name = "course_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "companion_type", nullable = false, length = 20)
+    private Set<CompanionType> companionTypes = new LinkedHashSet<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "course_time_slots", joinColumns = @JoinColumn(name = "course_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "time_slot", nullable = false, length = 20)
+    private Set<TimeSlot> timeSlots = new LinkedHashSet<>();
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -75,16 +93,35 @@ public class Course {
     }
 
     // 코스의 일정 장소를 순서대로 추가한다.
-    public void addScheduleItem(Place place, int itemOrder) {
+    public void addScheduleItem(Place place, CourseItemRole role, int itemOrder) {
         if (scheduleItems.stream().anyMatch(item -> item.getItemOrder() == itemOrder)) {
             throw new IllegalArgumentException("코스 내 일정 순서는 중복될 수 없습니다.");
         }
-        scheduleItems.add(CourseItem.create(this, place, itemOrder));
+        scheduleItems.add(CourseItem.create(this, place, role, itemOrder));
     }
 
-    // 코스 전체의 추천 키워드를 연결한다.
-    public void addTag(Tag tag, int weight) {
-        tags.add(CourseTag.create(this, tag, weight));
+    // 코스 장소에서 다시 계산한 태그만 남기고 가중치를 동기화한다.
+    public void synchronizeTags(Map<Tag, Integer> calculatedWeights) {
+        Set<Long> calculatedTagIds = calculatedWeights.keySet().stream().map(Tag::getId).collect(java.util.stream.Collectors.toSet());
+        tags.removeIf(existing -> !calculatedTagIds.contains(existing.getTag().getId()));
+
+        calculatedWeights.forEach((tag, weight) -> tags.stream()
+                .filter(existing -> Objects.equals(existing.getTag().getId(), tag.getId()))
+                .findFirst()
+                .ifPresentOrElse(
+                        existing -> existing.updateWeight(weight),
+                        () -> tags.add(CourseTag.create(this, tag, weight))
+                ));
+    }
+
+    // 코스에 적합한 동행자 유형을 연결한다.
+    public void addCompanionType(CompanionType companionType) {
+        companionTypes.add(companionType);
+    }
+
+    // 코스에 적합한 시간대를 연결한다.
+    public void addTimeSlot(TimeSlot timeSlot) {
+        timeSlots.add(timeSlot);
     }
 
     // 대표 코스를 사용자에게 노출한다.

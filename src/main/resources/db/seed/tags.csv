@@ -1,0 +1,27 @@
+code,display_name,is_active,display_order
+EXHIBITION,전시,true,1
+POPUP,팝업,true,2
+SHOPPING,쇼핑,true,3
+MARKET,시장 구경,true,4
+WALK,산책,true,5
+PARK,공원,true,6
+RIVERSIDE,한강,true,7
+MOVIE,영화,true,8
+PERFORMANCE,공연,true,9
+BOOKSTORE,서점,true,10
+WORKSHOP,공방,true,11
+GAME,게임,true,12
+CAFE,카페,true,13
+BREAD,빵,true,14
+DESSERT,디저트,true,15
+KOREAN_FOOD,한식,true,16
+WESTERN_FOOD,양식,true,17
+ASIAN_FOOD,아시안 음식,true,18
+QUIET,조용한,true,19
+LIVELY,활기찬,true,20
+ROMANTIC,데이트,true,21
+TRENDY,힙한,true,22
+COZY,아늑한,true,23
+INDOOR,실내,true,24
+OUTDOOR,야외,true,25
+SCENIC_VIEW,뷰 좋은,true,26

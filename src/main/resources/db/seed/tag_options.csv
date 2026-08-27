@@ -1,0 +1,26 @@
+tag_code,option_name,display_order,is_active
+EXHIBITION,전시,1,true
+EXHIBITION,전시 관람,2,true
+EXHIBITION,갤러리,3,true
+EXHIBITION,미술관·박물관,4,true
+POPUP,팝업스토어,1,true
+POPUP,브랜드 체험,2,true
+SHOPPING,편집숍,1,true
+SHOPPING,빈티지 쇼핑,2,true
+MARKET,플리마켓,1,true
+WALK,골목 구경,1,true
+PARK,피크닉,1,true
+RIVERSIDE,강변 산책,1,true
+MOVIE,독립영화,1,true
+PERFORMANCE,뮤지컬·연극,1,true
+BOOKSTORE,독립서점,1,true
+WORKSHOP,원데이 클래스,1,true
+GAME,오락실·보드게임,1,true
+CAFE,커피,1,true
+BREAD,베이커리 카페,1,true
+DESSERT,달콤한 디저트,1,true
+QUIET,여유로운,1,true
+LIVELY,사람 많은,1,true
+ROMANTIC,로맨틱한,1,true
+TRENDY,요즘 뜨는,1,true
+SCENIC_VIEW,야경,1,true

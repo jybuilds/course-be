@@ -58,12 +58,6 @@ public class Place {
     @Column(name = "is_anchor_candidate", nullable = false)
     private boolean isAnchorCandidate;
 
-    @Column(name = "selection_count", nullable = false)
-    private long selectionCount;
-
-    @Column(name = "last_selected_at")
-    private LocalDateTime lastSelectedAt;
-
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
@@ -113,7 +107,6 @@ public class Place {
         place.isAnchorCandidate = isAnchorCandidate;
         place.operatingHours = operatingHours;
         place.operatingDays = operatingDays;
-        place.selectionCount = 0;
         place.isActive = true;
         return place;
     }

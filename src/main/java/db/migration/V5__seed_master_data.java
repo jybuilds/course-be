@@ -21,7 +21,7 @@ public class V5__seed_master_data extends BaseJavaMigration {
         String sql = "INSERT INTO cities (code, name) VALUES (?, ?) "
                 + "ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name";
         try (PreparedStatement statement = context.getConnection().prepareStatement(sql)) {
-            for (String[] row : rows("db/seed/cities.csv")) {
+            for (String[] row : rows("db/seed/city/cities.csv")) {
                 statement.setString(1, row[0]);
                 statement.setString(2, row[1]);
                 statement.addBatch();

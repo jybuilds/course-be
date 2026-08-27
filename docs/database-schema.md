@@ -1,7 +1,7 @@
 # Course 데이터베이스 설계 문서
 
-> **Last updated:** 2026-08-26
-> **Migration source of truth:** `src/main/resources/db/migration/` (현재 V1~V2)
+> **Last updated:** 2026-08-27
+> **Migration source of truth:** `src/main/resources/db/migration/` (현재 V1~V9)
 > **Database:** PostgreSQL
 > **Document rule:** 테이블·컬럼·제약조건·인덱스를 변경할 때는 같은 작업에서 Flyway와 이 문서를 함께 갱신한다.
 
@@ -83,11 +83,45 @@ areas 1:N courses 1:N course_items N:1 places
 | `city_id` | BIGINT | 🔗 FK | `cities.id` |
 | `code` | VARCHAR(50) | 🟣 UQ (도시 내) | 도시 안에서 유일한 내부 코드 |
 | `name` | VARCHAR(100) | | 화면 표시명 |
+| `collection_center_latitude` / `collection_center_longitude` | NUMERIC(10,7) | | 초기 장소 수집 범위의 중심 좌표 |
+| `collection_min_latitude` / `collection_min_longitude` | NUMERIC(10,7) | | 초기 Kakao `rect` 수집 범위의 남서쪽 좌표 |
+| `collection_max_latitude` / `collection_max_longitude` | NUMERIC(10,7) | | 초기 Kakao `rect` 수집 범위의 북동쪽 좌표 |
 
 **제약조건 및 인덱스**
 
 - `uk_areas_city_code (city_id, code)` — 같은 도시 안에서 세부 지역 코드 중복 방지
 - 📍 `idx_areas_city_id (city_id)` — 도시별 세부 지역 목록 조회
+- 수집 좌표는 해당 Area에 매핑된 법정동 경계를 모두 감싸도록 계산한다. 검색 시작 범위일 뿐, Place의 Area 소속은 카카오 주소의 법정동 매핑으로 결정한다.
+
+### 📋 place_collection_profiles
+
+카카오 카테고리·키워드 검색 조건을 코드 배포 없이 운영 데이터로 관리한다.
+
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| `provider`, `code` | VARCHAR | 제공자 내 수집 프로필 식별자 |
+| `search_type` | VARCHAR | `CATEGORY` 또는 `KEYWORD` |
+| `category_group_code` / `query` | VARCHAR | 검색 방식에 따른 카카오 조건 |
+| `place_type` | VARCHAR | 발견 장소의 초기 PlaceType |
+| `is_active` | BOOLEAN | 수집 실행 여부 |
+
+`CATEGORY`는 카테고리 코드만, `KEYWORD`는 검색어만 가질 수 있다.
+
+### 📋 place_collection_jobs
+
+Area·수집 프로필·rect 단위의 중단·분할 가능한 카카오 수집 작업이다.
+
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| `parent_job_id` | BIGINT | rect 분할 전 부모 Job. 초기 Job은 null |
+| `area_id`, `collection_profile_id` | BIGINT | 수집 대상 Area와 원본 프로필 |
+| `profile_code` ~ `place_type` | VARCHAR | Job 생성 시점의 프로필 스냅샷 |
+| `min_latitude` ~ `max_longitude` | NUMERIC(10,7) | 현재 Job의 Kakao `rect` 범위 |
+| `depth` | INTEGER | rect 분할 깊이 |
+| `status` | VARCHAR | `READY`, `RUNNING`, `COMPLETED`, `SPLIT`, `FAILED` |
+| `error_message` | VARCHAR | API 실패·최소 rect 포화 원인 |
+
+포화된 rect만 4등분하며, 500m 수준의 최소 rect에서도 포화되면 `FAILED`로 남겨 일부 결과를 조용히 저장하지 않는다.
 
 ---
 

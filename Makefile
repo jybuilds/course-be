@@ -1,7 +1,7 @@
 # 이음 로컬 인프라 명령어 모음
 # 사용법: make [명령어]
 
-.PHONY: up build rebuild down restart logs logs-app ps clean reset
+.PHONY: up build rebuild down restart logs logs-app ps clean reset refresh-seoul-area build-seoul-collection-rectangles
 
 ## 전체 서비스 시작 (앱 + 인프라, 백그라운드)
 up:
@@ -55,6 +55,15 @@ reset:
 ## PostgreSQL 직접 접속
 db:
 	docker compose exec postgres psql -U course -d course
+
+## seoul-service-areas.csv의 이름을 매핑 파일과 지도에 반영
+refresh-seoul-area:
+	node tools/seed/refresh-seoul-service-area-names.mjs
+	node tools/seed/build-seoul-area-collection-rectangles.mjs
+
+## 서울 Area별 초기 Kakao rect 수집 범위 생성
+build-seoul-collection-rectangles:
+	node tools/seed/build-seoul-area-collection-rectangles.mjs
 
 ## Redis CLI 접속
 redis-cli:

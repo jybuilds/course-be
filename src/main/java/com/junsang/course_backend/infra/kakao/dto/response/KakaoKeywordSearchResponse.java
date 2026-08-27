@@ -5,6 +5,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record KakaoKeywordSearchResponse(
+        KakaoSearchMeta meta,
         List<KakaoPlaceDocument> documents
 ) {
 }

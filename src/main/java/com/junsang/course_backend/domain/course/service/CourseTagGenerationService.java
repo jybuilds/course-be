@@ -2,9 +2,9 @@ package com.junsang.course_backend.domain.course.service;
 
 import com.junsang.course_backend.domain.course.entity.Course;
 import com.junsang.course_backend.domain.course.repository.CourseRepository;
-import com.junsang.course_backend.domain.tag.PlaceTag;
-import com.junsang.course_backend.domain.tag.Tag;
-import com.junsang.course_backend.domain.tag.repository.PlaceTagRepository;
+import com.junsang.course_backend.domain.place.entity.PlaceTag;
+import com.junsang.course_backend.domain.place.entity.Tag;
+import com.junsang.course_backend.domain.place.repository.PlaceTagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

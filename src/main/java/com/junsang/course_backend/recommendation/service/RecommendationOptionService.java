@@ -1,8 +1,8 @@
 package com.junsang.course_backend.recommendation.service;
 
 import com.junsang.course_backend.domain.place.repository.CityRepository;
-import com.junsang.course_backend.domain.tag.repository.TagOptionRepository;
-import com.junsang.course_backend.domain.tag.repository.TagRepository;
+import com.junsang.course_backend.domain.place.repository.TagOptionRepository;
+import com.junsang.course_backend.domain.place.repository.TagRepository;
 import com.junsang.course_backend.domain.course.entity.CompanionType;
 import com.junsang.course_backend.domain.course.entity.TimeSlot;
 import com.junsang.course_backend.recommendation.dto.response.CompanionTypeOptionResponse;

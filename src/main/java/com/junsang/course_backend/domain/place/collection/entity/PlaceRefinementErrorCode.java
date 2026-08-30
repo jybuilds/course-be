@@ -1,0 +1,13 @@
+package com.junsang.course_backend.domain.place.collection.entity;
+
+public enum PlaceRefinementErrorCode {
+    NAVER_RESULT_NOT_FOUND,
+    NAVER_PLACE_NOT_MATCHED,
+    NAVER_PLACE_AMBIGUOUS,
+    NAVER_POSSIBLE_RELOCATION,
+    NAVER_API_REQUEST_FAILED,
+    OPENAI_API_REQUEST_FAILED,
+    AI_RESPONSE_INVALID,
+    INVALID_PROCESSING_STEP,
+    UNEXPECTED_ERROR
+}

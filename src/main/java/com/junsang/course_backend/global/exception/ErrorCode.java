@@ -24,7 +24,13 @@ public enum ErrorCode {
     // ── 외부 API ──────────────────────────────────────────────────────────
     KAKAO_API_KEY_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "카카오 API 키가 설정되지 않았습니다."),
     KAKAO_LOCAL_API_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "카카오 장소 검색 호출에 실패했습니다."),
-    KAKAO_LOCAL_API_EMPTY_RESPONSE(HttpStatus.BAD_GATEWAY, "카카오 장소 검색 응답을 받지 못했습니다.");
+    KAKAO_LOCAL_API_EMPTY_RESPONSE(HttpStatus.BAD_GATEWAY, "카카오 장소 검색 응답을 받지 못했습니다."),
+    NAVER_SEARCH_API_KEY_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "네이버 검색 API 키가 설정되지 않았습니다."),
+    NAVER_LOCAL_API_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "네이버 지역 검색 호출에 실패했습니다."),
+    NAVER_LOCAL_API_EMPTY_RESPONSE(HttpStatus.BAD_GATEWAY, "네이버 지역 검색 응답을 받지 못했습니다."),
+    OPENAI_API_KEY_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "OpenAI API 키가 설정되지 않았습니다."),
+    OPENAI_API_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "OpenAI API 호출에 실패했습니다."),
+    OPENAI_API_EMPTY_RESPONSE(HttpStatus.BAD_GATEWAY, "OpenAI API 응답을 받지 못했습니다.");
 
     private final HttpStatus status;
     private final String message;

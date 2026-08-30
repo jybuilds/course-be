@@ -34,4 +34,16 @@ public class PlaceTag {
 
     @Column(nullable = false)
     private int weight;
+
+    // 검증된 AI 태깅 결과로 장소와 태그를 연결한다.
+    public static PlaceTag create(Place place, Tag tag, int weight) {
+        if (weight < 0 || weight > 100) {
+            throw new IllegalArgumentException("태그 가중치는 0에서 100 사이여야 합니다.");
+        }
+        PlaceTag placeTag = new PlaceTag();
+        placeTag.place = place;
+        placeTag.tag = tag;
+        placeTag.weight = weight;
+        return placeTag;
+    }
 }

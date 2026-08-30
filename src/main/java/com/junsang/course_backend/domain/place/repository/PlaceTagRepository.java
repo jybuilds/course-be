@@ -9,4 +9,6 @@ import java.util.Set;
 /// 장소에 연결된 태그 조회를 담당한다.
 public interface PlaceTagRepository extends JpaRepository<PlaceTag, Long> {
     List<PlaceTag> findByPlaceIdIn(Set<Long> placeIds);
+
+    List<PlaceTag> findByPlaceId(Long placeId);
 }

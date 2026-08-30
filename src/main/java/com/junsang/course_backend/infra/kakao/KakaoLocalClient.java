@@ -24,7 +24,7 @@ public class KakaoLocalClient {
                 .build();
     }
 
-    // ── 카카오 키워드 장소 검색 ───────────────────────────────────────────
+    // 수집 프로필의 키워드와 rect 범위로 카카오 장소 검색을 요청한다.
     public KakaoKeywordSearchResponse searchKeyword(KakaoKeywordSearchRequest request) {
         if (!properties.isApiKeyConfigured()) {
             throw new BusinessException(ErrorCode.KAKAO_API_KEY_NOT_CONFIGURED);
@@ -53,7 +53,7 @@ public class KakaoLocalClient {
         return response;
     }
 
-    // 카테고리 검색은 수집 rect 안의 장소를 페이지 단위로 반환한다.
+    // 수집 프로필의 카테고리와 rect 범위로 카카오 장소 검색을 요청한다.
     public KakaoKeywordSearchResponse searchCategory(KakaoCategorySearchRequest request) {
         if (!properties.isApiKeyConfigured()) throw new BusinessException(ErrorCode.KAKAO_API_KEY_NOT_CONFIGURED);
         try {

@@ -1,7 +1,7 @@
 # Course 데이터베이스 설계 문서
 
-> **Last updated:** 2026-08-27
-> **Migration source of truth:** `src/main/resources/db/migration/` (현재 V1~V9)
+> **Last updated:** 2026-08-28
+> **Migration source of truth:** `src/main/resources/db/migration/` (현재 V1~V15)
 > **Database:** PostgreSQL
 > **Document rule:** 테이블·컬럼·제약조건·인덱스를 변경할 때는 같은 작업에서 Flyway와 이 문서를 함께 갱신한다.
 
@@ -102,10 +102,23 @@ areas 1:N courses 1:N course_items N:1 places
 | `provider`, `code` | VARCHAR | 제공자 내 수집 프로필 식별자 |
 | `search_type` | VARCHAR | `CATEGORY` 또는 `KEYWORD` |
 | `category_group_code` / `query` | VARCHAR | 검색 방식에 따른 카카오 조건 |
-| `place_type` | VARCHAR | 발견 장소의 초기 PlaceType |
+| `place_type` | VARCHAR | 분류 규칙이 없을 때 사용하는 기본 PlaceType |
 | `is_active` | BOOLEAN | 수집 실행 여부 |
 
-`CATEGORY`는 카테고리 코드만, `KEYWORD`는 검색어만 가질 수 있다.
+`CATEGORY`는 카테고리 코드만, `KEYWORD`는 검색어만 가질 수 있다. 초기 수집은 카테고리 프로필로 기본 장소를 확보하고, 방탈출·보드게임처럼 카테고리 검색에서 누락될 수 있는 장소는 키워드 프로필로 보완한다.
+
+### 📋 place_category_rules
+
+카카오 원본 `category_name` 또는 장소명에 포함된 키워드로 기본 PlaceType을 보정하는 운영 규칙이다.
+
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| `keyword` | VARCHAR(100) | 카테고리명·장소명에서 찾을 키워드. unique |
+| `target_place_type` | VARCHAR(20) | 매칭 시 적용할 `ACTIVITY`, `MEAL`, `CAFE` |
+| `priority` | INTEGER | 여러 규칙이 매칭될 때 높은 값 우선 |
+| `is_active` | BOOLEAN | 분류 규칙 적용 여부 |
+
+예를 들어 카페 프로필로 수집된 `가정,생활 > 여가시설 > 방탈출카페`는 `방탈출카페 → ACTIVITY` 규칙으로 재분류한다.
 
 ### 📋 place_collection_jobs
 
@@ -118,10 +131,30 @@ Area·수집 프로필·rect 단위의 중단·분할 가능한 카카오 수집
 | `profile_code` ~ `place_type` | VARCHAR | Job 생성 시점의 프로필 스냅샷 |
 | `min_latitude` ~ `max_longitude` | NUMERIC(10,7) | 현재 Job의 Kakao `rect` 범위 |
 | `depth` | INTEGER | rect 분할 깊이 |
-| `status` | VARCHAR | `READY`, `RUNNING`, `COMPLETED`, `SPLIT`, `FAILED` |
+| `status` | VARCHAR | `READY`, `RUNNING`, `COMPLETED`, `PARTIAL`, `SPLIT`, `FAILED` |
 | `error_message` | VARCHAR | API 실패·최소 rect 포화 원인 |
+| `total_count` / `pageable_count` | INTEGER | 현재 rect에 대한 카카오 검색 결과 수와 페이지 조회 가능 수 |
 
-포화된 rect만 4등분하며, 500m 수준의 최소 rect에서도 포화되면 `FAILED`로 남겨 일부 결과를 조용히 저장하지 않는다.
+포화된 rect가 500m를 초과하면 4등분하고, 500m 이하부터는 긴 축을 기준으로 2등분한다. 최소 50m에서도 포화되면 첫 페이지 결과를 Temp에 저장하고 `PARTIAL`로 남긴다.
+
+### 📋 place_collection_temp
+
+카카오 원본 장소를 네이버로 1차 정제하고 AI 태깅에 넘기기 전까지 보관하는 임시 테이블이다. 최종 `places`에는 아직 저장하지 않는다.
+
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| `area_id` | BIGINT | 법정동 주소로 결정한 서비스 Area |
+| `provider`, `provider_place_id` | VARCHAR | 카카오 장소 중복 식별자 |
+| `default_place_type` | VARCHAR | 수집 프로필과 분류 규칙으로 정한 기본 타입 |
+| `name` ~ `phone` | VARCHAR / NUMERIC | 카카오 원본 장소 정보 |
+| `naver_title` ~ `naver_road_address_name` | VARCHAR | 주소 매칭으로 선택한 네이버 장소 정보 또는 이전·다른 지점 의심 후보 정보 |
+| `naver_search_url` | VARCHAR(1000) | 장소명에 지번주소의 동네명을 보완한 사용자용 네이버 지도 검색 링크 |
+| `processing_step` | VARCHAR | `NAVER_ENRICHMENT`, `AI_TAGGING` |
+| `status` | VARCHAR | `PENDING`, `PROCESSING`, `FAILED`, `COMPLETED` |
+| `attempt_count`, `last_attempt_at` | INTEGER / TIMESTAMP | 정제 시도 횟수와 마지막 시각 |
+| `error_code`, `error_message` | VARCHAR | 현재 단계의 실패 원인. `NAVER_POSSIBLE_RELOCATION`은 이름·카테고리가 유사하지만 주소가 다른 후보 |
+
+카카오 수집 직후에는 `NAVER_ENRICHMENT / PENDING`이다. 네이버 후보 중 지번주소 또는 도로명주소가 같은 장소를 선택하면 네이버 정보를 저장하고 `AI_TAGGING / PENDING`으로 전환한다. AI 태깅과 최종 `Place·PlaceTag` 저장이 끝나면 `AI_TAGGING / COMPLETED`가 된다.
 
 ---
 
@@ -201,11 +234,15 @@ Area·수집 프로필·rect 단위의 중단·분할 가능한 카카오 수집
 | `name` | VARCHAR(200) | | 장소명 |
 | `address_name` | VARCHAR(500) | | 지번 주소. nullable |
 | `road_address_name` | VARCHAR(500) | | 도로명 주소. nullable |
+| `source_category_name` | VARCHAR(500) | | 카카오 원본 상세 카테고리. nullable |
+| `source_category_group_code` | VARCHAR(20) | | 카카오 원본 주요 카테고리 코드. nullable 또는 빈 값 가능 |
 | `latitude` / `longitude` | NUMERIC(10,7) | | 위도 / 경도 |
-| `place_url` | VARCHAR(1000) | | 외부 상세 URL. nullable |
+| `place_url` | VARCHAR(1000) | | 카카오 등 수집 제공자의 원본 상세 URL. nullable |
+| `naver_search_url` | VARCHAR(1000) | | 정제 과정에서 생성한 네이버 지도 검색 링크. nullable |
 | `phone` | VARCHAR(50) | | 전화번호. nullable |
 | `is_anchor_candidate` | BOOLEAN | | 앵커 후보 노출 여부. 기본 `false` |
 | `is_active` | BOOLEAN | | 추천·수집 대상 활성 여부. 기본 `true` |
+| `priority_score` | INTEGER | ✅ CHECK | 운영상 추가 노출에 사용하는 우선도 점수. 기본 `0` |
 | `operating_hours` / `operating_days` | VARCHAR | | 운영 정보 원문. nullable |
 | `last_synced_at` | TIMESTAMP | | 외부 정보 마지막 동기화 시각 |
 | `created_at` / `updated_at` | TIMESTAMP | | 최초 생성 / DB 레코드 마지막 수정 시각 |
@@ -215,11 +252,12 @@ Area·수집 프로필·rect 단위의 중단·분할 가능한 카카오 수집
 - `uk_places_provider_place_id (provider, provider_place_id)` — 같은 제공자의 같은 장소 중복 수집 방지
 - `ck_places_provider` — `KAKAO`, `TOUR`만 허용
 - `ck_places_place_type` — `ACTIVITY`, `MEAL`, `CAFE`만 허용
+- `ck_places_priority_score_non_negative` — 우선도 점수는 0 이상
 - 장소 행동 집계는 `place_stats`에서 관리한다.
 
 **💡 설계 포인트**
 
-- 외부 제공자 원본 카테고리는 저장하지 않고, 서비스 분류인 `place_type`만 추천 기준으로 사용한다.
+- 카카오 원본 카테고리는 보존하고, `place_category_rules`가 매칭되면 `place_type`을 보정한다. 규칙이 없으면 수집 프로필 기본 타입을 사용한다.
 - `is_anchor_candidate=false`인 Place라도 사용자가 직접 선택하면 이번 코스의 앵커가 될 수 있다.
 - `updated_at`은 모든 DB 수정 시 갱신되고, `last_synced_at`은 외부 정보 최신화 배치의 기준이다.
 
@@ -308,16 +346,33 @@ Area·수집 프로필·rect 단위의 중단·분할 가능한 카카오 수집
 | `idx_place_tags_tag_place (tag_id, place_id)` | 선택한 키워드로 Place 후보를 역방향 조회 |
 | `idx_place_stats_selection_count (selection_count)` | 선택 횟수 기반 장소 통계 조회 |
 | `idx_course_stats_selection_count (selection_count)` | 선택 횟수 기반 코스 통계 조회 |
+| `idx_place_collection_temp_step_status_id (processing_step, status, id)` | 네이버·AI 단계별 대기 데이터를 오래된 순서로 배치 조회 |
 
 ```text
-외부 API 수집
-→ provider + provider_place_id로 기존 장소 확인
-→ 없으면 Place 생성
-→ 있으면 외부 정보 갱신 및 last_synced_at 갱신
+카카오 API 수집
+→ place_collection_temp에 원본 저장
+→ category_name·장소명에 분류 규칙 적용
+→ NAVER_ENRICHMENT / PENDING
 
-last_synced_at이 오래된 장소 조회
-→ 장소명 + 주소 또는 주변 좌표로 외부 API 재검색
-→ 일치 장소 정보 갱신
+네이버 1차 정제
+→ 장소명에 지번주소의 동명을 보완해 후보 최대 5개 검색, 일치 후보가 없으면 이름 + 도로명주소(없으면 지번주소)로 재검색
+→ 도로명주소를 우선 비교하고 지번주소를 보조 비교한다. 같은 주소·유사 상호 후보가 여러 개면 카카오·네이버 카테고리 공통 항목으로 한 번 더 선택한다.
+→ 사용자용 네이버 지도 검색 링크·카테고리·주소 저장
+→ AI_TAGGING / PENDING
+
+AI 태깅
+→ 활성 Tag 코드만 허용해 OpenAI Structured Outputs 요청
+→ PlaceType과 태그 가중치 검증
+→ 성공 시 최종 Place·PlaceTag 저장
+→ AI_TAGGING / COMPLETED
+
+초기 수집
+→ 카테고리 프로필 검색
+→ 키워드 프로필 검색
+→ 포화 rect 분할
+
+재수집
+→ 초기 수집과 분리된 갱신 전략을 별도 설계
 ```
 
 ---
@@ -334,3 +389,14 @@ last_synced_at이 오래된 장소 조회
 | V6 | `V6__add_course_context_options.sql` | 코스별 동행자 유형과 시간대 적합도 연결 |
 | V7 | `V7__add_course_impression_count.sql` | 추천 결과에 포함된 코스의 노출 횟수 추가 |
 | V8 | `V8__add_course_item_role.sql` | 장소 유형 `FOOD`를 `MEAL`로 이관하고 코스 일정 역할 추가 |
+| V9 | `V9__seed_seoul_areas.java` | 서울 서비스 Area와 초기 Kakao rect 범위 적재 |
+| V10 | `V10__create_place_collection.sql` | 카카오 수집 프로필·분할 Job 테이블 생성 |
+| V11 | `V11__add_partial_collection_job_status.sql` | 최소 rect 포화 시 일부 저장 상태 추가 |
+| V12 | `V12__add_place_category_classification.sql` | 카카오 원본 카테고리, DB 분류 규칙, 키워드 수집 프로필 추가 |
+| V13 | `V13__record_collection_search_counts.sql` | Job별 카카오 rect 검색 결과 수 기록 |
+| V14 | `V14__add_place_priority_score.sql` | 운영상 장소 노출 우선도 점수 추가 |
+| V15 | `V15__create_place_collection_temp.sql` | 카카오 원본과 네이버 1차 정제 결과를 보관하는 Temp 테이블 추가 |
+| V16 | `V16__complete_ai_tagging_status.sql` | AI 태깅 완료 상태 추가 |
+| V17 | `V17__store_naver_search_url.sql` | 네이버 검색 링크 명확화 및 최종 Place 저장 컬럼 추가 |
+| V18 | `V18__clear_legacy_naver_external_urls.sql` | 기존 업체 홈페이지·빈 링크 값을 임시 데이터에서 제거 |
+| V19 | `V19__clear_legacy_naver_search_urls.sql` | 기존 네이버 통합검색 링크를 제거하고 네이버 지도 검색 링크로 전환 |

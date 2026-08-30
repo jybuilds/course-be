@@ -35,3 +35,14 @@ kakao:
   local:
     base-url: https://dapi.kakao.com
     rest-api-key: ${KAKAO_REST_API_KEY:}
+
+naver:
+  search:
+    base-url: https://naverapihub.apigw.ntruss.com
+    client-id: ${NAVER_SEARCH_CLIENT_ID:}
+    client-secret: ${NAVER_SEARCH_API_KEY:}
+
+openai:
+  base-url: https://api.openai.com
+  api-key: ${OPENAI_API_KEY:}
+  model: ${OPENAI_MODEL:gpt-5.4-nano}

@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-/// 사용자의 입력과 태그를 기준으로 추천할 수 있도록 미리 저장한 대표 코스다.
+/// 사용자의 입력과 태그를 기준으로 추천할 수 있도록 미리 저장한 대표 코스다
 @Entity
 @Table(name = "courses")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

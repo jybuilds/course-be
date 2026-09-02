@@ -1,0 +1,83 @@
+{
+  "version": "course-backend-v2-2026-08-07",
+  "sourceMigration": "src/main/resources/db/migration/V2__create_recommendation_configuration.sql",
+  "weightScale": [5, 10, 15, 20, 25],
+  "activityCategories": [
+    { "code": "CULTURE", "name": "전시·문화" },
+    { "code": "WORKSHOP", "name": "공방·클래스" },
+    { "code": "PLAY", "name": "놀이·게임" },
+    { "code": "SPORT", "name": "스포츠·액티비티" },
+    { "code": "OUTDOOR", "name": "산책·자연" },
+    { "code": "SHOPPING", "name": "쇼핑·구경" },
+    { "code": "HEALING", "name": "휴식·힐링" },
+    { "code": "SEASONAL_EVENT", "name": "시즌·행사" }
+  ],
+  "preferenceGroups": [
+    {
+      "code": "COMPANION",
+      "name": "누구와 만나나요?",
+      "options": [
+        { "code": "DATE", "name": "데이트" },
+        { "code": "FRIENDS", "name": "친구" },
+        { "code": "FAMILY", "name": "가족" },
+        { "code": "SOLO", "name": "혼자" },
+        { "code": "COLLEAGUES", "name": "동료·모임" }
+      ]
+    },
+    {
+      "code": "OCCASION",
+      "name": "어떤 자리인가요?",
+      "options": [
+        { "code": "CASUAL_OUTING", "name": "가벼운 나들이" },
+        { "code": "SPECIAL_OCCASION", "name": "특별한 날·기념일" },
+        { "code": "TOURISM", "name": "지역 구경·관광" }
+      ]
+    },
+    {
+      "code": "ENVIRONMENT",
+      "name": "어디가 좋나요?",
+      "options": [
+        { "code": "INDOOR", "name": "실내" },
+        { "code": "OUTDOOR", "name": "야외" }
+      ]
+    },
+    {
+      "code": "ENERGY",
+      "name": "어떤 분위기가 좋나요?",
+      "options": [
+        { "code": "QUIET", "name": "조용한" },
+        { "code": "RELAXED", "name": "편안한" },
+        { "code": "ACTIVE", "name": "활동적인" },
+        { "code": "LIVELY", "name": "신나는·북적이는" }
+      ]
+    },
+    {
+      "code": "HIGHLIGHT",
+      "name": "오늘 무엇을 가장 중요하게 생각하나요?",
+      "options": [
+        { "code": "CONVERSATION", "name": "대화하기 좋은 곳" },
+        { "code": "UNIQUE_EXPERIENCE", "name": "색다른 경험" },
+        { "code": "SIGHTS_AND_PHOTOS", "name": "볼거리·사진" },
+        { "code": "TRENDY_PLACES", "name": "요즘 인기 있는 곳" }
+      ]
+    },
+    {
+      "code": "DATE_MOOD",
+      "name": "데이트 분위기를 더 골라볼까요?",
+      "options": [
+        { "code": "ROMANTIC", "name": "로맨틱한" },
+        { "code": "RELAXED", "name": "편안한" },
+        { "code": "ACTIVE", "name": "활동적인" }
+      ]
+    }
+  ],
+  "existingAnchors": [
+    { "code": "SEONGSU", "name": "성수동", "aliases": ["성수"] },
+    { "code": "SEOCHON", "name": "서촌", "aliases": ["서촌마을"] },
+    { "code": "HONGDAE_YEONNAM", "name": "홍대·연남", "aliases": ["홍대 연남", "홍대", "연남동"] },
+    { "code": "ITAEWON", "name": "이태원", "aliases": [] },
+    { "code": "IPARK_MALL", "name": "아이파크몰", "aliases": ["용산 아이파크몰"] },
+    { "code": "COEX", "name": "코엑스", "aliases": [] },
+    { "code": "THE_HYUNDAI_SEOUL", "name": "더현대 서울", "aliases": ["더현대"] }
+  ]
+}

@@ -1,0 +1,60 @@
+tag_code,option_name,display_order,is_active
+EXHIBITION,갤러리,1,true
+EXHIBITION,미술관,2,true
+EXHIBITION,박물관,3,true
+POPUP,팝업스토어,1,true
+POPUP,브랜드 체험,2,true
+SHOPPING,편집숍,1,true
+SHOPPING,빈티지숍,2,true
+SHOPPING,쇼핑몰,3,true
+MARKET,전통시장,1,true
+MARKET,플리마켓,2,true
+WALK,골목 구경,1,true
+WALK,동네 산책,2,true
+PARK,피크닉,1,true
+MOVIE,독립영화관,1,true
+PERFORMANCE,연극,1,true
+PERFORMANCE,뮤지컬,2,true
+PERFORMANCE,공연장,3,true
+BOOKSTORE,독립서점,1,true
+BOOKSTORE,대형서점,2,true
+WORKSHOP,원데이 클래스,1,true
+WORKSHOP,공예 체험,2,true
+GAME,오락실,1,true
+GAME,PC방,2,true
+BOARD_GAME,보드게임카페,1,true
+ESCAPE_ROOM,방탈출카페,1,true
+CAFE,커피,1,true
+BREAD,베이커리,1,true
+BREAD,빵집,2,true
+DESSERT,케이크,1,true
+DESSERT,아이스크림,2,true
+DESSERT,디저트 카페,3,true
+KOREAN_FOOD,국밥,1,true
+KOREAN_FOOD,고기,2,true
+KOREAN_FOOD,한식당,3,true
+JAPANESE_FOOD,스시,1,true
+JAPANESE_FOOD,라멘,2,true
+JAPANESE_FOOD,돈카츠,3,true
+JAPANESE_FOOD,이자카야,4,true
+WESTERN_FOOD,파스타,1,true
+WESTERN_FOOD,피자,2,true
+WESTERN_FOOD,스테이크,3,true
+ASIAN_FOOD,중식,1,true
+ASIAN_FOOD,태국 음식,2,true
+ASIAN_FOOD,베트남 음식,3,true
+ASIAN_FOOD,인도 음식,4,true
+QUIET,여유로운,1,true
+QUIET,대화하기 좋은,2,true
+LIVELY,사람 많은,1,true
+LIVELY,북적이는,2,true
+ROMANTIC,데이트 분위기,1,true
+TRENDY,요즘 뜨는,1,true
+TRENDY,감각적인,2,true
+COZY,편안한,1,true
+COZY,따뜻한,2,true
+INDOOR,날씨 영향 적은 실내 활동,1,true
+OUTDOOR,야외 활동,1,true
+SCENIC_VIEW,야경,1,true
+SCENIC_VIEW,루프탑,2,true
+SCENIC_VIEW,전망,3,true

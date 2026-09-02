@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "parentRegionName": "서울",
+  "commonSources": [
+    {
+      "url": "https://english.visitseoul.net/area",
+      "sourceType": "PUBLIC_TOURISM",
+      "label": "서울관광재단 지역별 탐색"
+    },
+    {
+      "url": "https://english.visitseoul.net/realtime-seoul",
+      "sourceType": "PUBLIC_TOURISM",
+      "label": "서울관광재단 주요 관광 권역"
+    }
+  ],
+  "regionSources": {
+    "SEOUL_JONGNO_JUNG": [
+      {
+        "url": "https://english.visitseoul.net/PalaceArea/Seochon-Hanok-Village/ENN000624",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 서촌"
+      },
+      {
+        "url": "https://english.visitseoul.net/City-Hall-Area/Eat-Drink-and-Rest-like-Seoulites-in-Euljiro/ENN031283",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 을지로"
+      },
+      {
+        "url": "https://english.visitseoul.net/attractions/dongdaemun-design-plaza-en/ENP024679",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 DDP"
+      }
+    ],
+    "SEOUL_MAPO_SEODAEMUN_EUNPYEONG": [],
+    "SEOUL_YONGSAN_SEONGDONG_GWANGJIN": [
+      {
+        "url": "https://english.visitseoul.net/area/Yeonmujang-gil/ENP7u7jrk",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 연무장길"
+      },
+      {
+        "url": "https://english.visitseoul.net/shopping/I-Park-Mall/ENP001702",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 아이파크몰"
+      },
+      {
+        "url": "https://english.visitseoul.net/nature/SeoulForest/ENP001838",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 서울숲"
+      },
+      {
+        "url": "https://english.visitseoul.net/attractions/The%20National%20Museum%20of%20Korea/ENP000433",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 국립중앙박물관"
+      }
+    ],
+    "SEOUL_GANGNAM_SEOCHO_SONGPA_GANGDONG": [
+      {
+        "url": "https://english.visitseoul.net/attractions/coex_/24664",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 코엑스"
+      },
+      {
+        "url": "https://english.visitseoul.net/shopping/Lotte%20World%20Mall/ENP015859",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 롯데월드몰"
+      }
+    ],
+    "SEOUL_YEONGDEUNGPO_DONGJAK_GWANAK_GEUMCHEON_GURO": [
+      {
+        "url": "https://english.visitseoul.net/shopping/The%20Hyundai%20Seoul/ENP037170",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 더현대 서울"
+      }
+    ],
+    "SEOUL_GANGSEO_YANGCHEON": [
+      {
+        "url": "https://english.visitseoul.net/attractions/seoul-botanic-park/ENP027397",
+        "sourceType": "PUBLIC_TOURISM",
+        "label": "서울관광재단 서울식물원"
+      }
+    ],
+    "SEOUL_SEONGBUK_GANGBUK_DOBONG_NOWON": [],
+    "SEOUL_DONGDAEMUN_JUNGNANG": []
+  }
+}

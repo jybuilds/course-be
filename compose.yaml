@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: course-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-course}
+      POSTGRES_USER: ${POSTGRES_USER:-course}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-course}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - course-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: course-app
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-course}
+      DB_USERNAME: ${POSTGRES_USER:-course}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-course}
+      KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:-}
+      NAVER_SEARCH_CLIENT_ID: ${NAVER_SEARCH_CLIENT_ID:-}
+      NAVER_SEARCH_API_KEY: ${NAVER_SEARCH_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+      OPENAI_ORGANIZATION: ${OPENAI_ORGANIZATION:-}
+      OPENAI_PROJECT: ${OPENAI_PROJECT:-}
+      PORT: 8080
+      SERVER_CONTEXT_PATH: ${SERVER_CONTEXT_PATH:-/course}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  course-postgres-data:

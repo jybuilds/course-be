@@ -1,0 +1,5 @@
+# One official/public source URL per line. Add or replace sources per collection run.
+https://english.visitseoul.net/realtime-seoul
+https://english.visitseoul.net/PalaceArea/Seochon-Hanok-Village/ENN000624
+https://english.visitseoul.net/City-Hall-Area/Eat-Drink-and-Rest-like-Seoulites-in-Euljiro/ENN031283
+https://english.visitseoul.net/attractions/dongdaemun-design-plaza-en/ENP024679

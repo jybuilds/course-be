@@ -1,0 +1,46 @@
+{
+  "code": "SEOUL",
+  "parentRegionName": "서울",
+  "collectionRegions": [
+    {
+      "code": "SEOUL_JONGNO_JUNG",
+      "name": "종로·중구",
+      "districts": ["종로구", "중구"]
+    },
+    {
+      "code": "SEOUL_MAPO_SEODAEMUN_EUNPYEONG",
+      "name": "마포·서대문·은평",
+      "districts": ["마포구", "서대문구", "은평구"]
+    },
+    {
+      "code": "SEOUL_YONGSAN_SEONGDONG_GWANGJIN",
+      "name": "용산·성동·광진",
+      "districts": ["용산구", "성동구", "광진구"]
+    },
+    {
+      "code": "SEOUL_GANGNAM_SEOCHO_SONGPA_GANGDONG",
+      "name": "강남·서초·송파·강동",
+      "districts": ["강남구", "서초구", "송파구", "강동구"]
+    },
+    {
+      "code": "SEOUL_YEONGDEUNGPO_DONGJAK_GWANAK_GEUMCHEON_GURO",
+      "name": "영등포·동작·관악·금천·구로",
+      "districts": ["영등포구", "동작구", "관악구", "금천구", "구로구"]
+    },
+    {
+      "code": "SEOUL_GANGSEO_YANGCHEON",
+      "name": "강서·양천",
+      "districts": ["강서구", "양천구"]
+    },
+    {
+      "code": "SEOUL_SEONGBUK_GANGBUK_DOBONG_NOWON",
+      "name": "성북·강북·도봉·노원",
+      "districts": ["성북구", "강북구", "도봉구", "노원구"]
+    },
+    {
+      "code": "SEOUL_DONGDAEMUN_JUNGNANG",
+      "name": "동대문·중랑",
+      "districts": ["동대문구", "중랑구"]
+    }
+  ]
+}

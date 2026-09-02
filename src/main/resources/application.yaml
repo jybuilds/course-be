@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: course_backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/course}
+    username: ${DB_USERNAME:course}
+    password: ${DB_PASSWORD:course}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+  sql:
+    init:
+      mode: never
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+kakao:
+  local:
+    base-url: https://dapi.kakao.com
+    rest-api-key: ${KAKAO_REST_API_KEY:}
+
+naver:
+  search:
+    base-url: https://naverapihub.apigw.ntruss.com
+    client-id: ${NAVER_SEARCH_CLIENT_ID:}
+    client-secret: ${NAVER_SEARCH_API_KEY:}
+
+openai:
+  base-url: https://api.openai.com
+  api-key: ${OPENAI_API_KEY:}
+  model: ${OPENAI_MODEL:gpt-5.6-luna}
+  organization: ${OPENAI_ORGANIZATION:}
+  project: ${OPENAI_PROJECT:}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>서울 서비스 Area 경계 확인</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    *{box-sizing:border-box}body{margin:0;color:#172033;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.bar{height:64px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb;background:#fff}.title{font-weight:700;font-size:18px}.sub{font-size:12px;color:#667085}.controls{font-size:12px;color:#475467}#map{height:calc(100vh - 64px);min-height:560px}.area-label{border:0;background:#ffffffdd;box-shadow:0 1px 3px #0003;color:#172033;font-size:10px;font-weight:700;padding:2px 4px;white-space:nowrap}.area-label:before{display:none}.leaflet-popup-content{line-height:1.6}.note{position:absolute;z-index:500;bottom:16px;left:16px;max-width:330px;padding:8px 10px;border-radius:7px;background:#fffffff2;box-shadow:0 1px 5px #0002;color:#475467;font-size:12px}
+  </style>
+</head>
+<body>
+  <header class="bar"><div><div class="title">서울 서비스 Area 경계 확인</div><div class="sub">467개 법정동을 29개 서비스 Area로 묶은 초기안</div></div><div class="controls"><label><input id="dong-border" type="checkbox" checked> 법정동 경계</label> <label><input id="collection-rect" type="checkbox" checked> 초기 수집 범위</label></div></header>
+  <div id="map"></div><div class="note">색상은 서비스 Area, 가는 선은 법정동 경계, 주황색 선은 초기 Kakao rect 수집 범위입니다. Place Area 배정에는 사용하지 않습니다.</div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map=L.map('map').setView([37.55,126.99],11);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+    const colorOf=name=>{let n=0;for(const ch of name)n=(n*31+ch.charCodeAt(0))>>>0;return `hsl(${n%360} 60% 52%)`};
+    const groups=new Map(), layer=L.layerGroup().addTo(map), collectionRectangles=L.layerGroup().addTo(map);
+    fetch('seoul-service-area-boundaries.geojson').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(data=>{const all=L.geoJSON(data,{style:f=>({color:'#fff',weight:1,fillColor:colorOf(f.properties.areaName),fillOpacity:.46}),onEachFeature:(f,l)=>{const p=f.properties;l.bindPopup(`<b>${p.areaName}</b><br>${p.legalDongName}<br><small>${p.legalDongCode}</small>`);const group=groups.get(p.areaName)||L.featureGroup();group.addLayer(l);groups.set(p.areaName,group)}}).addTo(layer);map.fitBounds(all.getBounds(),{padding:[20,20]});groups.forEach((group,name)=>L.marker(group.getBounds().getCenter(),{interactive:false,icon:L.divIcon({className:'area-label',html:name,iconSize:null})}).addTo(map));}).catch(error=>alert('경계 데이터를 불러오지 못했습니다: '+error.message));
+    fetch('seoul-area-collection-rectangles.geojson').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(data=>L.geoJSON(data,{style:{color:'#f97316',weight:2,fill:false,dashArray:'6 5'},onEachFeature:(f,l)=>{const p=f.properties;l.bindPopup(`<b>${p.areaName}</b><br>초기 수집 범위<br><small>${p.areaCode}</small>`);}}).addTo(collectionRectangles)).catch(error=>alert('수집 범위 데이터를 불러오지 못했습니다: '+error.message));
+    document.querySelector('#dong-border').onchange=e=>layer.eachLayer(l=>l.setStyle({weight:e.target.checked?1:0}));
+    document.querySelector('#collection-rect').onchange=e=>e.target.checked?collectionRectangles.addTo(map):map.removeLayer(collectionRectangles);
+  </script>
+</body>
+</html>

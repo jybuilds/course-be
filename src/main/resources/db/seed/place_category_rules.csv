@@ -1,0 +1,6 @@
+keyword,target_place_type,priority,is_active
+방탈출,ACTIVITY,100,true
+보드게임,ACTIVITY,100,true
+보드카페,ACTIVITY,100,true
+키즈카페,ACTIVITY,100,true
+브런치,MEAL,90,true

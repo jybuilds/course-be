@@ -48,6 +48,9 @@ public class PlaceCollectionTemp {
     @Column(name = "default_place_type", nullable = false, length = 20)
     private PlaceType defaultPlaceType;
 
+    @Column(name = "place_type_finalized", nullable = false)
+    private boolean placeTypeFinalized;
+
     @Column(nullable = false, length = 200)
     private String name;
 
@@ -149,11 +152,47 @@ public class PlaceCollectionTemp {
             String kakaoPlaceUrl,
             String phone
     ) {
+        return create(
+                area,
+                provider,
+                providerPlaceId,
+                defaultPlaceType,
+                false,
+                name,
+                addressName,
+                roadAddressName,
+                kakaoCategoryName,
+                kakaoCategoryGroupCode,
+                latitude,
+                longitude,
+                kakaoPlaceUrl,
+                phone
+        );
+    }
+
+    // 카카오 원본과 Type 확정 여부를 함께 저장해 네이버 정제를 시작한다.
+    public static PlaceCollectionTemp create(
+            Area area,
+            PlaceProvider provider,
+            String providerPlaceId,
+            PlaceType defaultPlaceType,
+            boolean placeTypeFinalized,
+            String name,
+            String addressName,
+            String roadAddressName,
+            String kakaoCategoryName,
+            String kakaoCategoryGroupCode,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            String kakaoPlaceUrl,
+            String phone
+    ) {
         PlaceCollectionTemp temp = new PlaceCollectionTemp();
         temp.area = area;
         temp.provider = provider;
         temp.providerPlaceId = providerPlaceId;
         temp.defaultPlaceType = defaultPlaceType;
+        temp.placeTypeFinalized = placeTypeFinalized;
         temp.name = name;
         temp.addressName = addressName;
         temp.roadAddressName = roadAddressName;
@@ -172,6 +211,7 @@ public class PlaceCollectionTemp {
     public void refreshKakao(
             Area area,
             PlaceType defaultPlaceType,
+            boolean placeTypeFinalized,
             String name,
             String addressName,
             String roadAddressName,
@@ -184,6 +224,7 @@ public class PlaceCollectionTemp {
     ) {
         this.area = area;
         this.defaultPlaceType = defaultPlaceType;
+        this.placeTypeFinalized = placeTypeFinalized;
         this.name = name;
         this.addressName = addressName;
         this.roadAddressName = roadAddressName;
@@ -220,6 +261,33 @@ public class PlaceCollectionTemp {
             NaverBlogCollectionStatus blogStatus,
             String blogErrorMessage
     ) {
+        completeNaverEnrichment(
+                placeType,
+                false,
+                title,
+                searchUrl,
+                category,
+                address,
+                roadAddress,
+                blogEvidence,
+                blogStatus,
+                blogErrorMessage
+        );
+    }
+
+    // 매칭된 네이버 정보와 Type 확정 여부를 저장하고 AI 태깅 대기로 전환한다.
+    public void completeNaverEnrichment(
+            PlaceType placeType,
+            boolean placeTypeFinalized,
+            String title,
+            String searchUrl,
+            String category,
+            String address,
+            String roadAddress,
+            String blogEvidence,
+            NaverBlogCollectionStatus blogStatus,
+            String blogErrorMessage
+    ) {
         requireNaverStep();
         if (status != PlaceCollectionTempStatus.PROCESSING) {
             throw new IllegalStateException("처리 중인 장소만 네이버 정제를 완료할 수 있습니다.");
@@ -234,6 +302,7 @@ public class PlaceCollectionTemp {
         naverBlogErrorMessage = blogErrorMessage;
         naverMatchedAt = LocalDateTime.now();
         defaultPlaceType = placeType;
+        this.placeTypeFinalized = placeTypeFinalized;
         processingStep = PlaceCollectionStep.AI_TAGGING;
         status = PlaceCollectionTempStatus.PENDING;
         clearError();
@@ -290,6 +359,19 @@ public class PlaceCollectionTemp {
         status = PlaceCollectionTempStatus.COMPLETED;
         aiBatchJobId = null;
         clearError();
+    }
+
+    // 확정되지 않은 타입만 AI의 네이버 카테고리 판정으로 확정한다.
+    public PlaceType applyAiPlaceType(PlaceType placeType) {
+        if (placeTypeFinalized) {
+            return defaultPlaceType;
+        }
+        if (placeType == null) {
+            throw new IllegalArgumentException("AI PlaceType이 비어 있습니다.");
+        }
+        defaultPlaceType = placeType;
+        placeTypeFinalized = true;
+        return defaultPlaceType;
     }
 
     // 현재 단계의 실패 원인을 기록하고 재시도 가능한 상태로 남긴다.

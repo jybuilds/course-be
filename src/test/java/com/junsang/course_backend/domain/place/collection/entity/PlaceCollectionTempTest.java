@@ -77,6 +77,17 @@ class PlaceCollectionTempTest {
         assertThat(temp.getAttemptCount()).isEqualTo(2);
     }
 
+    @Test
+    void finalizesAnUnresolvedPlaceTypeWithTheAiResult() {
+        PlaceCollectionTemp temp = createTemp();
+
+        PlaceType placeType = temp.applyAiPlaceType(PlaceType.MEAL);
+
+        assertThat(placeType).isEqualTo(PlaceType.MEAL);
+        assertThat(temp.getDefaultPlaceType()).isEqualTo(PlaceType.MEAL);
+        assertThat(temp.isPlaceTypeFinalized()).isTrue();
+    }
+
     private PlaceCollectionTemp createTemp() {
         return PlaceCollectionTemp.create(
                 Mockito.mock(Area.class),

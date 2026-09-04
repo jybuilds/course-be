@@ -68,6 +68,7 @@ public class OpenAiClient {
 
             // Responses API의 output 배열에서 JSON Schema 결과 텍스트를 추출한다.
             return outputText(response);
+
         } catch (RestClientResponseException exception) {
             log.warn("OpenAI Responses API failed: status={}", exception.getStatusCode());
             throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);

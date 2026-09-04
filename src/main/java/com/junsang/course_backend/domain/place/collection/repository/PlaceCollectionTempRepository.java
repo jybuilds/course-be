@@ -7,7 +7,9 @@ import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinement
 import com.junsang.course_backend.domain.place.entity.PlaceProvider;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,7 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             String providerPlaceId
     );
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<PlaceCollectionTemp> findByProcessingStepAndStatusOrderByIdAsc(
             PlaceCollectionStep processingStep,
             PlaceCollectionTempStatus status,
@@ -46,6 +49,7 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
               )
             order by temp.id asc
             """)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<PlaceCollectionTemp> findAiBatchSubmissionTargets(
             @Param("processingStep") PlaceCollectionStep processingStep,
             @Param("pendingStatus") PlaceCollectionTempStatus pendingStatus,
@@ -69,6 +73,7 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
               )
             order by temp.id asc
             """)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<PlaceCollectionTemp> findAiBatchSubmissionTargetsByAreaId(
             @Param("areaId") Long areaId,
             @Param("processingStep") PlaceCollectionStep processingStep,
@@ -81,4 +86,12 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
     long countByAreaId(Long areaId);
 
     List<PlaceCollectionTemp> findByAiBatchJobIdOrderById(Long aiBatchJobId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select temp
+            from PlaceCollectionTemp temp
+            where temp.id = :tempId
+            """)
+    Optional<PlaceCollectionTemp> findByIdForUpdate(@Param("tempId") Long tempId);
 }

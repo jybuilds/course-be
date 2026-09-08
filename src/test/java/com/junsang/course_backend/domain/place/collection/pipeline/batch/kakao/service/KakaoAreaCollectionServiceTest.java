@@ -52,7 +52,8 @@ class KakaoAreaCollectionServiceTest {
         Area area = mock(Area.class);
         PlaceCollectionProfile profile = mock(PlaceCollectionProfile.class);
         when(areaRepository.findById(4L)).thenReturn(Optional.of(area));
-        when(areaRepository.findByCode("SEOUL_SINCHON_EWHA")).thenReturn(Optional.of(area));
+        when(areaRepository.findByCodeIn(any())).thenReturn(List.of(area));
+        when(area.getCode()).thenReturn("SEOUL_SINCHON_EWHA");
         when(profileRepository.findByProviderAndIsActiveTrueOrderById(PlaceProvider.KAKAO))
                 .thenReturn(List.of(profile));
         when(profile.getId()).thenReturn(1L);
@@ -66,8 +67,7 @@ class KakaoAreaCollectionServiceTest {
                 .thenReturn(new PlaceTypeClassifier.PlaceTypeClassification(PlaceType.CAFE, false));
         when(areaResolver.resolveAreaCode("서울 서대문구 창천동 18-11"))
                 .thenReturn("SEOUL_SINCHON_EWHA");
-        when(tempRepository.findByProviderAndProviderPlaceId(PlaceProvider.KAKAO, "27329834"))
-                .thenReturn(Optional.empty());
+        when(tempRepository.findByProviderAndProviderPlaceIdIn(any(), any())).thenReturn(List.of());
         when(kakaoLocalClient.searchCategory(any())).thenReturn(new KakaoKeywordSearchResponse(
                 new KakaoSearchMeta(1, 1, true),
                 List.of(new KakaoPlaceDocument(
@@ -88,6 +88,6 @@ class KakaoAreaCollectionServiceTest {
 
         service.collectArea(4L);
 
-        verify(tempRepository).save(any(PlaceCollectionTemp.class));
+        verify(tempRepository).saveAll(any());
     }
 }

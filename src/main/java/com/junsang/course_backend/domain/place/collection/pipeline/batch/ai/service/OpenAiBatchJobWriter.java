@@ -28,7 +28,7 @@ public class OpenAiBatchJobWriter {
                 PlaceCollectionStep.AI_TAGGING,
                 PlaceCollectionTempStatus.PENDING,
                 PlaceCollectionTempStatus.FAILED,
-                PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED,
+                retryableSubmissionErrorCodes(),
                 PageRequest.of(0, limit)
         );
         return claim(targets);
@@ -42,7 +42,7 @@ public class OpenAiBatchJobWriter {
                 PlaceCollectionStep.AI_TAGGING,
                 PlaceCollectionTempStatus.PENDING,
                 PlaceCollectionTempStatus.FAILED,
-                PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED,
+                retryableSubmissionErrorCodes(),
                 PageRequest.of(0, limit)
         );
         return claim(targets);
@@ -58,16 +58,21 @@ public class OpenAiBatchJobWriter {
 
     // 원격 제출·처리 실패 시 Temp와 Job을 함께 실패 처리한다.
     @Transactional
-    public void fail(Long jobId, String errorMessage) {
+    public void fail(
+            Long jobId,
+            PlaceRefinementErrorCode errorCode,
+            String errorMessage
+    ) {
+        // 아직 이 Job에 묶여 있는 Temp만 실패 처리한다. 완료된 Temp는 writer.complete에서 Job 연결이 해제된다.
         List<PlaceCollectionTemp> targets = tempRepository.findByAiBatchJobIdOrderById(jobId);
         targets.forEach(target -> target.fail(
-                PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED,
+                errorCode,
                 errorMessage
         ));
         tempRepository.saveAll(targets);
 
         OpenAiBatchTaggingJob job = find(jobId);
-        job.fail(errorMessage);
+        job.fail(errorCode, errorMessage);
         jobRepository.save(job);
     }
 
@@ -90,10 +95,21 @@ public class OpenAiBatchJobWriter {
         if (targets.isEmpty()) {
             return null;
         }
+
+        // 원격 호출 전에 Job ID를 먼저 발급해 동시 제출 시 같은 Temp가 두 Batch에 들어가는 일을 막는다.
         OpenAiBatchTaggingJob job = jobRepository.save(OpenAiBatchTaggingJob.submitting(targets.size()));
         targets.forEach(target -> target.startAiBatchTagging(job.getId()));
         tempRepository.saveAll(targets);
         return new BatchClaim(job.getId(), targets);
+    }
+
+    // 원격 요청 자체가 끝나지 않은 경우만 새 Batch 제출 대상으로 다시 잡는다.
+    private List<PlaceRefinementErrorCode> retryableSubmissionErrorCodes() {
+        return List.of(
+                PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED,
+                PlaceRefinementErrorCode.OPENAI_BATCH_SUBMISSION_FAILED,
+                PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED
+        );
     }
 
     public record BatchClaim(Long jobId, List<PlaceCollectionTemp> targets) {

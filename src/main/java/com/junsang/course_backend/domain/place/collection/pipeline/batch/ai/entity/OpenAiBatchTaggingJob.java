@@ -1,5 +1,6 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.batch.ai.entity;
 
+import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -39,6 +40,10 @@ public class OpenAiBatchTaggingJob {
     @Column(name = "error_message", length = 1000)
     private String errorMessage;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "error_code", length = 100)
+    private PlaceRefinementErrorCode errorCode;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -57,18 +62,21 @@ public class OpenAiBatchTaggingJob {
     public void submit(String openAiBatchId) {
         this.openAiBatchId = openAiBatchId;
         status = OpenAiBatchTaggingStatus.SUBMITTED;
+        errorCode = null;
         errorMessage = null;
     }
 
     // 결과 저장이 끝난 Job을 완료 처리한다.
     public void complete() {
         status = OpenAiBatchTaggingStatus.COMPLETED;
+        errorCode = null;
         errorMessage = null;
     }
 
     // 외부 제출 또는 결과 처리 실패 원인을 보관한다.
-    public void fail(String errorMessage) {
+    public void fail(PlaceRefinementErrorCode errorCode, String errorMessage) {
         status = OpenAiBatchTaggingStatus.FAILED;
+        this.errorCode = errorCode;
         this.errorMessage = errorMessage;
     }
 

@@ -107,6 +107,11 @@ public class PlaceCollectionTemp {
     private String naverBlogErrorMessage;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "naver_blog_error_code", length = 100)
+    // 블로그는 보조 자료이므로 정제 상태와 분리해 실패 원인만 보관한다.
+    private PlaceRefinementErrorCode naverBlogErrorCode;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "processing_step", nullable = false, length = 30)
     private PlaceCollectionStep processingStep;
 
@@ -271,6 +276,35 @@ public class PlaceCollectionTemp {
                 roadAddress,
                 blogEvidence,
                 blogStatus,
+                null,
+                blogErrorMessage
+        );
+    }
+
+    // 블로그 오류 코드까지 함께 저장해야 하는 수집 파이프라인용 완료 처리다.
+    public void completeNaverEnrichment(
+            PlaceType placeType,
+            String title,
+            String searchUrl,
+            String category,
+            String address,
+            String roadAddress,
+            String blogEvidence,
+            NaverBlogCollectionStatus blogStatus,
+            PlaceRefinementErrorCode blogErrorCode,
+            String blogErrorMessage
+    ) {
+        completeNaverEnrichment(
+                placeType,
+                false,
+                title,
+                searchUrl,
+                category,
+                address,
+                roadAddress,
+                blogEvidence,
+                blogStatus,
+                blogErrorCode,
                 blogErrorMessage
         );
     }
@@ -286,6 +320,7 @@ public class PlaceCollectionTemp {
             String roadAddress,
             String blogEvidence,
             NaverBlogCollectionStatus blogStatus,
+            PlaceRefinementErrorCode blogErrorCode,
             String blogErrorMessage
     ) {
         requireNaverStep();
@@ -299,6 +334,7 @@ public class PlaceCollectionTemp {
         naverRoadAddressName = roadAddress;
         naverBlogEvidence = blogEvidence;
         naverBlogStatus = blogStatus;
+        naverBlogErrorCode = blogErrorCode;
         naverBlogErrorMessage = blogErrorMessage;
         naverMatchedAt = LocalDateTime.now();
         defaultPlaceType = placeType;

@@ -12,6 +12,7 @@ import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinement
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
 import com.junsang.course_backend.domain.place.entity.Tag;
 import com.junsang.course_backend.domain.place.repository.TagRepository;
+import com.junsang.course_backend.global.exception.BusinessException;
 import com.junsang.course_backend.infra.openai.batch.OpenAiBatchClient;
 import com.junsang.course_backend.infra.openai.config.OpenAiProperties;
 import java.util.ArrayList;
@@ -62,13 +63,22 @@ public class OpenAiBatchTaggingService {
             return null;
         }
 
+        // 제출 시점의 활성 태그를 스키마에 고정해 비활성·임의 태그 응답을 차단한다.
         List<Tag> tags = tagRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
         try {
             String batchId = openAiBatchClient.submit(createJsonLines(claim.targets(), tags));
             batchJobWriter.markSubmitted(claim.jobId(), batchId);
+        } catch (BusinessException exception) {
+            // 키 누락·외부 API 실패는 Temp와 로컬 Batch Job에 같은 사유로 남긴다.
+            batchJobWriter.fail(claim.jobId(), openAiErrorCode(exception), exception.getMessage());
+            throw exception;
         } catch (RuntimeException exception) {
             // 외부 제출 실패로 PROCESSING 상태가 남지 않도록 즉시 재시도 가능한 실패로 되돌린다.
-            batchJobWriter.fail(claim.jobId(), messageOf(exception));
+            batchJobWriter.fail(
+                    claim.jobId(),
+                    PlaceRefinementErrorCode.OPENAI_BATCH_SUBMISSION_FAILED,
+                    messageOf(exception)
+            );
             throw exception;
         }
         return claim.jobId();
@@ -84,49 +94,101 @@ public class OpenAiBatchTaggingService {
         try {
             output = openAiBatchClient.completedOutput(job.getOpenAiBatchId());
         } catch (IllegalStateException exception) {
-            batchJobWriter.fail(jobId, messageOf(exception));
+            batchJobWriter.fail(
+                    jobId,
+                    PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED,
+                    messageOf(exception)
+            );
             return false;
         } catch (RuntimeException exception) {
             throw exception;
         }
         if (output == null) {
+            // OpenAI가 아직 처리 중이면 SUBMITTED 상태를 유지해 스케줄러가 다음 주기에 다시 조회한다.
             return false;
         }
+
+        // 결과 적용 중 태그를 매번 재조회하지 않도록 현재 활성 태그를 한 번만 맵으로 만든다.
         Map<String, Tag> tags = tagRepository.findByIsActiveTrueOrderByDisplayOrderAsc().stream()
                 .collect(Collectors.toMap(Tag::getCode, Function.identity()));
         Set<Long> targetIds = tempRepository.findByAiBatchJobIdOrderById(jobId).stream()
                 .map(PlaceCollectionTemp::getId)
                 .collect(Collectors.toCollection(HashSet::new));
+        BatchOutputFailure failure = null;
         for (String line : output.lines().toList()) {
-            applyLine(line, tags, targetIds);
+            // 한 JSONL 줄의 실패가 다른 줄의 정상 결과 반영을 막지 않게 끝까지 처리한다.
+            BatchOutputFailure lineFailure = applyLine(line, tags, targetIds);
+            if (failure == null && lineFailure != null) {
+                failure = lineFailure;
+            }
         }
 
-        // 응답 오류 등으로 저장되지 않은 대상만 실패 처리해 다음 Batch에서 재시도할 수 있게 한다.
-        tempRepository.findByAiBatchJobIdOrderById(jobId).forEach(temp -> writer.fail(
-                temp.getId(),
-                PlaceRefinementErrorCode.AI_RESPONSE_INVALID,
-                "OpenAI Batch 결과를 처리하지 못했습니다."
-        ));
+        if (failure != null) {
+            // 한 줄이라도 구조·검증 오류가 있으면 아직 남은 Temp와 Batch Job을 같은 코드로 실패 처리한다.
+            batchJobWriter.fail(jobId, failure.errorCode(), failure.message());
+            return false;
+        }
+        if (!targetIds.isEmpty()) {
+            // JSON Schema가 있어도 일부 결과가 누락될 수 있으므로 요청 ID 전체 소비 여부를 마지막에 확인한다.
+            batchJobWriter.fail(
+                    jobId,
+                    PlaceRefinementErrorCode.AI_BATCH_OUTPUT_INVALID,
+                    "OpenAI Batch 결과에 요청한 Temp 일부가 없습니다: " + targetIds
+            );
+            return false;
+        }
         batchJobWriter.complete(jobId);
         return true;
     }
 
     // OpenAI Batch의 JSONL 한 줄에서 최대 10개 Place의 구조화 응답을 꺼내 최종 저장한다.
-    private void applyLine(String line, Map<String, Tag> tags, Set<Long> targetIds) {
+    private BatchOutputFailure applyLine(String line, Map<String, Tag> tags, Set<Long> targetIds) {
         try {
+            // Batch API는 JSONL 외피 안에 Responses API의 구조화 텍스트를 넣어 반환한다.
             JsonNode body = objectMapper.readTree(line).path("response").path("body");
-            String text = body.path("output").get(0).path("content").get(0).path("text").asText();
+            JsonNode output = body.path("output");
+            if (!output.isArray() || output.isEmpty()) {
+                throw new IllegalArgumentException("OpenAI Batch 응답에 output이 없습니다.");
+            }
+            JsonNode content = output.get(0).path("content");
+            if (!content.isArray() || content.isEmpty()) {
+                throw new IllegalArgumentException("OpenAI Batch 응답에 content가 없습니다.");
+            }
+            String text = content.get(0).path("text").asText();
+            if (text.isBlank()) {
+                throw new IllegalArgumentException("OpenAI Batch 응답 본문이 비어 있습니다.");
+            }
             AiTaggingResultBatch batch = objectMapper.readValue(text, AiTaggingResultBatch.class);
 
             // 한 Responses 요청에 포함한 모든 Place 결과를 각각 저장한다.
             for (AiTaggingResult result : batch.results()) {
                 if (result == null || result.tempId() == null || !targetIds.remove(result.tempId())) {
-                    throw new IllegalArgumentException("OpenAI Batch 결과의 Temp ID가 요청 대상과 일치하지 않습니다.");
+                    return new BatchOutputFailure(
+                            PlaceRefinementErrorCode.AI_RESPONSE_TARGET_MISMATCH,
+                            "OpenAI Batch 결과의 Temp ID가 요청 대상과 일치하지 않습니다."
+                    );
                 }
                 writer.complete(result.tempId(), result, tags);
             }
-        } catch (Exception exception) {
-            // 개별 응답 오류는 다른 Batch 결과 저장을 막지 않는다.
+            return null;
+        } catch (com.fasterxml.jackson.core.JsonProcessingException exception) {
+            // JSONL 외피 또는 구조화 응답 JSON을 읽지 못한 경우다.
+            return new BatchOutputFailure(
+                    PlaceRefinementErrorCode.AI_RESPONSE_PARSE_FAILED,
+                    messageOf(exception)
+            );
+        } catch (IllegalArgumentException exception) {
+            // output/content 누락처럼 응답 형식이 계약과 다른 경우다.
+            return new BatchOutputFailure(
+                    PlaceRefinementErrorCode.AI_BATCH_OUTPUT_INVALID,
+                    messageOf(exception)
+            );
+        } catch (RuntimeException exception) {
+            // Place·PlaceTag 저장 전 검증 실패는 태그 검증 오류로 남긴다.
+            return new BatchOutputFailure(
+                    PlaceRefinementErrorCode.AI_TAG_VALIDATION_FAILED,
+                    messageOf(exception)
+            );
         }
     }
 
@@ -231,9 +293,24 @@ public class OpenAiBatchTaggingService {
         return value == null ? "" : value;
     }
 
-    private String messageOf(RuntimeException exception) {
+    private String messageOf(Exception exception) {
         return exception.getMessage() == null
                 ? exception.getClass().getSimpleName()
                 : exception.getMessage();
+    }
+
+    // OpenAI 인프라 오류를 Temp와 Batch Job에 남길 세부 코드로 변환한다.
+    private PlaceRefinementErrorCode openAiErrorCode(BusinessException exception) {
+        return switch (exception.getErrorCode()) {
+            case OPENAI_API_KEY_NOT_CONFIGURED -> PlaceRefinementErrorCode.OPENAI_API_KEY_NOT_CONFIGURED;
+            case OPENAI_API_EMPTY_RESPONSE -> PlaceRefinementErrorCode.OPENAI_API_EMPTY_RESPONSE;
+            default -> PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED;
+        };
+    }
+
+    private record BatchOutputFailure(
+            PlaceRefinementErrorCode errorCode,
+            String message
+    ) {
     }
 }

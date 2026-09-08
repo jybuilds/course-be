@@ -5,6 +5,7 @@ import com.junsang.course_backend.domain.place.collection.entity.PlaceCollection
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
 import com.junsang.course_backend.domain.place.entity.PlaceProvider;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import jakarta.persistence.LockModeType;
@@ -19,6 +20,11 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
     Optional<PlaceCollectionTemp> findByProviderAndProviderPlaceId(
             PlaceProvider provider,
             String providerPlaceId
+    );
+
+    List<PlaceCollectionTemp> findByProviderAndProviderPlaceIdIn(
+            PlaceProvider provider,
+            Collection<String> providerPlaceIds
     );
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -44,7 +50,7 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
                     temp.status = :pendingStatus
                     or (
                         temp.status = :failedStatus
-                        and temp.errorCode = :retryableErrorCode
+                        and temp.errorCode in :retryableErrorCodes
                     )
               )
             order by temp.id asc
@@ -54,7 +60,7 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             @Param("processingStep") PlaceCollectionStep processingStep,
             @Param("pendingStatus") PlaceCollectionTempStatus pendingStatus,
             @Param("failedStatus") PlaceCollectionTempStatus failedStatus,
-            @Param("retryableErrorCode") PlaceRefinementErrorCode retryableErrorCode,
+            @Param("retryableErrorCodes") List<PlaceRefinementErrorCode> retryableErrorCodes,
             Pageable pageable
     );
 
@@ -68,7 +74,7 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
                     temp.status = :pendingStatus
                     or (
                         temp.status = :failedStatus
-                        and temp.errorCode = :retryableErrorCode
+                        and temp.errorCode in :retryableErrorCodes
                     )
               )
             order by temp.id asc
@@ -79,7 +85,7 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             @Param("processingStep") PlaceCollectionStep processingStep,
             @Param("pendingStatus") PlaceCollectionTempStatus pendingStatus,
             @Param("failedStatus") PlaceCollectionTempStatus failedStatus,
-            @Param("retryableErrorCode") PlaceRefinementErrorCode retryableErrorCode,
+            @Param("retryableErrorCodes") List<PlaceRefinementErrorCode> retryableErrorCodes,
             Pageable pageable
     );
 

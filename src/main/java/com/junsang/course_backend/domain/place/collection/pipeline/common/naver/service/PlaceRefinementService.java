@@ -10,7 +10,6 @@ import com.junsang.course_backend.domain.place.collection.pipeline.common.naver.
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.PlaceCategoryRule;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.service.PlaceTypeClassifier;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
-import com.junsang.course_backend.domain.place.entity.PlaceType;
 import com.junsang.course_backend.global.exception.BusinessException;
 import com.junsang.course_backend.infra.naver.NaverBlogClient;
 import com.junsang.course_backend.infra.naver.NaverLocalClient;
@@ -73,6 +72,7 @@ public class PlaceRefinementService {
                     matched.roadAddress(),
                     blogEvidence.value(),
                     blogEvidence.status(),
+                    blogEvidence.errorCode(),
                     blogEvidence.errorMessage()
             );
         } catch (PossibleRelocationException exception) {
@@ -80,7 +80,7 @@ public class PlaceRefinementService {
         } catch (PlaceRefinementException exception) {
             temp = writer.fail(tempId, exception.getErrorCode(), exception.getMessage());
         } catch (BusinessException exception) {
-            temp = writer.fail(tempId, PlaceRefinementErrorCode.NAVER_API_REQUEST_FAILED, exception.getMessage());
+            temp = writer.fail(tempId, naverErrorCode(exception), exception.getMessage());
         } catch (RuntimeException exception) {
             temp = writer.fail(tempId, PlaceRefinementErrorCode.UNEXPECTED_ERROR, messageOf(exception));
         }
@@ -182,12 +182,13 @@ public class PlaceRefinementService {
                     ).items()
             );
             return evidence.isBlank()
-                    ? new BlogEvidenceResult("", NaverBlogCollectionStatus.EMPTY, null)
-                    : new BlogEvidenceResult(evidence, NaverBlogCollectionStatus.COLLECTED, null);
+                    ? new BlogEvidenceResult("", NaverBlogCollectionStatus.EMPTY, null, null)
+                    : new BlogEvidenceResult(evidence, NaverBlogCollectionStatus.COLLECTED, null, null);
         } catch (BusinessException exception) {
             return new BlogEvidenceResult(
                     "",
                     NaverBlogCollectionStatus.FAILED,
+                    naverBlogErrorCode(exception),
                     exception.getMessage()
             );
         }
@@ -234,6 +235,26 @@ public class PlaceRefinementService {
                 : exception.getMessage();
     }
 
+    // 인프라 HTTP 오류를 Temp의 네이버 정제 오류 코드로 변환한다.
+    private PlaceRefinementErrorCode naverErrorCode(BusinessException exception) {
+        return switch (exception.getErrorCode()) {
+            case NAVER_SEARCH_API_KEY_NOT_CONFIGURED -> PlaceRefinementErrorCode.NAVER_SEARCH_API_KEY_NOT_CONFIGURED;
+            case NAVER_LOCAL_API_EMPTY_RESPONSE -> PlaceRefinementErrorCode.NAVER_LOCAL_API_EMPTY_RESPONSE;
+            case NAVER_LOCAL_API_REQUEST_FAILED -> PlaceRefinementErrorCode.NAVER_LOCAL_API_REQUEST_FAILED;
+            default -> PlaceRefinementErrorCode.NAVER_API_REQUEST_FAILED;
+        };
+    }
+
+    // 블로그 보조 자료 실패는 정제를 막지 않고, 별도 오류 코드만 보관한다.
+    private PlaceRefinementErrorCode naverBlogErrorCode(BusinessException exception) {
+        return switch (exception.getErrorCode()) {
+            case NAVER_SEARCH_API_KEY_NOT_CONFIGURED -> PlaceRefinementErrorCode.NAVER_SEARCH_API_KEY_NOT_CONFIGURED;
+            case NAVER_BLOG_API_EMPTY_RESPONSE -> PlaceRefinementErrorCode.NAVER_BLOG_API_EMPTY_RESPONSE;
+            case NAVER_BLOG_API_REQUEST_FAILED -> PlaceRefinementErrorCode.NAVER_BLOG_API_REQUEST_FAILED;
+            default -> PlaceRefinementErrorCode.NAVER_API_REQUEST_FAILED;
+        };
+    }
+
     private static class PossibleRelocationException extends RuntimeException {
 
         private final NaverLocalItem candidate;
@@ -250,6 +271,7 @@ public class PlaceRefinementService {
     private record BlogEvidenceResult(
             String value,
             NaverBlogCollectionStatus status,
+            PlaceRefinementErrorCode errorCode,
             String errorMessage
     ) {
     }

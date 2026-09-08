@@ -1,6 +1,7 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.batch.kakao.entity;
 
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.CollectionSearchType;
+import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
 import com.junsang.course_backend.domain.place.entity.Area;
 import com.junsang.course_backend.domain.place.entity.PlaceType;
 import jakarta.persistence.Column;
@@ -89,6 +90,10 @@ public class PlaceCollectionJob {
     @Column(name = "error_message", length = 500)
     private String errorMessage;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "error_code", length = 100)
+    private PlaceRefinementErrorCode errorCode;
+
     @Column(name = "total_count")
     private Integer totalCount;
 
@@ -171,6 +176,7 @@ public class PlaceCollectionJob {
     public void start() {
         status = CollectionJobStatus.RUNNING;
         startedAt = LocalDateTime.now();
+        errorCode = null;
         errorMessage = null;
     }
 
@@ -184,18 +190,22 @@ public class PlaceCollectionJob {
     public void complete() {
         status = CollectionJobStatus.COMPLETED;
         completedAt = LocalDateTime.now();
+        errorCode = null;
+        errorMessage = null;
     }
 
     // 최소 rect가 포화된 경우 저장된 일부 결과와 제한 사유를 기록한다.
-    public void partial(String message) {
+    public void partial(PlaceRefinementErrorCode errorCode, String message) {
         status = CollectionJobStatus.PARTIAL;
+        this.errorCode = errorCode;
         errorMessage = message;
         completedAt = LocalDateTime.now();
     }
 
     // API 오류 또는 최소 rect 포화 원인을 남기고 실패 상태로 전환한다.
-    public void fail(String message) {
+    public void fail(PlaceRefinementErrorCode errorCode, String message) {
         status = CollectionJobStatus.FAILED;
+        this.errorCode = errorCode;
         errorMessage = message;
         completedAt = LocalDateTime.now();
     }

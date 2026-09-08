@@ -55,7 +55,11 @@ class OpenAiBatchTaggingServiceTest {
                 eq(PlaceCollectionStep.AI_TAGGING),
                 eq(PlaceCollectionTempStatus.PENDING),
                 eq(PlaceCollectionTempStatus.FAILED),
-                eq(PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED),
+                eq(List.of(
+                        PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED,
+                        PlaceRefinementErrorCode.OPENAI_BATCH_SUBMISSION_FAILED,
+                        PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED
+                )),
                 any(Pageable.class)
         );
     }
@@ -86,8 +90,9 @@ class OpenAiBatchTaggingServiceTest {
 
         assertThat(collected).isFalse();
         assertThat(job.getStatus()).isEqualTo(OpenAiBatchTaggingStatus.FAILED);
+        assertThat(job.getErrorCode()).isEqualTo(PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED);
         verify(temp).fail(
-                eq(PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED),
+                eq(PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED),
                 eq("OpenAI Batch가 완료되지 않았습니다: failed")
         );
         verify(tempRepository).saveAll(List.of(temp));

@@ -8,9 +8,7 @@ import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.AiTaggingResult;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service.AiTaggingPolicy;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service.AiTaggingWriter;
-import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionStep;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
-import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTempStatus;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
 import com.junsang.course_backend.domain.place.entity.Tag;
@@ -77,7 +75,7 @@ public class AiTaggingService {
         // AI가 사용할 수 있는 태그는 현재 활성 상태인 태그로 제한한다.
         List<Tag> activeTags = tagRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
         if (activeTags.isEmpty()) {
-            return failAll(targets, PlaceRefinementErrorCode.AI_RESPONSE_INVALID, "활성 태그가 없습니다.");
+            return failAll(targets, PlaceRefinementErrorCode.AI_NO_ACTIVE_TAGS, "활성 태그가 없습니다.");
         }
 
         try {
@@ -107,7 +105,7 @@ public class AiTaggingService {
         } catch (JsonProcessingException | IllegalArgumentException exception) {
             return failAll(
                     targets,
-                    PlaceRefinementErrorCode.AI_RESPONSE_INVALID,
+                    PlaceRefinementErrorCode.AI_RESPONSE_PARSE_FAILED,
                     messageOf(exception)
             );
         }
@@ -124,7 +122,7 @@ public class AiTaggingService {
         } catch (IllegalArgumentException exception) {
             return writer.fail(
                     temp.getId(),
-                    PlaceRefinementErrorCode.AI_RESPONSE_INVALID,
+                    PlaceRefinementErrorCode.AI_TAG_VALIDATION_FAILED,
                     messageOf(exception)
             );
         }

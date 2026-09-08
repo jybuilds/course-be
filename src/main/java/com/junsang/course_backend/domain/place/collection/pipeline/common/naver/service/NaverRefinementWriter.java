@@ -43,6 +43,7 @@ public class NaverRefinementWriter {
             String roadAddress,
             String blogEvidence,
             NaverBlogCollectionStatus blogStatus,
+            PlaceRefinementErrorCode blogErrorCode,
             String blogErrorMessage
     ) {
         PlaceCollectionTemp temp = findTemp(tempId);
@@ -56,6 +57,7 @@ public class NaverRefinementWriter {
                 roadAddress,
                 blogEvidence,
                 blogStatus,
+                blogErrorCode,
                 blogErrorMessage
         );
         return temp;

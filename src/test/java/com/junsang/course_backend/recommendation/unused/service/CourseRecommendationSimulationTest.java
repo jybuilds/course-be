@@ -1,13 +1,13 @@
-package com.junsang.course_backend.recommendation.service;
+package com.junsang.course_backend.recommendation.unused.service;
 
 import com.junsang.course_backend.domain.course.entity.CompanionType;
 import com.junsang.course_backend.domain.course.entity.TimeSlot;
 import com.junsang.course_backend.domain.course.service.CourseTagGenerationService;
-import com.junsang.course_backend.recommendation.dto.request.CourseRecommendationRequest;
-import com.junsang.course_backend.recommendation.dto.response.CourseRecommendationResponse;
-import com.junsang.course_backend.recommendation.dto.response.CourseRecommendationResponse.RecommendationMode;
-import com.junsang.course_backend.recommendation.dto.response.CourseRecommendationResponse.RecommendationReason;
-import com.junsang.course_backend.recommendation.dto.response.RecommendedCourseResponse;
+import com.junsang.course_backend.recommendation.dto.request.RecommendationRequest;
+import com.junsang.course_backend.recommendation.unused.dto.response.CourseRecommendationResponse;
+import com.junsang.course_backend.recommendation.unused.dto.response.CourseRecommendationResponse.RecommendationMode;
+import com.junsang.course_backend.recommendation.unused.dto.response.CourseRecommendationResponse.RecommendationReason;
+import com.junsang.course_backend.recommendation.unused.dto.response.RecommendedCourseResponse;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,13 +56,12 @@ class CourseRecommendationSimulationTest {
         assertThat(response.courses())
                 .extracting(RecommendedCourseResponse::title)
                 .containsExactly(
-                        "성수 쇼핑 빵 데이트",
                         "여의도 쇼핑 빵 코스",
+                        "성수 쇼핑 빵 데이트",
                         "코엑스 실내 쇼핑 코스",
                         "서촌 빵 전시 코스",
                         "성수 쇼핑 집중 코스"
                 );
-        assertThat(response.courses().getFirst().score()).isEqualTo(74.74);
         assertThat(response.courses().getFirst().matchType())
                 .isEqualTo(RecommendedCourseResponse.MatchType.FULL_MATCH);
         assertThat(impressionCount(920001)).isEqualTo(4);
@@ -71,15 +70,14 @@ class CourseRecommendationSimulationTest {
         assertThat(impressionCount(920006)).isEqualTo(1);
     }
 
-    // 2. 태그가 하나면 관련 코스 안에서 상황 적합도와 선택 수가 순위를 가른다.
+    // 2. 태그가 하나면 관련 코스 안에서 선택 수가 순위를 가른다.
     @Test
-    void usesContextAndPopularityWhenOnlyOneTagIsSelected() {
+    void usesPopularityWhenOnlyOneTagIsSelected() {
         CourseRecommendationResponse response = recommendSeoul(List.of("SHOPPING"));
 
         assertThat(response.recommendationMode()).isEqualTo(RecommendationMode.MIXED);
         assertThat(response.reason()).isEqualTo(RecommendationReason.INSUFFICIENT_TAG_MATCHES);
-        assertThat(response.courses().getFirst().title()).isEqualTo("성수 쇼핑 집중 코스");
-        assertThat(response.courses().getFirst().score()).isEqualTo(75.58);
+        assertThat(response.courses().getFirst().title()).isEqualTo("여의도 쇼핑 빵 코스");
     }
 
     // 3. 일치 태그가 없으면 사용자 선택과 무관한 도시 인기 코스임을 명시한다.
@@ -121,8 +119,8 @@ class CourseRecommendationSimulationTest {
     private CourseRecommendationResponse recommendSeoul(List<String> tagCodes) {
         Long cityId = jdbcTemplate.queryForObject(
                 "SELECT id FROM cities WHERE code = 'SEOUL'", Long.class);
-        return recommendationService.recommend(new CourseRecommendationRequest(
-                cityId, tagCodes, CompanionType.LOVER, TimeSlot.AFTERNOON));
+        return recommendationService.recommend(new RecommendationRequest(
+                cityId, CompanionType.LOVER, TimeSlot.AFTERNOON, tagCodes));
     }
 
     private long impressionCount(long courseId) {

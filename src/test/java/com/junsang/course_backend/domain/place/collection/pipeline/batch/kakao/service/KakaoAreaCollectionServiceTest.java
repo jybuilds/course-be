@@ -63,8 +63,8 @@ class KakaoAreaCollectionServiceTest {
         when(profile.getPlaceType()).thenReturn(PlaceType.CAFE);
         when(jobRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(classifier.findActiveRules()).thenReturn(List.of());
-        when(classifier.classifyForCollection(any(), any(), any(), any(), any()))
-                .thenReturn(new PlaceTypeClassifier.PlaceTypeClassification(PlaceType.CAFE, false));
+        when(classifier.classifyForCollection(any(), any(), any(), any()))
+                .thenReturn(PlaceType.CAFE);
         when(areaResolver.resolveAreaCode("서울 서대문구 창천동 18-11"))
                 .thenReturn("SEOUL_SINCHON_EWHA");
         when(tempRepository.findByProviderAndProviderPlaceIdIn(any(), any())).thenReturn(List.of());

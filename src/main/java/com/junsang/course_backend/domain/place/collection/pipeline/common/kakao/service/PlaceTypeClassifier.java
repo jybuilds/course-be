@@ -1,12 +1,12 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.service;
 
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.PlaceCategoryRule;
-import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.CollectionSearchType;
 import com.junsang.course_backend.domain.place.entity.PlaceType;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.repository.PlaceCategoryRuleRepository;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class PlaceTypeClassifier {
+
+    private static final Pattern ROAD_ADDRESS = Pattern.compile("[가-힣A-Za-z0-9]+(?:로|길)\\s*\\d+(?:\\s*-\\s*\\d+)?");
 
     private final PlaceCategoryRuleRepository placeCategoryRuleRepository;
 
@@ -33,28 +35,24 @@ public class PlaceTypeClassifier {
             return PlaceType.ACTIVITY;
         }
 
-        return findRule(placeName, categoryName, null, rules)
+        return findMatchingRule(placeName, categoryName, null, rules)
+                .map(PlaceCategoryRule::getTargetPlaceType)
                 .orElse(defaultPlaceType);
     }
 
-    // 수집 프로필과 규칙을 이용해 AI 이전에 타입이 확정됐는지 함께 결정한다.
-    public PlaceTypeClassification classifyForCollection(
-            CollectionSearchType searchType,
+    // 수집 프로필 Type을 1차 후보로 사용하되, 명확한 규칙이 있으면 먼저 보정한다.
+    public PlaceType classifyForCollection(
             PlaceType defaultPlaceType,
             String categoryName,
             String placeName,
             List<PlaceCategoryRule> rules
     ) {
-        if (searchType == CollectionSearchType.KEYWORD) {
-            return new PlaceTypeClassification(defaultPlaceType, true);
-        }
-
-        return findRule(placeName, categoryName, null, rules)
-                .map(placeType -> new PlaceTypeClassification(placeType, true))
-                .orElseGet(() -> new PlaceTypeClassification(defaultPlaceType, false));
+        return findMatchingRule(placeName, categoryName, null, rules)
+                .map(PlaceCategoryRule::getTargetPlaceType)
+                .orElse(defaultPlaceType);
     }
 
-    // 네이버 정보에서 새 규칙이 확인된 경우만 타입을 확정하고 나머지는 AI 판단 대상으로 남긴다.
+    // 네이버 카테고리까지 확인해 1차 Type 후보를 보정한다. 최종 판단은 AI가 수행한다.
     public PlaceType classifyAfterNaver(
             PlaceType collectedPlaceType,
             String placeName,
@@ -62,42 +60,17 @@ public class PlaceTypeClassifier {
             String naverCategoryName,
             List<PlaceCategoryRule> rules
     ) {
-        return classifyAfterNaver(
-                collectedPlaceType,
-                false,
+        return findMatchingRule(
                 placeName,
                 kakaoCategoryName,
                 naverCategoryName,
                 rules
-        ).placeType();
+        ).map(PlaceCategoryRule::getTargetPlaceType)
+                .orElse(collectedPlaceType);
     }
 
-    // 네이버 정보에서 새 규칙이 확인된 경우만 타입을 확정하고 나머지는 AI 판단 대상으로 남긴다.
-    public PlaceTypeClassification classifyAfterNaver(
-            PlaceType collectedPlaceType,
-            boolean placeTypeFinalized,
-            String placeName,
-            String kakaoCategoryName,
-            String naverCategoryName,
-            List<PlaceCategoryRule> rules
-    ) {
-        if (placeTypeFinalized) {
-            return new PlaceTypeClassification(collectedPlaceType, true);
-        }
-
-        Optional<PlaceType> ruleType = findRule(
-                placeName,
-                kakaoCategoryName,
-                naverCategoryName,
-                rules
-        );
-        return ruleType
-                .map(placeType -> new PlaceTypeClassification(placeType, true))
-                .orElseGet(() -> new PlaceTypeClassification(collectedPlaceType, false));
-    }
-
-    // 장소명과 카카오·네이버 카테고리 중 하나에 규칙 키워드가 있으면 우선 적용한다.
-    private Optional<PlaceType> findRule(
+    // AI 입력에도 같은 규칙 근거를 전달할 수 있도록 가장 높은 우선순위의 일치 규칙을 찾는다.
+    public Optional<PlaceCategoryRule> findMatchingRule(
             String placeName,
             String kakaoCategoryName,
             String naverCategoryName,
@@ -112,18 +85,66 @@ public class PlaceTypeClassifier {
 
         return rules.stream()
                 .filter(rule -> source.contains(normalize(rule.getKeyword())))
-                .map(PlaceCategoryRule::getTargetPlaceType)
                 .findFirst();
+    }
+
+    // 한 블로그 글 안에 장소 식별 정보와 규칙 키워드가 함께 있을 때만 보조 규칙 근거로 인정한다.
+    public Optional<PlaceCategoryRule> findMatchingRuleWithRelevantBlog(
+            String placeName,
+            String naverTitle,
+            String kakaoCategoryName,
+            String naverCategoryName,
+            String roadAddressName,
+            String naverRoadAddressName,
+            String blogEvidence,
+            List<PlaceCategoryRule> rules
+    ) {
+        Optional<PlaceCategoryRule> directRule = findMatchingRule(
+                placeName + " " + naverTitle,
+                kakaoCategoryName,
+                naverCategoryName,
+                rules
+        );
+        if (directRule.isPresent()) {
+            return directRule;
+        }
+
+        List<String> identities = List.of(
+                normalizedIdentity(placeName),
+                normalizedIdentity(naverTitle),
+                roadAddressIdentity(roadAddressName),
+                roadAddressIdentity(naverRoadAddressName)
+        ).stream()
+                .filter(identity -> identity.length() >= 3)
+                .distinct()
+                .toList();
+        if (identities.isEmpty() || blogEvidence == null || blogEvidence.isBlank()) {
+            return Optional.empty();
+        }
+
+        List<String> relevantEntries = List.of(blogEvidence.split("(?m)(?=^\\d+\\. )")).stream()
+                .map(this::normalizedIdentity)
+                .filter(entry -> identities.stream().anyMatch(entry::contains))
+                .toList();
+        return rules.stream()
+                .filter(rule -> relevantEntries.stream()
+                        .anyMatch(entry -> entry.contains(normalizedIdentity(rule.getKeyword()))))
+                .findFirst();
+    }
+
+    // 공백·괄호·특수문자가 달라도 상호명과 도로명 주소를 비교할 수 있게 정규화한다.
+    private String normalizedIdentity(String value) {
+        return normalize(value).replaceAll("[^\\p{L}\\p{N}]", "");
+    }
+
+    // 도로명과 건물번호만 추려 블로그의 축약 주소와도 비교한다.
+    private String roadAddressIdentity(String address) {
+        var matcher = ROAD_ADDRESS.matcher(address == null ? "" : address);
+        return matcher.find() ? normalizedIdentity(matcher.group()) : "";
     }
 
     // 카카오 영문·한글 표기의 대소문자 차이를 무시한다.
     private String normalize(String value) {
         return value == null ? "" : value.toLowerCase(Locale.ROOT);
-    }
-
-    public record PlaceTypeClassification(
-            PlaceType placeType,
-            boolean finalized
-    ) {
     }
 }

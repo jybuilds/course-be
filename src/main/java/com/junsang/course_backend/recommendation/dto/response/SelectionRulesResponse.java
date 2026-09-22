@@ -18,7 +18,6 @@ public record SelectionRulesResponse(
 }
 record SelectionRuleResponse(
         boolean allowMultiple
-) {
-
+){
 }
 

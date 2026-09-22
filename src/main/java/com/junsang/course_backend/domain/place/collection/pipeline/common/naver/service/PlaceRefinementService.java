@@ -10,6 +10,7 @@ import com.junsang.course_backend.domain.place.collection.pipeline.common.naver.
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.PlaceCategoryRule;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.service.PlaceTypeClassifier;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
+import com.junsang.course_backend.domain.place.entity.PlaceType;
 import com.junsang.course_backend.global.exception.BusinessException;
 import com.junsang.course_backend.infra.naver.NaverBlogClient;
 import com.junsang.course_backend.infra.naver.NaverLocalClient;
@@ -53,9 +54,8 @@ public class PlaceRefinementService {
             temp = writer.start(tempId);
             NaverLocalItem matched = findMatchedPlace(temp);
             BlogEvidenceResult blogEvidence = findBlogEvidence(temp, matched);
-            PlaceTypeClassifier.PlaceTypeClassification classification = placeTypeClassifier.classifyAfterNaver(
+            PlaceType classification = placeTypeClassifier.classifyAfterNaver(
                     temp.getDefaultPlaceType(),
-                    temp.isPlaceTypeFinalized(),
                     temp.getName(),
                     temp.getKakaoCategoryName(),
                     matched.category(),
@@ -63,8 +63,7 @@ public class PlaceRefinementService {
             );
             temp = writer.complete(
                     tempId,
-                    classification.placeType(),
-                    classification.finalized(),
+                    classification,
                     naverPlaceNormalizer.cleanTitle(matched.title()),
                     naverSearchUrlCreator.create(temp.getName(), temp.getAddressName()),
                     matched.category(),

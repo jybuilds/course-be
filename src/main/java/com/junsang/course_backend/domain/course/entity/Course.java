@@ -6,11 +6,7 @@ import com.junsang.course_backend.domain.place.entity.CourseTag;
 import com.junsang.course_backend.domain.place.entity.Tag;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -65,18 +61,6 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CourseTag> tags = new LinkedHashSet<>();
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "course_companion_types", joinColumns = @JoinColumn(name = "course_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "companion_type", nullable = false, length = 20)
-    private Set<CompanionType> companionTypes = new LinkedHashSet<>();
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "course_time_slots", joinColumns = @JoinColumn(name = "course_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "time_slot", nullable = false, length = 20)
-    private Set<TimeSlot> timeSlots = new LinkedHashSet<>();
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -112,16 +96,6 @@ public class Course {
                         existing -> existing.updateWeight(weight),
                         () -> tags.add(CourseTag.create(this, tag, weight))
                 ));
-    }
-
-    // 코스에 적합한 동행자 유형을 연결한다.
-    public void addCompanionType(CompanionType companionType) {
-        companionTypes.add(companionType);
-    }
-
-    // 코스에 적합한 시간대를 연결한다.
-    public void addTimeSlot(TimeSlot timeSlot) {
-        timeSlots.add(timeSlot);
     }
 
     // 대표 코스를 사용자에게 노출한다.

@@ -9,6 +9,7 @@ import com.junsang.course_backend.domain.place.collection.pipeline.batch.kakao.e
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
 import com.junsang.course_backend.domain.place.entity.PlaceProvider;
+import com.junsang.course_backend.domain.place.entity.PlaceType;
 import com.junsang.course_backend.domain.place.repository.AreaRepository;
 import com.junsang.course_backend.domain.place.repository.CityRepository;
 import com.junsang.course_backend.domain.place.collection.pipeline.batch.kakao.repository.PlaceCollectionJobRepository;
@@ -70,36 +71,6 @@ public class KakaoAreaCollectionService {
         List<PlaceCategoryRule> rules = placeTypeClassifier.findActiveRules();
 
         collectArea(area, profiles, rules);
-    }
-
-    // 저장하지 않고 지정한 Area에서 카카오 키워드 검색 원본을 반환한다.
-    public KakaoKeywordSearchResponse searchKeyword(Long areaId, String query, int page) {
-        Area area = areaRepository.findById(areaId)
-                .orElseThrow(() -> new IllegalArgumentException("지역을 찾을 수 없습니다: " + areaId));
-        return kakaoLocalClient.searchKeyword(new KakaoKeywordSearchRequest(
-                query,
-                area.getCollectionMinLongitude(),
-                area.getCollectionMinLatitude(),
-                area.getCollectionMaxLongitude(),
-                area.getCollectionMaxLatitude(),
-                PAGE_SIZE,
-                page
-        ));
-    }
-
-    // 저장하지 않고 지정한 Area에서 카카오 카테고리 검색 원본을 반환한다.
-    public KakaoKeywordSearchResponse searchCategory(Long areaId, String categoryGroupCode, int page) {
-        Area area = areaRepository.findById(areaId)
-                .orElseThrow(() -> new IllegalArgumentException("지역을 찾을 수 없습니다: " + areaId));
-        return kakaoLocalClient.searchCategory(new KakaoCategorySearchRequest(
-                categoryGroupCode,
-                area.getCollectionMinLongitude(),
-                area.getCollectionMinLatitude(),
-                area.getCollectionMaxLongitude(),
-                area.getCollectionMaxLatitude(),
-                PAGE_SIZE,
-                page
-        ));
     }
 
     // 이미 실행 중인 Job은 건너뛰고 새 초기 Job만 생성한다.
@@ -218,8 +189,7 @@ public class KakaoAreaCollectionService {
             if (area == null) {
                 throw new IllegalStateException("카카오 주소에 매핑된 Area를 찾을 수 없습니다: " + resolved.areaCode());
             }
-            PlaceTypeClassifier.PlaceTypeClassification classification = placeTypeClassifier.classifyForCollection(
-                    job.getSearchType(),
+            PlaceType classification = placeTypeClassifier.classifyForCollection(
                     job.getPlaceType(),
                     document.categoryName(),
                     document.placeName(),
@@ -229,8 +199,7 @@ public class KakaoAreaCollectionService {
             if (temp != null) {
                 temp.refreshKakao(
                         area,
-                        classification.placeType(),
-                        classification.finalized(),
+                        classification,
                         document.placeName(),
                         document.addressName(),
                         document.roadAddressName(),
@@ -246,8 +215,7 @@ public class KakaoAreaCollectionService {
                         area,
                         PlaceProvider.KAKAO,
                         document.id(),
-                        classification.placeType(),
-                        classification.finalized(),
+                        classification,
                         document.placeName(),
                         document.addressName(),
                         document.roadAddressName(),

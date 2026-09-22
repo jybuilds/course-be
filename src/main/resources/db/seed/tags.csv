@@ -15,15 +15,16 @@ ESCAPE_ROOM,방탈출,true,13
 CAFE,카페,true,14
 BREAD,빵,true,15
 DESSERT,디저트,true,16
-KOREAN_FOOD,한식,true,17
-JAPANESE_FOOD,일식,true,18
-WESTERN_FOOD,양식,true,19
-ASIAN_FOOD,아시안 음식,true,20
-QUIET,조용한,true,21
-LIVELY,활기찬,true,22
-ROMANTIC,로맨틱한,true,23
-TRENDY,힙한,true,24
-COZY,아늑한,true,25
-INDOOR,실내,true,26
-OUTDOOR,야외,true,27
-SCENIC_VIEW,뷰 좋은,true,28
+BRUNCH,브런치,true,17
+KOREAN_FOOD,한식,true,18
+JAPANESE_FOOD,일식,true,19
+WESTERN_FOOD,양식,true,20
+ASIAN_FOOD,아시안 음식,true,21
+QUIET,조용한,true,22
+LIVELY,활기찬,true,23
+ROMANTIC,로맨틱한,true,24
+TRENDY,힙한,true,25
+COZY,아늑한,true,26
+INDOOR,실내,true,27
+OUTDOOR,야외,true,28
+SCENIC_VIEW,뷰 좋은,true,29

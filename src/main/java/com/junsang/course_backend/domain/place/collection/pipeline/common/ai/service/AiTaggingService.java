@@ -10,6 +10,7 @@ import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.ser
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service.AiTaggingWriter;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.PlaceCategoryRule;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
 import com.junsang.course_backend.domain.place.entity.Tag;
 import com.junsang.course_backend.domain.place.repository.TagRepository;
@@ -36,6 +37,7 @@ public class AiTaggingService {
     private final ObjectMapper objectMapper;
     private final AiTaggingWriter writer;
     private final AiTaggingTempWriter tempWriter;
+    private final AiTaggingInputBuilder inputBuilder;
 
     // Temp 한 건을 AI로 태깅하고 최종 Place로 저장한다.
     public AiTaggingResponse tag(Long tempId) {
@@ -77,12 +79,13 @@ public class AiTaggingService {
         if (activeTags.isEmpty()) {
             return failAll(targets, PlaceRefinementErrorCode.AI_NO_ACTIVE_TAGS, "활성 태그가 없습니다.");
         }
+        List<PlaceCategoryRule> rules = inputBuilder.findActiveRules();
 
         try {
             // 여러 Place를 한 입력에 묶어 반복 프롬프트와 요청 수를 줄인다.
             String output = openAiClient.createStructuredResponse(
                     AiTaggingPolicy.instructions(),
-                    createInput(targets, activeTags),
+                    createInput(targets, activeTags, rules),
                     createSchema(targets.size(), activeTags)
             );
             // 구조화 응답을 역직렬화하고 요청한 Temp ID와 정확히 대응되는지 확인한다.
@@ -94,7 +97,7 @@ public class AiTaggingService {
                     .collect(Collectors.toMap(Tag::getCode, Function.identity()));
 
             return targets.stream()
-                    .map(temp -> complete(temp, resultsByTempId.get(temp.getId()), tagsByCode))
+                    .map(temp -> complete(temp, resultsByTempId.get(temp.getId()), tagsByCode, rules))
                     .toList();
         } catch (BusinessException exception) {
             return failAll(
@@ -115,10 +118,11 @@ public class AiTaggingService {
     private AiTaggingResponse complete(
             PlaceCollectionTemp temp,
             AiTaggingResult result,
-            Map<String, Tag> tagsByCode
+            Map<String, Tag> tagsByCode,
+            List<PlaceCategoryRule> rules
     ) {
         try {
-            return writer.complete(temp.getId(), result, tagsByCode);
+            return writer.complete(temp.getId(), result, tagsByCode, rules);
         } catch (IllegalArgumentException exception) {
             return writer.fail(
                     temp.getId(),
@@ -131,29 +135,10 @@ public class AiTaggingService {
     // OpenAI 요청에 필요한 활성 태그와 장소 정보를 JSON으로 만든다.
     private String createInput(
             List<PlaceCollectionTemp> targets,
-            List<Tag> activeTags
+            List<Tag> activeTags,
+            List<PlaceCategoryRule> rules
     ) throws JsonProcessingException {
-        // DB 엔티티 전체를 넘기지 않고 AI 판단에 필요한 값만 전달한다.
-        TaggingInput input = new TaggingInput(
-                activeTags.stream()
-                        .map(tag -> new TagInput(tag.getCode(), tag.getDisplayName()))
-                        .toList(),
-                targets.stream()
-                        .map(temp -> new PlaceInput(
-                                temp.getId(),
-                                temp.getDefaultPlaceType().name(),
-                                temp.isPlaceTypeFinalized(),
-                                new TypeEvidence(temp.getNaverCategoryName()),
-                                new TagEvidence(
-                                        temp.getName(),
-                                        temp.getKakaoCategoryName(),
-                                        temp.getNaverCategoryName(),
-                                        temp.getNaverBlogEvidence()
-                                )
-                        ))
-                        .toList()
-        );
-        return objectMapper.writeValueAsString(input);
+        return objectMapper.writeValueAsString(inputBuilder.create(targets, activeTags, rules));
     }
 
     // 현재 활성 Tag 코드만 허용하는 JSON Schema를 만든다.
@@ -260,32 +245,4 @@ public class AiTaggingService {
                 : exception.getMessage();
     }
 
-    private record TaggingInput(
-            List<TagInput> availableTags,
-            List<PlaceInput> places
-    ) {
-    }
-
-    private record TagInput(String code, String displayName) {
-    }
-
-    private record PlaceInput(
-            Long tempId,
-            String placeType,
-            boolean placeTypeFinalized,
-            TypeEvidence typeEvidence,
-            TagEvidence tagEvidence
-    ) {
-    }
-
-    private record TypeEvidence(String naverCategory) {
-    }
-
-    private record TagEvidence(
-            String name,
-            String kakaoCategory,
-            String naverCategory,
-            String blogEvidence
-    ) {
-    }
 }

@@ -25,6 +25,10 @@ server:
   servlet:
     context-path: ${SERVER_CONTEXT_PATH:}
 
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha
+
 management:
   endpoints:
     web:

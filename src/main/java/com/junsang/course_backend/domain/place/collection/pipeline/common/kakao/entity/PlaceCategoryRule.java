@@ -16,7 +16,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/// 장소명과 카카오·네이버 카테고리에 포함된 키워드로 PlaceType을 보정하는 운영 규칙이다.
+/// 장소명·카테고리·블로그 증거에 포함된 키워드로 PlaceType을 보정하는 운영 규칙이다.
 @Entity
 @Table(name = "place_category_rules")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

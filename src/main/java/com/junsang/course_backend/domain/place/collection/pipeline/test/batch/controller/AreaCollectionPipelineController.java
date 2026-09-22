@@ -6,6 +6,8 @@ import com.junsang.course_backend.domain.place.collection.pipeline.common.naver.
 import com.junsang.course_backend.domain.place.collection.pipeline.common.naver.service.PlaceRefinementService;
 import com.junsang.course_backend.domain.place.collection.pipeline.test.batch.dto.AreaCollectionPipelineResponse;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/internal/place-collection/test")
 @RequiredArgsConstructor
+@Tag(name = "장소 수집 및 정제 - 미사용")
 public class AreaCollectionPipelineController {
 
     private final KakaoAreaCollectionService kakaoAreaCollectionService;
@@ -27,6 +30,11 @@ public class AreaCollectionPipelineController {
 
     // 카카오 수집, 네이버·블로그 정제, OpenAI Batch 제출을 Area 하나에 순서대로 실행한다.
     @PostMapping("/areas/{areaId}")
+    @Operation(
+            summary = "Area 통합 수집·정제 테스트",
+            description = "테스트용으로 Area 하나의 카카오 수집, 네이버·블로그 정제, OpenAI Batch 제출을 순서대로 실행합니다.",
+            deprecated = true
+    )
     public ResponseEntity<AreaCollectionPipelineResponse> run(
             @PathVariable Long areaId,
             @RequestParam(defaultValue = "1000") int refinementLimit,

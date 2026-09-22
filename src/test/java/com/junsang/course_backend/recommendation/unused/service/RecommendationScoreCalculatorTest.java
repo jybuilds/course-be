@@ -1,8 +1,8 @@
-package com.junsang.course_backend.recommendation.service;
+package com.junsang.course_backend.recommendation.unused.service;
 
 import com.junsang.course_backend.domain.course.entity.CompanionType;
 import com.junsang.course_backend.domain.course.entity.TimeSlot;
-import com.junsang.course_backend.recommendation.dto.response.RecommendedCourseResponse.MatchType;
+import com.junsang.course_backend.recommendation.unused.dto.response.RecommendedCourseResponse.MatchType;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashSet;

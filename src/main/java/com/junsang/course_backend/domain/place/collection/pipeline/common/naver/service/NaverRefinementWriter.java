@@ -35,7 +35,6 @@ public class NaverRefinementWriter {
     public PlaceCollectionTemp complete(
             Long tempId,
             PlaceType placeType,
-            boolean placeTypeFinalized,
             String title,
             String searchUrl,
             String category,
@@ -49,7 +48,6 @@ public class NaverRefinementWriter {
         PlaceCollectionTemp temp = findTemp(tempId);
         temp.completeNaverEnrichment(
                 placeType,
-                placeTypeFinalized,
                 title,
                 searchUrl,
                 category,

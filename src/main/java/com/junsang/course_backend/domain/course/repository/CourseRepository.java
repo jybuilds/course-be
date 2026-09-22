@@ -10,7 +10,7 @@ import java.util.List;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     @EntityGraph(attributePaths = {
             "area", "anchorPlace", "scheduleItems", "scheduleItems.place",
-            "tags", "tags.tag", "companionTypes", "timeSlots"
+            "tags", "tags.tag"
     })
     List<Course> findByAreaCityIdAndIsPublishedTrue(Long cityId);
 }

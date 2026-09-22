@@ -1,5 +1,8 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.batch.ai.service;
 
+import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service.AiTaggingInputBuilder;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.service.PlaceTypeClassifier;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.repository.PlaceCategoryRuleRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,7 +41,8 @@ class OpenAiBatchTaggingServiceTest {
                 new OpenAiProperties(URI.create("https://api.openai.com"), "test", "gpt-5.6-luna", null, null),
                 new ObjectMapper(),
                 mock(AiTaggingWriter.class),
-                new OpenAiBatchJobWriter(tempRepository, mock(OpenAiBatchTaggingJobRepository.class))
+                new OpenAiBatchJobWriter(tempRepository, mock(OpenAiBatchTaggingJobRepository.class)),
+                new AiTaggingInputBuilder(new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class)))
         );
         when(tempRepository.findAiBatchSubmissionTargets(
                 any(),
@@ -65,6 +69,32 @@ class OpenAiBatchTaggingServiceTest {
     }
 
     @Test
+    void submitsCompletedTargetsForRetagging() {
+        PlaceCollectionTempRepository tempRepository = mock(PlaceCollectionTempRepository.class);
+        OpenAiBatchTaggingService service = new OpenAiBatchTaggingService(
+                tempRepository,
+                mock(TagRepository.class),
+                mock(OpenAiBatchClient.class),
+                new OpenAiProperties(URI.create("https://api.openai.com"), "test", "gpt-5.6-luna", null, null),
+                new ObjectMapper(),
+                mock(AiTaggingWriter.class),
+                new OpenAiBatchJobWriter(tempRepository, mock(OpenAiBatchTaggingJobRepository.class)),
+                new AiTaggingInputBuilder(new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class)))
+        );
+        when(tempRepository.findByProcessingStepAndStatusOrderByIdAsc(any(), any(), any()))
+                .thenReturn(List.of());
+
+        Long jobId = service.submitCompletedForRetagging(50);
+
+        assertThat(jobId).isNull();
+        verify(tempRepository).findByProcessingStepAndStatusOrderByIdAsc(
+                eq(PlaceCollectionStep.AI_TAGGING),
+                eq(PlaceCollectionTempStatus.COMPLETED),
+                any(Pageable.class)
+        );
+    }
+
+    @Test
     void requeuesTargetsWhenTheRemoteBatchFails() {
         PlaceCollectionTempRepository tempRepository = mock(PlaceCollectionTempRepository.class);
         OpenAiBatchTaggingJobRepository jobRepository = mock(OpenAiBatchTaggingJobRepository.class);
@@ -76,7 +106,8 @@ class OpenAiBatchTaggingServiceTest {
                 new OpenAiProperties(URI.create("https://api.openai.com"), "test", "gpt-5.6-luna", null, null),
                 new ObjectMapper(),
                 mock(AiTaggingWriter.class),
-                new OpenAiBatchJobWriter(tempRepository, jobRepository)
+                new OpenAiBatchJobWriter(tempRepository, jobRepository),
+                new AiTaggingInputBuilder(new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class)))
         );
         OpenAiBatchTaggingJob job = OpenAiBatchTaggingJob.submitting(1);
         job.submit("batch-test");

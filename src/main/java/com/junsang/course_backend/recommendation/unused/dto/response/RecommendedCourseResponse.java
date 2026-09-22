@@ -1,4 +1,4 @@
-package com.junsang.course_backend.recommendation.dto.response;
+package com.junsang.course_backend.recommendation.unused.dto.response;
 
 import com.junsang.course_backend.domain.course.entity.Course;
 import com.junsang.course_backend.domain.course.entity.CourseItem;

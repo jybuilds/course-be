@@ -1,4 +1,4 @@
-package com.junsang.course_backend.recommendation.service;
+package com.junsang.course_backend.recommendation.unused.service;
 
 import com.junsang.course_backend.domain.course.entity.Course;
 import com.junsang.course_backend.domain.course.repository.CourseRepository;
@@ -7,12 +7,12 @@ import com.junsang.course_backend.domain.stats.entity.CourseStats;
 import com.junsang.course_backend.domain.stats.repository.CourseStatsRepository;
 import com.junsang.course_backend.domain.place.entity.CourseTag;
 import com.junsang.course_backend.domain.place.repository.TagRepository;
-import com.junsang.course_backend.recommendation.dto.request.CourseRecommendationRequest;
-import com.junsang.course_backend.recommendation.dto.response.CourseRecommendationResponse;
-import com.junsang.course_backend.recommendation.dto.response.CourseRecommendationResponse.RecommendationMode;
-import com.junsang.course_backend.recommendation.dto.response.CourseRecommendationResponse.RecommendationReason;
-import com.junsang.course_backend.recommendation.dto.response.RecommendedCourseResponse;
-import com.junsang.course_backend.recommendation.dto.response.RecommendedCourseResponse.ScoreBreakdown;
+import com.junsang.course_backend.recommendation.dto.request.RecommendationRequest;
+import com.junsang.course_backend.recommendation.unused.dto.response.CourseRecommendationResponse;
+import com.junsang.course_backend.recommendation.unused.dto.response.CourseRecommendationResponse.RecommendationMode;
+import com.junsang.course_backend.recommendation.unused.dto.response.CourseRecommendationResponse.RecommendationReason;
+import com.junsang.course_backend.recommendation.unused.dto.response.RecommendedCourseResponse;
+import com.junsang.course_backend.recommendation.unused.dto.response.RecommendedCourseResponse.ScoreBreakdown;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +40,7 @@ public class CourseRecommendationService {
 
     // 관련성, 상황 적합도, 인기도를 계산하고 같은 앵커의 반복 노출을 줄인다.
     @Transactional
-    public CourseRecommendationResponse recommend(CourseRecommendationRequest request) {
+    public CourseRecommendationResponse recommend(RecommendationRequest request) {
         if (!cityRepository.existsById(request.cityId())) {
             throw new IllegalArgumentException("존재하지 않는 지역입니다.");
         }
@@ -123,7 +123,7 @@ public class CourseRecommendationService {
     private ScoredCourse score(
             Course course,
             Set<String> requestedTags,
-            CourseRecommendationRequest request,
+            RecommendationRequest request,
             long selectionCount
     ) {
         Map<String, Integer> courseWeights = course.getTags().stream()
@@ -131,7 +131,7 @@ public class CourseRecommendationService {
 
         RecommendationScoreCalculator.Result result = RecommendationScoreCalculator.calculate(
                 requestedTags, courseWeights,
-                course.getCompanionTypes(), course.getTimeSlots(),
+                Set.of(), Set.of(),
                 request.companionType(), request.timeSlot(), selectionCount
         );
         return new ScoredCourse(course, result);

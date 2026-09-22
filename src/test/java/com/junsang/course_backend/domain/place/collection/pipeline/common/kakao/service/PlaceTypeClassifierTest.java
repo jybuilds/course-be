@@ -5,7 +5,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.PlaceCategoryRule;
-import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.CollectionSearchType;
 import com.junsang.course_backend.domain.place.entity.PlaceType;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.repository.PlaceCategoryRuleRepository;
 import java.util.List;
@@ -58,27 +57,98 @@ class PlaceTypeClassifierTest {
     }
 
     @Test
-    void leavesCategoryProfilesForAiUnlessARuleMatches() {
+    void naverCategoryRuleChangesTheFirstTypeCandidate() {
+        PlaceTypeClassifier classifier = new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class));
+        List<PlaceCategoryRule> rules = List.of(
+                PlaceCategoryRule.create("브런치", PlaceType.MEAL, 90)
+        );
+
+        PlaceType result = classifier.classifyAfterNaver(
+                PlaceType.CAFE,
+                "셉트",
+                "음식점 > 카페",
+                "브런치카페",
+                rules
+        );
+
+        assertThat(result).isEqualTo(PlaceType.MEAL);
+    }
+
+    @Test
+    void ignoresBlogEvidenceWhenCreatingTheFirstTypeCandidate() {
+        PlaceTypeClassifier classifier = new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class));
+        List<PlaceCategoryRule> rules = List.of(
+                PlaceCategoryRule.create("브런치", PlaceType.MEAL, 90)
+        );
+
+        PlaceType result = classifier.classifyAfterNaver(
+                PlaceType.CAFE,
+                "일반 카페",
+                "음식점 > 카페",
+                "카페,디저트>카페",
+                rules
+        );
+
+        assertThat(result).isEqualTo(PlaceType.CAFE);
+    }
+
+    @Test
+    void appliesRuleWhenTheSameBlogEntryContainsPlaceNameAndKeyword() {
+        PlaceTypeClassifier classifier = new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class));
+        List<PlaceCategoryRule> rules = List.of(
+                PlaceCategoryRule.create("브런치", PlaceType.MEAL, 90)
+        );
+
+        assertThat(classifier.findMatchingRuleWithRelevantBlog(
+                "유주얼하우스",
+                "유주얼하우스",
+                "음식점 > 카페",
+                "음식점>카페,디저트",
+                "서울 마포구 양화로7길 48",
+                "서울특별시 마포구 양화로7길 48 1층",
+                "1. 제목: 다른 카페 | 내용: 인천의 브런치카페\n"
+                        + "2. 제목: 유주얼하우스 후기 | 내용: 유주얼하우스는 합정 브런치 카페다.",
+                rules
+        )).contains(rules.getFirst());
+    }
+
+    @Test
+    void ignoresBlogKeywordWhenTheSameEntryHasNoPlaceIdentity() {
+        PlaceTypeClassifier classifier = new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class));
+        List<PlaceCategoryRule> rules = List.of(
+                PlaceCategoryRule.create("브런치", PlaceType.MEAL, 90)
+        );
+
+        assertThat(classifier.findMatchingRuleWithRelevantBlog(
+                "카페 클로버",
+                "카페 클로버",
+                "음식점 > 카페",
+                "음식점>카페,디저트",
+                "서울 마포구 양화로8길 38",
+                "서울특별시 마포구 양화로8길 38 2층",
+                "1. 제목: 송도 카페 | 내용: 인천의 브런치카페를 소개한다.",
+                rules
+        )).isEmpty();
+    }
+
+    @Test
+    void keepsCollectionProfileAsFirstCandidateUnlessARuleMatches() {
         PlaceTypeClassifier classifier = new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class));
 
-        PlaceTypeClassifier.PlaceTypeClassification category = classifier.classifyForCollection(
-                CollectionSearchType.CATEGORY,
+        PlaceType category = classifier.classifyForCollection(
                 PlaceType.CAFE,
                 "음식점 > 카페",
                 "일반 카페",
                 List.of()
         );
-        PlaceTypeClassifier.PlaceTypeClassification keyword = classifier.classifyForCollection(
-                CollectionSearchType.KEYWORD,
+        PlaceType keyword = classifier.classifyForCollection(
                 PlaceType.ACTIVITY,
                 "가정,생활 > 여가시설",
                 "방탈출",
                 List.of()
         );
 
-        assertThat(category.placeType()).isEqualTo(PlaceType.CAFE);
-        assertThat(category.finalized()).isFalse();
-        assertThat(keyword.placeType()).isEqualTo(PlaceType.ACTIVITY);
-        assertThat(keyword.finalized()).isTrue();
+        assertThat(category).isEqualTo(PlaceType.CAFE);
+        assertThat(keyword).isEqualTo(PlaceType.ACTIVITY);
     }
 }

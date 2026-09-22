@@ -5,6 +5,8 @@ import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.TagWeight;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.PlaceCategoryRule;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.service.PlaceTypeClassifier;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.naver.service.NaverSearchUrlCreator;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
 import com.junsang.course_backend.domain.place.entity.Place;
@@ -14,8 +16,11 @@ import com.junsang.course_backend.domain.place.entity.Tag;
 import com.junsang.course_backend.domain.place.repository.PlaceRepository;
 import com.junsang.course_backend.domain.place.repository.PlaceTagRepository;
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,20 +35,27 @@ public class AiTaggingWriter {
     private final PlaceRepository placeRepository;
     private final PlaceTagRepository placeTagRepository;
     private final NaverSearchUrlCreator naverSearchUrlCreator;
+    private final PlaceTypeClassifier placeTypeClassifier;
 
     // AI 결과를 검증하고 Place를 upsert한 뒤 기존 태그를 교체한다.
     @Transactional
     public AiTaggingResponse complete(
             Long tempId,
             AiTaggingResult result,
-            Map<String, Tag> activeTags
+            Map<String, Tag> activeTags,
+            List<PlaceCategoryRule> rules
     ) {
         // 최신 상태의 Temp를 다시 조회해 외부 요청 이후 변경된 값을 기준으로 저장한다.
         PlaceCollectionTemp temp = findTemp(tempId);
-        PlaceType placeType = temp.applyAiPlaceType(result.placeType());
+        Optional<PlaceCategoryRule> matchedRule = findMatchingRule(temp, rules);
+        // 직접 매칭된 운영 규칙은 모델 응답보다 우선해 최종 Type을 일관되게 보장한다.
+        PlaceType placeType = temp.applyAiPlaceType(
+                matchedRule.map(PlaceCategoryRule::getTargetPlaceType)
+                        .orElse(result.placeType())
+        );
 
         // AI 결과의 태그 수·중복·활성 여부·가중치를 저장 전에 검증한다.
-        List<PlaceTagValue> tagValues = validateTags(result.tags(), activeTags);
+        List<PlaceTagValue> tagValues = validateTags(result.tags(), activeTags, matchedRule);
 
         // 같은 공급자 장소는 새 행을 만들지 않고 네이버 보강 정보로 갱신한다.
         Place place = placeRepository.findByProviderAndProviderPlaceId(
@@ -83,7 +95,8 @@ public class AiTaggingWriter {
     // 활성 태그와 공통 태깅 정책을 검증한다.
     private List<PlaceTagValue> validateTags(
             List<TagWeight> results,
-            Map<String, Tag> activeTags
+            Map<String, Tag> activeTags,
+            Optional<PlaceCategoryRule> matchedRule
     ) {
         if (results == null
                 || results.size() < AiTaggingPolicy.MIN_TAG_COUNT
@@ -91,7 +104,7 @@ public class AiTaggingWriter {
             throw new IllegalArgumentException("AI 태그 개수가 올바르지 않습니다.");
         }
         Set<String> seenCodes = new HashSet<>();
-        List<PlaceTagValue> values = results.stream()
+        List<PlaceTagValue> values = new ArrayList<>(results.stream()
                 .map(result -> {
                     // 동일 태그가 여러 번 오면 가중치 의미가 모호하므로 거부한다.
                     if (result.code() == null || !seenCodes.add(result.code())) {
@@ -108,8 +121,42 @@ public class AiTaggingWriter {
                     }
                     return new PlaceTagValue(tag, result.weight());
                 })
-                .toList();
+                .toList());
+        // 규칙 키워드와 같은 활성 태그가 있으면 AI 누락과 무관하게 직접 매칭 근거를 보존한다.
+        matchedRule.map(PlaceCategoryRule::getKeyword)
+                .flatMap(keyword -> activeTags.values().stream()
+                        .filter(tag -> tag.getDisplayName().equalsIgnoreCase(keyword))
+                        .findFirst())
+                .filter(tag -> seenCodes.add(tag.getCode()))
+                .ifPresent(tag -> addMandatoryRuleTag(values, tag));
         return values;
+    }
+
+    // AI가 최대 개수를 채운 경우에는 가장 약한 AI 태그를 빼고 직접 매칭된 규칙 태그를 보존한다.
+    private void addMandatoryRuleTag(List<PlaceTagValue> values, Tag tag) {
+        if (values.size() == AiTaggingPolicy.MAX_TAG_COUNT) {
+            values.stream()
+                    .min(Comparator.comparingInt(PlaceTagValue::weight))
+                    .ifPresent(values::remove);
+        }
+        values.add(new PlaceTagValue(tag, AiTaggingPolicy.MAX_TAG_WEIGHT));
+    }
+
+    // 직접 근거와 같은 블로그 글 안의 장소 식별 근거를 함께 사용해 최상위 규칙을 찾는다.
+    private Optional<PlaceCategoryRule> findMatchingRule(
+            PlaceCollectionTemp temp,
+            List<PlaceCategoryRule> rules
+    ) {
+        return placeTypeClassifier.findMatchingRuleWithRelevantBlog(
+                temp.getName(),
+                temp.getNaverTitle(),
+                temp.getKakaoCategoryName(),
+                temp.getNaverCategoryName(),
+                temp.getRoadAddressName(),
+                temp.getNaverRoadAddressName(),
+                temp.getNaverBlogEvidence(),
+                rules
+        );
     }
 
     // 기존 Place를 네이버 우선 정보와 AI 분류 결과로 갱신한다.

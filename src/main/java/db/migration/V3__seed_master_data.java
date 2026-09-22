@@ -19,7 +19,6 @@ public class V3__seed_master_data extends BaseJavaMigration {
     public void migrate(Context context) throws Exception {
         seedCities(context);
         seedTags(context);
-        seedTagOptions(context);
         seedSeoulAreas(context);
     }
 
@@ -50,25 +49,6 @@ public class V3__seed_master_data extends BaseJavaMigration {
                 statement.setString(2, row[1]);
                 statement.setBoolean(3, Boolean.parseBoolean(row[2]));
                 statement.setInt(4, Integer.parseInt(row[3]));
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        }
-    }
-
-    // 태그의 유사 선택지를 태그에 연결한다.
-    private void seedTagOptions(Context context) throws Exception {
-        String sql = "INSERT INTO tag_options (tag_id, option_name, display_order, is_active) "
-                + "VALUES ((SELECT id FROM tags WHERE code = ?), ?, ?, ?) "
-                + "ON CONFLICT (tag_id, option_name) DO UPDATE SET display_order = EXCLUDED.display_order, "
-                + "is_active = EXCLUDED.is_active";
-
-        try (PreparedStatement statement = context.getConnection().prepareStatement(sql)) {
-            for (String[] row : rows("db/seed/tag_options.csv")) {
-                statement.setString(1, row[0]);
-                statement.setString(2, row[1]);
-                statement.setInt(3, Integer.parseInt(row[2]));
-                statement.setBoolean(4, Boolean.parseBoolean(row[3]));
                 statement.addBatch();
             }
             statement.executeBatch();

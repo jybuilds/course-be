@@ -31,7 +31,18 @@ public class OpenAiBatchJobWriter {
                 retryableSubmissionErrorCodes(),
                 PageRequest.of(0, limit)
         );
-        return claim(targets);
+        return claim(targets, false);
+    }
+
+    // 이미 완료된 Temp를 카카오·네이버 재호출 없이 새 AI 정책으로 다시 제출한다.
+    @Transactional
+    public BatchClaim claimCompleted(int limit) {
+        List<PlaceCollectionTemp> targets = tempRepository.findByProcessingStepAndStatusOrderByIdAsc(
+                PlaceCollectionStep.AI_TAGGING,
+                PlaceCollectionTempStatus.COMPLETED,
+                PageRequest.of(0, limit)
+        );
+        return claim(targets, true);
     }
 
     // 지정 Area의 잠근 Temp를 Batch Job에 선점한다.
@@ -45,7 +56,7 @@ public class OpenAiBatchJobWriter {
                 retryableSubmissionErrorCodes(),
                 PageRequest.of(0, limit)
         );
-        return claim(targets);
+        return claim(targets, false);
     }
 
     // 원격 Batch ID를 저장하고 결과 대기 상태로 전환한다.
@@ -91,14 +102,20 @@ public class OpenAiBatchJobWriter {
                 .orElseThrow(() -> new IllegalArgumentException("AI Batch Job을 찾을 수 없습니다: " + jobId));
     }
 
-    private BatchClaim claim(List<PlaceCollectionTemp> targets) {
+    private BatchClaim claim(List<PlaceCollectionTemp> targets, boolean retagging) {
         if (targets.isEmpty()) {
             return null;
         }
 
         // 원격 호출 전에 Job ID를 먼저 발급해 동시 제출 시 같은 Temp가 두 Batch에 들어가는 일을 막는다.
         OpenAiBatchTaggingJob job = jobRepository.save(OpenAiBatchTaggingJob.submitting(targets.size()));
-        targets.forEach(target -> target.startAiBatchTagging(job.getId()));
+        targets.forEach(target -> {
+            if (retagging) {
+                target.restartAiBatchTagging(job.getId());
+                return;
+            }
+            target.startAiBatchTagging(job.getId());
+        });
         tempRepository.saveAll(targets);
         return new BatchClaim(job.getId(), targets);
     }

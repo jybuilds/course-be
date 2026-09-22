@@ -71,20 +71,6 @@ INSERT INTO course_items (course_id, place_id, item_role, item_order) VALUES
     (920007, 912004, 'MEAL', 3),
     (920007, 912005, 'ACTIVITY', 4);
 
-INSERT INTO course_companion_types (course_id, companion_type) VALUES
-    (920001, 'LOVER'),
-    (920002, 'LOVER'),
-    (920003, 'FAMILY'),
-    (920004, 'LOVER'),
-    (920005, 'LOVER');
-
-INSERT INTO course_time_slots (course_id, time_slot) VALUES
-    (920001, 'AFTERNOON'),
-    (920002, 'AFTERNOON'),
-    (920003, 'AFTERNOON'),
-    (920004, 'MORNING'),
-    (920005, 'AFTERNOON');
-
 INSERT INTO course_stats (course_id, impression_count, selection_count) VALUES
     (920001, 3, 50),
     (920002, 9, 300),

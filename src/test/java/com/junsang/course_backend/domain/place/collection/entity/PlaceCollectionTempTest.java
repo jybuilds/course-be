@@ -78,14 +78,37 @@ class PlaceCollectionTempTest {
     }
 
     @Test
-    void finalizesAnUnresolvedPlaceTypeWithTheAiResult() {
+    void restartsCompletedAiTaggingForRetagging() {
+        PlaceCollectionTemp temp = createTemp();
+        temp.startProcessing();
+        temp.completeNaverEnrichment(
+                PlaceType.CAFE,
+                "성심당 본점",
+                "https://example.com",
+                "카페,디저트>베이커리",
+                "대전광역시 중구 은행동 145",
+                "대전광역시 중구 대종로480번길 15",
+                "",
+                NaverBlogCollectionStatus.EMPTY,
+                null
+        );
+        temp.startAiTagging();
+        temp.completeAiTagging();
+
+        temp.restartAiBatchTagging(1L);
+
+        assertThat(temp.getStatus()).isEqualTo(PlaceCollectionTempStatus.PROCESSING);
+        assertThat(temp.getAiBatchJobId()).isEqualTo(1L);
+    }
+
+    @Test
+    void replacesTheFirstTypeCandidateWithTheAiResult() {
         PlaceCollectionTemp temp = createTemp();
 
         PlaceType placeType = temp.applyAiPlaceType(PlaceType.MEAL);
 
         assertThat(placeType).isEqualTo(PlaceType.MEAL);
         assertThat(temp.getDefaultPlaceType()).isEqualTo(PlaceType.MEAL);
-        assertThat(temp.isPlaceTypeFinalized()).isTrue();
     }
 
     private PlaceCollectionTemp createTemp() {

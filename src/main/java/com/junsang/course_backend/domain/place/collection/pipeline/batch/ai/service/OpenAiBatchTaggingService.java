@@ -1,6 +1,8 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.batch.ai.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service.AiTaggingInputBuilder;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.PlaceCategoryRule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junsang.course_backend.domain.place.collection.pipeline.batch.ai.entity.OpenAiBatchTaggingJob;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch;
@@ -40,20 +42,23 @@ public class OpenAiBatchTaggingService {
     private final ObjectMapper objectMapper;
     private final AiTaggingWriter writer;
     private final OpenAiBatchJobWriter batchJobWriter;
+    private final AiTaggingInputBuilder inputBuilder;
 
     // AI 태깅 대기 Place를 OpenAI Batch API에 제출하고 로컬 Job ID를 반환한다.
     public Long submitPending(int limit) {
-        if (limit < 1 || limit > MAX_SUBMIT_SIZE) {
-            throw new IllegalArgumentException("Batch 태깅 개수는 1 이상 1000 이하여야 합니다.");
-        }
+        validateLimit(limit);
         return submit(batchJobWriter.claimPending(limit));
+    }
+
+    // 완료된 Temp를 기존 네이버·블로그 근거로 다시 AI 태깅한다.
+    public Long submitCompletedForRetagging(int limit) {
+        validateLimit(limit);
+        return submit(batchJobWriter.claimCompleted(limit));
     }
 
     // 지정한 Area의 AI 태깅 대기 Place만 OpenAI Batch API에 제출한다.
     public Long submitPendingByArea(Long areaId, int limit) {
-        if (limit < 1 || limit > MAX_SUBMIT_SIZE) {
-            throw new IllegalArgumentException("Batch 태깅 개수는 1 이상 1000 이하여야 합니다.");
-        }
+        validateLimit(limit);
         return submit(batchJobWriter.claimPendingByArea(areaId, limit));
     }
 
@@ -65,8 +70,9 @@ public class OpenAiBatchTaggingService {
 
         // 제출 시점의 활성 태그를 스키마에 고정해 비활성·임의 태그 응답을 차단한다.
         List<Tag> tags = tagRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
+        List<PlaceCategoryRule> rules = inputBuilder.findActiveRules();
         try {
-            String batchId = openAiBatchClient.submit(createJsonLines(claim.targets(), tags));
+            String batchId = openAiBatchClient.submit(createJsonLines(claim.targets(), tags, rules));
             batchJobWriter.markSubmitted(claim.jobId(), batchId);
         } catch (BusinessException exception) {
             // 키 누락·외부 API 실패는 Temp와 로컬 Batch Job에 같은 사유로 남긴다.
@@ -111,13 +117,14 @@ public class OpenAiBatchTaggingService {
         // 결과 적용 중 태그를 매번 재조회하지 않도록 현재 활성 태그를 한 번만 맵으로 만든다.
         Map<String, Tag> tags = tagRepository.findByIsActiveTrueOrderByDisplayOrderAsc().stream()
                 .collect(Collectors.toMap(Tag::getCode, Function.identity()));
+        List<PlaceCategoryRule> rules = inputBuilder.findActiveRules();
         Set<Long> targetIds = tempRepository.findByAiBatchJobIdOrderById(jobId).stream()
                 .map(PlaceCollectionTemp::getId)
                 .collect(Collectors.toCollection(HashSet::new));
         BatchOutputFailure failure = null;
         for (String line : output.lines().toList()) {
             // 한 JSONL 줄의 실패가 다른 줄의 정상 결과 반영을 막지 않게 끝까지 처리한다.
-            BatchOutputFailure lineFailure = applyLine(line, tags, targetIds);
+            BatchOutputFailure lineFailure = applyLine(line, tags, rules, targetIds);
             if (failure == null && lineFailure != null) {
                 failure = lineFailure;
             }
@@ -142,7 +149,12 @@ public class OpenAiBatchTaggingService {
     }
 
     // OpenAI Batch의 JSONL 한 줄에서 최대 10개 Place의 구조화 응답을 꺼내 최종 저장한다.
-    private BatchOutputFailure applyLine(String line, Map<String, Tag> tags, Set<Long> targetIds) {
+    private BatchOutputFailure applyLine(
+            String line,
+            Map<String, Tag> tags,
+            List<PlaceCategoryRule> rules,
+            Set<Long> targetIds
+    ) {
         try {
             // Batch API는 JSONL 외피 안에 Responses API의 구조화 텍스트를 넣어 반환한다.
             JsonNode body = objectMapper.readTree(line).path("response").path("body");
@@ -168,7 +180,7 @@ public class OpenAiBatchTaggingService {
                             "OpenAI Batch 결과의 Temp ID가 요청 대상과 일치하지 않습니다."
                     );
                 }
-                writer.complete(result.tempId(), result, tags);
+                writer.complete(result.tempId(), result, tags, rules);
             }
             return null;
         } catch (com.fasterxml.jackson.core.JsonProcessingException exception) {
@@ -193,17 +205,28 @@ public class OpenAiBatchTaggingService {
     }
 
     // Place 10개씩 묶은 Responses 요청을 JSONL 한 줄로 만들어 반복 프롬프트 비용을 줄인다.
-    private String createJsonLines(List<PlaceCollectionTemp> targets, List<Tag> tags) {
+    private String createJsonLines(
+            List<PlaceCollectionTemp> targets,
+            List<Tag> tags,
+            List<PlaceCategoryRule> rules
+    ) {
+        // 규칙과 장소 근거를 제출당 한 번 구성한 뒤 10개씩 나눈다.
+        Map<String, Object> input = inputBuilder.create(targets, tags, rules);
+        List<?> places = (List<?>) input.get("places");
         List<String> lines = new ArrayList<>();
         for (int start = 0; start < targets.size(); start += PLACES_PER_REQUEST) {
             int end = Math.min(start + PLACES_PER_REQUEST, targets.size());
-            lines.add(createJsonLine(targets.subList(start, end), tags));
+            lines.add(createJsonLine(targets.subList(start, end), tags, Map.of(
+                    "availableTags", input.get("availableTags"),
+                    "typeRules", input.get("typeRules"),
+                    "places", places.subList(start, end)
+            )));
         }
         return String.join("\n", lines);
     }
 
     // Batch 한 줄에 포함된 Place 목록과 동일한 결과 개수를 JSON Schema로 강제한다.
-    private String createJsonLine(List<PlaceCollectionTemp> targets, List<Tag> tags) {
+    private String createJsonLine(List<PlaceCollectionTemp> targets, List<Tag> tags, Map<String, Object> input) {
         try {
             return objectMapper.writeValueAsString(Map.of(
                     "custom_id", "places-" + targets.getFirst().getId() + "-" + targets.getLast().getId(),
@@ -213,25 +236,7 @@ public class OpenAiBatchTaggingService {
                             "model", openAiProperties.model(),
                             "store", false,
                             "instructions", AiTaggingPolicy.instructions(),
-                            "input", objectMapper.writeValueAsString(Map.of(
-                                    "availableTags", tags.stream().map(tag -> Map.of("code", tag.getCode(), "displayName", tag.getDisplayName())).toList(),
-                                    "places", targets.stream()
-                                            .map(temp -> Map.of(
-                                                    "tempId", temp.getId(),
-                                                    "placeType", temp.getDefaultPlaceType().name(),
-                                                    "placeTypeFinalized", temp.isPlaceTypeFinalized(),
-                                                    "typeEvidence", Map.of(
-                                                            "naverCategory", value(temp.getNaverCategoryName())
-                                                    ),
-                                                    "tagEvidence", Map.of(
-                                                            "name", temp.getName(),
-                                                            "kakaoCategory", value(temp.getKakaoCategoryName()),
-                                                            "naverCategory", value(temp.getNaverCategoryName()),
-                                                            "blogEvidence", value(temp.getNaverBlogEvidence())
-                                                    )
-                                            ))
-                                            .toList()
-                            )),
+                            "input", objectMapper.writeValueAsString(input),
                             "reasoning", Map.of("effort", "none"),
                             "text", Map.of("format", Map.of("type", "json_schema", "name", "place_tagging", "strict", true, "schema", schema(tags, targets.size())))
                     )
@@ -289,8 +294,12 @@ public class OpenAiBatchTaggingService {
         );
     }
 
-    private String value(String value) {
-        return value == null ? "" : value;
+
+    // Batch API와 로컬 Job이 감당하는 제출 상한을 함께 지킨다.
+    private void validateLimit(int limit) {
+        if (limit < 1 || limit > MAX_SUBMIT_SIZE) {
+            throw new IllegalArgumentException("Batch 태깅 개수는 1 이상 1000 이하여야 합니다.");
+        }
     }
 
     private String messageOf(Exception exception) {

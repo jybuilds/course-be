@@ -1,8 +1,12 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service;
 
+import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service.AiTaggingInputBuilder;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.service.PlaceTypeClassifier;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.repository.PlaceCategoryRuleRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -45,7 +49,8 @@ class AiTaggingServiceTest {
                 openAiClient,
                 new ObjectMapper(),
                 writer,
-                new AiTaggingTempWriter(tempRepository)
+                new AiTaggingTempWriter(tempRepository),
+                new AiTaggingInputBuilder(new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class)))
         );
         PlaceCollectionTemp temp = createAiPendingTemp();
         Tag bread = Tag.create("BREAD", "빵", 1);
@@ -63,7 +68,7 @@ class AiTaggingServiceTest {
                 .thenReturn("""
                         {"results":[{"tempId":1,"tags":[{"code":"BREAD","weight":95}]}]}
                         """);
-        when(writer.complete(eq(1L), any(AiTaggingResult.class), anyMap()))
+        when(writer.complete(eq(1L), any(AiTaggingResult.class), anyMap(), anyList()))
                 .thenReturn(completed);
 
         AiTaggingResponse response = service.tag(1L);
@@ -71,7 +76,7 @@ class AiTaggingServiceTest {
         assertThat(response).isEqualTo(completed);
         assertThat(temp.getStatus()).isEqualTo(PlaceCollectionTempStatus.PROCESSING);
         verify(openAiClient).createStructuredResponse(anyString(), anyString(), anyMap());
-        verify(writer).complete(eq(1L), any(AiTaggingResult.class), anyMap());
+        verify(writer).complete(eq(1L), any(AiTaggingResult.class), anyMap(), anyList());
     }
 
     @Test
@@ -89,13 +94,14 @@ class AiTaggingServiceTest {
                 openAiClient,
                 new ObjectMapper(),
                 writer,
-                new AiTaggingTempWriter(tempRepository)
+                new AiTaggingTempWriter(tempRepository),
+                new AiTaggingInputBuilder(new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class)))
         );
         when(tempRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(temp));
         when(tagRepository.findByIsActiveTrueOrderByDisplayOrderAsc()).thenReturn(List.of(bread));
         when(openAiClient.createStructuredResponse(anyString(), anyString(), anyMap()))
                 .thenReturn("{\"results\":[{\"tempId\":1,\"tags\":[{\"code\":\"BREAD\",\"weight\":95}]}]}");
-        when(writer.complete(eq(1L), any(AiTaggingResult.class), anyMap()))
+        when(writer.complete(eq(1L), any(AiTaggingResult.class), anyMap(), anyList()))
                 .thenReturn(new AiTaggingResponse(1L, true, 10L, PlaceCollectionTempStatus.COMPLETED, null, null));
 
         service.tag(1L);

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>저장된 장소 확인</title>
+  <style>
+    :root { color-scheme: light; --ink:#182230; --muted:#667085; --line:#e4e7ec; --blue:#2563eb; --paper:#fff; --soft:#f8fafc; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--soft); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif; }
+    main { width:min(1440px, calc(100% - 32px)); margin:40px auto 72px; }
+    h1 { margin:0 0 8px; font-size:28px; letter-spacing:-.04em; }
+    p { margin:0; color:var(--muted); }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:24px 0 12px; }
+    .status { color:var(--muted); font-size:14px; }
+    .pager { display:flex; align-items:center; gap:8px; }
+    button { min-height:36px; padding:0 13px; border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); font:inherit; font-size:14px; cursor:pointer; }
+    button:hover:not(:disabled) { border-color:var(--blue); color:var(--blue); }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--paper); }
+    table { width:100%; min-width:1030px; border-collapse:collapse; font-size:14px; }
+    th, td { padding:14px 16px; border-bottom:1px solid var(--line); vertical-align:top; text-align:left; }
+    th { background:#f9fafb; color:#475467; font-size:12px; white-space:nowrap; }
+    tr:last-child td { border-bottom:0; }
+    .id { color:var(--muted); font-variant-numeric:tabular-nums; }
+    .name { font-weight:700; }
+    .type { display:inline-block; margin-top:5px; padding:3px 6px; border-radius:5px; background:#eef4ff; color:#175cd3; font-size:11px; font-weight:700; }
+    .address { min-width:235px; line-height:1.5; }
+    .address div + div { margin-top:4px; color:var(--muted); }
+    a { color:var(--blue); text-decoration:none; white-space:nowrap; }
+    a:hover { text-decoration:underline; }
+    .empty-link { color:#98a2b3; }
+    .tags { display:flex; min-width:220px; flex-wrap:wrap; gap:5px; }
+    .tag { display:inline-flex; gap:4px; align-items:center; padding:4px 7px; border-radius:999px; background:#f2f4f7; font-size:12px; white-space:nowrap; }
+    .tag small { color:var(--muted); }
+    .empty { padding:44px; color:var(--muted); text-align:center; }
+    @media (max-width:640px) { main { width:min(100% - 24px, 1440px); margin-top:24px; } .toolbar { align-items:flex-start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>저장된 장소 확인</h1>
+  <p>정제와 AI 태깅이 완료되어 <code>places</code>에 저장된 장소만 보여줍니다.</p>
+
+  <div class="toolbar">
+    <div id="status" class="status">장소를 불러오는 중...</div>
+    <div class="pager">
+      <button id="previous" type="button">이전</button>
+      <span id="page" class="status"></span>
+      <button id="next" type="button">다음</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>장소</th>
+        <th>주소</th>
+        <th>카카오</th>
+        <th>네이버</th>
+        <th>태그</th>
+      </tr>
+      </thead>
+      <tbody id="places"></tbody>
+    </table>
+    <div id="empty" class="empty" hidden>저장된 장소가 없습니다.</div>
+  </div>
+</main>
+<script>
+  const pageSize = 50;
+  const status = document.querySelector('#status');
+  const pageLabel = document.querySelector('#page');
+  const placesBody = document.querySelector('#places');
+  const empty = document.querySelector('#empty');
+  const previous = document.querySelector('#previous');
+  const next = document.querySelector('#next');
+  let currentPage = 0;
+  let totalPages = 0;
+
+  // 장소 목록과 태그를 서버에서 페이지 단위로 읽는다.
+  async function loadPlaces(page) {
+    status.textContent = '장소를 불러오는 중...';
+    previous.disabled = true;
+    next.disabled = true;
+
+    try {
+      const response = await fetch(`api/places/check?page=${page}&size=${pageSize}`);
+      if (!response.ok) throw new Error('장소 목록을 불러오지 못했습니다.');
+      const data = await response.json();
+      currentPage = data.page;
+      totalPages = data.totalPages;
+      render(data);
+    } catch (error) {
+      status.textContent = error.message;
+      placesBody.replaceChildren();
+      empty.hidden = false;
+      empty.textContent = '장소 목록을 불러오지 못했습니다.';
+    }
+  }
+
+  // 서버 문자열을 HTML로 해석하지 않고 DOM에 넣어 테스트 데이터도 안전하게 표시한다.
+  function render(data) {
+    placesBody.replaceChildren();
+    empty.hidden = data.places.length > 0;
+    status.textContent = `총 ${data.totalElements.toLocaleString()}개 장소`;
+    pageLabel.textContent = data.totalPages ? `${data.page + 1} / ${data.totalPages}` : '0 / 0';
+    previous.disabled = data.page === 0;
+    next.disabled = data.page + 1 >= data.totalPages;
+
+    for (const place of data.places) {
+      const row = document.createElement('tr');
+      row.append(cell(place.id, 'id'));
+      row.append(placeCell(place));
+      row.append(addressCell(place));
+      row.append(linkCell(place.kakaoUrl, '카카오맵'));
+      row.append(linkCell(place.naverUrl, '네이버 지도'));
+      row.append(tagsCell(place.tags));
+      placesBody.append(row);
+    }
+  }
+
+  function cell(value, className) {
+    const element = document.createElement('td');
+    element.className = className;
+    element.textContent = value ?? '-';
+    return element;
+  }
+
+  function placeCell(place) {
+    const element = document.createElement('td');
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = place.name;
+    const type = document.createElement('span');
+    type.className = 'type';
+    type.textContent = place.placeType;
+    element.append(name, type);
+    return element;
+  }
+
+  function addressCell(place) {
+    const element = document.createElement('td');
+    element.className = 'address';
+    const roadAddress = document.createElement('div');
+    roadAddress.textContent = place.roadAddressName || '-';
+    const parcelAddress = document.createElement('div');
+    parcelAddress.textContent = place.addressName || '-';
+    element.append(roadAddress, parcelAddress);
+    return element;
+  }
+
+  function linkCell(url, label) {
+    const element = document.createElement('td');
+    if (!url) {
+      element.className = 'empty-link';
+      element.textContent = '없음';
+      return element;
+    }
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = label;
+    element.append(link);
+    return element;
+  }
+
+  function tagsCell(tags) {
+    const element = document.createElement('td');
+    element.className = 'tags';
+    if (!tags.length) {
+      element.textContent = '-';
+      return element;
+    }
+    for (const tag of tags) {
+      const item = document.createElement('span');
+      item.className = 'tag';
+      item.textContent = tag.displayName;
+      const weight = document.createElement('small');
+      weight.textContent = tag.weight;
+      item.append(weight);
+      element.append(item);
+    }
+    return element;
+  }
+
+  previous.addEventListener('click', () => loadPlaces(currentPage - 1));
+  next.addEventListener('click', () => loadPlaces(currentPage + 1));
+  loadPlaces(currentPage);
+</script>
+</body>
+</html>

@@ -59,10 +59,10 @@ public class V3__seed_master_data extends BaseJavaMigration {
     private void seedSeoulAreas(Context context) throws Exception {
         long cityId = findCityId(context, "SEOUL");
         Map<String, String[]> rectangles = rectanglesByAreaCode();
-        String sql = "INSERT INTO areas (city_id, code, name, collection_center_latitude, collection_center_longitude, "
+        String sql = "INSERT INTO areas (city_id, code, name, recommendation_tier, collection_center_latitude, collection_center_longitude, "
                 + "collection_min_latitude, collection_min_longitude, collection_max_latitude, collection_max_longitude) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
-                + "ON CONFLICT (city_id, code) DO UPDATE SET name = EXCLUDED.name, "
+                + "VALUES (?, ?, ?, 'C', ?, ?, ?, ?, ?, ?) "
+                + "ON CONFLICT (city_id, code) DO UPDATE SET name = EXCLUDED.name, recommendation_tier = 'C', "
                 + "collection_center_latitude = EXCLUDED.collection_center_latitude, "
                 + "collection_center_longitude = EXCLUDED.collection_center_longitude, "
                 + "collection_min_latitude = EXCLUDED.collection_min_latitude, "

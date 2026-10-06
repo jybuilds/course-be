@@ -57,7 +57,7 @@ public class CourseStats {
 
     }
 
-    // 코스 조회를 집계한다.ㄴ
+    // 코스 조회를 집계한다.
     public void recordView() { viewCount++; lastViewedAt = LocalDateTime.now(); }
     // 코스 선택을 집계한다.
     public void recordSelection() { selectionCount++; lastSelectedAt = LocalDateTime.now(); }

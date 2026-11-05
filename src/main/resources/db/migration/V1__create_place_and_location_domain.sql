@@ -10,7 +10,7 @@ CREATE TABLE areas (
     city_id BIGINT NOT NULL,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
-    recommendation_tier CHAR(1) NOT NULL DEFAULT 'C',
+    rank INTEGER,
     collection_center_latitude NUMERIC(10, 7) NOT NULL,
     collection_center_longitude NUMERIC(10, 7) NOT NULL,
     collection_min_latitude NUMERIC(10, 7) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE areas (
     collection_max_longitude NUMERIC(10, 7) NOT NULL,
     CONSTRAINT fk_areas_city FOREIGN KEY (city_id) REFERENCES cities (id),
     CONSTRAINT uk_areas_city_code UNIQUE (city_id, code),
-    CONSTRAINT ck_areas_recommendation_tier CHECK (recommendation_tier IN ('S', 'A', 'B', 'C')),
+    CONSTRAINT ck_areas_overall_recommendation_rank CHECK (rank IS NULL OR rank > 0),
     CONSTRAINT ck_areas_collection_latitude_range CHECK (collection_min_latitude <= collection_center_latitude AND collection_center_latitude <= collection_max_latitude),
     CONSTRAINT ck_areas_collection_longitude_range CHECK (collection_min_longitude <= collection_center_longitude AND collection_center_longitude <= collection_max_longitude)
 );
@@ -80,10 +80,15 @@ CREATE TABLE area_tags (
     area_id BIGINT NOT NULL,
     tag_id BIGINT NOT NULL,
     weight INTEGER NOT NULL,
+    recommendation_rank INTEGER,
+    recommend_visit_places JSONB,
+    attraction_features JSONB,
+    differentiators JSONB,
     CONSTRAINT fk_area_tags_area FOREIGN KEY (area_id) REFERENCES areas (id),
     CONSTRAINT fk_area_tags_tag FOREIGN KEY (tag_id) REFERENCES tags (id),
     CONSTRAINT uk_area_tags_area_tag UNIQUE (area_id, tag_id),
-    CONSTRAINT ck_area_tags_weight CHECK (weight BETWEEN 0 AND 100)
+    CONSTRAINT ck_area_tags_weight CHECK (weight BETWEEN 0 AND 100),
+    CONSTRAINT ck_area_tags_recommendation_rank CHECK (recommendation_rank IS NULL OR recommendation_rank > 0)
 );
 
 CREATE TABLE area_stats (
@@ -139,11 +144,13 @@ CREATE TABLE place_stats (
 );
 
 CREATE INDEX idx_areas_city_id ON areas (city_id);
+CREATE INDEX idx_areas_city_rank ON areas (city_id, rank) WHERE rank IS NOT NULL;
 CREATE INDEX idx_tags_active_order ON tags (is_active, display_order);
 CREATE INDEX idx_tag_options_tag_active_order ON tag_options (tag_id, is_active, display_order);
 CREATE INDEX idx_places_area_anchor_active ON places (area_id, is_anchor_candidate, is_active);
 CREATE INDEX idx_places_area_type_active ON places (area_id, place_type, is_active);
 CREATE INDEX idx_places_last_synced_at ON places (last_synced_at);
 CREATE INDEX idx_area_tags_tag_area ON area_tags (tag_id, area_id);
+CREATE INDEX idx_area_tags_tag_rank ON area_tags (tag_id, recommendation_rank) WHERE recommendation_rank IS NOT NULL;
 CREATE INDEX idx_place_tags_tag_place ON place_tags (tag_id, place_id);
 CREATE INDEX idx_place_stats_selection_count ON place_stats (selection_count);

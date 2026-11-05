@@ -2,8 +2,6 @@ package com.junsang.course_backend.domain.place.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,9 +36,8 @@ public class Area {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "recommendation_tier", nullable = false, length = 1)
-    private AreaTier recommendationTier;
+    @Column(name = "rank")
+    private Integer rank;
 
     @Column(nullable = false, precision = 10, scale = 7)
     private BigDecimal collectionCenterLatitude;

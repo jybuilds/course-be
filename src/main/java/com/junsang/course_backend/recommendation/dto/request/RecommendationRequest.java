@@ -21,8 +21,7 @@ public record RecommendationRequest(
         @NotNull(message = "시간대는 필수입니다.")
         TimeSlot timeSlot,
 
-        @NotEmpty(message = "태그를 하나 이상 선택해야 합니다.")
-        @Size(max = 10, message = "태그는 최대 10개까지 선택할 수 있습니다.")
+        @Size(max = 15, message = "태그는 최대 15개까지 선택할 수 있습니다.")
         @UniqueElements(message = "같은 태그를 중복 선택할 수 없습니다.")
         List<@NotBlank(message = "태그 코드는 비어 있을 수 없습니다.") String> tagCodes
 ) {

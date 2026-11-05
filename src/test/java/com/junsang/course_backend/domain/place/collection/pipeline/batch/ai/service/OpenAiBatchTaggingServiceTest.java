@@ -22,7 +22,7 @@ import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.ser
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
 import com.junsang.course_backend.domain.place.repository.TagRepository;
 import com.junsang.course_backend.infra.openai.batch.OpenAiBatchClient;
-import com.junsang.course_backend.infra.openai.config.OpenAiProperties;
+import com.junsang.course_backend.infra.openai.config.AiProviderProperties;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +38,7 @@ class OpenAiBatchTaggingServiceTest {
                 tempRepository,
                 mock(TagRepository.class),
                 mock(OpenAiBatchClient.class),
-                new OpenAiProperties(URI.create("https://api.openai.com"), "test", "gpt-5.6-luna", null, null),
+                openAiProperties(),
                 new ObjectMapper(),
                 mock(AiTaggingWriter.class),
                 new OpenAiBatchJobWriter(tempRepository, mock(OpenAiBatchTaggingJobRepository.class)),
@@ -75,7 +75,7 @@ class OpenAiBatchTaggingServiceTest {
                 tempRepository,
                 mock(TagRepository.class),
                 mock(OpenAiBatchClient.class),
-                new OpenAiProperties(URI.create("https://api.openai.com"), "test", "gpt-5.6-luna", null, null),
+                openAiProperties(),
                 new ObjectMapper(),
                 mock(AiTaggingWriter.class),
                 new OpenAiBatchJobWriter(tempRepository, mock(OpenAiBatchTaggingJobRepository.class)),
@@ -103,7 +103,7 @@ class OpenAiBatchTaggingServiceTest {
                 tempRepository,
                 mock(TagRepository.class),
                 batchClient,
-                new OpenAiProperties(URI.create("https://api.openai.com"), "test", "gpt-5.6-luna", null, null),
+                openAiProperties(),
                 new ObjectMapper(),
                 mock(AiTaggingWriter.class),
                 new OpenAiBatchJobWriter(tempRepository, jobRepository),
@@ -128,4 +128,52 @@ class OpenAiBatchTaggingServiceTest {
         );
         verify(tempRepository).saveAll(List.of(temp));
     }
+    @Test
+    void recordsProviderErrorWhenCompletedBatchContainsOnlyFailedRequests() {
+        PlaceCollectionTempRepository tempRepository = mock(PlaceCollectionTempRepository.class);
+        OpenAiBatchTaggingJobRepository jobRepository = mock(OpenAiBatchTaggingJobRepository.class);
+        OpenAiBatchClient batchClient = mock(OpenAiBatchClient.class);
+        OpenAiBatchTaggingService service = new OpenAiBatchTaggingService(
+                tempRepository,
+                mock(TagRepository.class),
+                batchClient,
+                openAiProperties(),
+                new ObjectMapper(),
+                mock(AiTaggingWriter.class),
+                new OpenAiBatchJobWriter(tempRepository, jobRepository),
+                new AiTaggingInputBuilder(new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class)))
+        );
+        OpenAiBatchTaggingJob job = OpenAiBatchTaggingJob.submitting(1);
+        job.submit("batch-test");
+        PlaceCollectionTemp temp = mock(PlaceCollectionTemp.class);
+        when(jobRepository.findById(1L)).thenReturn(Optional.of(job));
+        when(batchClient.completedOutput("batch-test"))
+                .thenReturn("{\"response\":{\"status_code\":400,\"body\":{\"error\":{\"message\":\"Invalid prompt\"}}}}");
+        when(tempRepository.findByAiBatchJobIdOrderById(1L)).thenReturn(List.of(temp));
+
+        boolean collected = service.collect(1L);
+
+        assertThat(collected).isFalse();
+        assertThat(job.getStatus()).isEqualTo(OpenAiBatchTaggingStatus.FAILED);
+        assertThat(job.getErrorCode()).isEqualTo(PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED);
+        verify(temp).fail(
+                eq(PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED),
+                eq("AI Batch HTTP 400: Invalid prompt")
+        );
+        verify(tempRepository).saveAll(List.of(temp));
+    }
+    private AiProviderProperties openAiProperties() {
+        return new AiProviderProperties(
+                "OPENAI",
+                new AiProviderProperties.ProviderSettings(
+                        URI.create("https://api.openai.com"),
+                        "test",
+                        "gpt-5.6-luna",
+                        null,
+                        null
+                ),
+                null
+        );
+    }
+
 }

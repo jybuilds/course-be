@@ -1,4 +1,4 @@
-package com.junsang.course_backend.recommendation.dto.response;
+package com.junsang.course_backend.recommendation.dto.response.recommendationOptions;
 
 /// 추천 입력 항목별 선택 정책이다.
 public record SelectionRulesResponse(

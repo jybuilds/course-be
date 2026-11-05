@@ -1,4 +1,4 @@
-package com.junsang.course_backend.recommendation.dto.response;
+package com.junsang.course_backend.recommendation.dto.response.recommendationOptions;
 
 import java.util.List;
 

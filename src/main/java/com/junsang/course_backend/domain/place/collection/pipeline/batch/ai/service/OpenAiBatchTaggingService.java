@@ -16,7 +16,7 @@ import com.junsang.course_backend.domain.place.entity.Tag;
 import com.junsang.course_backend.domain.place.repository.TagRepository;
 import com.junsang.course_backend.global.exception.BusinessException;
 import com.junsang.course_backend.infra.openai.batch.OpenAiBatchClient;
-import com.junsang.course_backend.infra.openai.config.OpenAiProperties;
+import com.junsang.course_backend.infra.openai.config.AiProviderProperties;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +38,7 @@ public class OpenAiBatchTaggingService {
     private final PlaceCollectionTempRepository tempRepository;
     private final TagRepository tagRepository;
     private final OpenAiBatchClient openAiBatchClient;
-    private final OpenAiProperties openAiProperties;
+    private final AiProviderProperties openAiProperties;
     private final ObjectMapper objectMapper;
     private final AiTaggingWriter writer;
     private final OpenAiBatchJobWriter batchJobWriter;
@@ -157,7 +157,15 @@ public class OpenAiBatchTaggingService {
     ) {
         try {
             // Batch API는 JSONL 외피 안에 Responses API의 구조화 텍스트를 넣어 반환한다.
-            JsonNode body = objectMapper.readTree(line).path("response").path("body");
+            JsonNode response = objectMapper.readTree(line).path("response");
+            JsonNode body = response.path("body");
+            if (response.path("status_code").asInt() >= 400) {
+                return new BatchOutputFailure(
+                        PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED,
+                        "AI Batch HTTP " + response.path("status_code").asInt() + ": "
+                                + body.path("error").path("message").asText("원격 요청 실패")
+                );
+            }
             JsonNode output = body.path("output");
             if (!output.isArray() || output.isEmpty()) {
                 throw new IllegalArgumentException("OpenAI Batch 응답에 output이 없습니다.");
@@ -233,7 +241,7 @@ public class OpenAiBatchTaggingService {
                     "method", "POST",
                     "url", "/v1/responses",
                     "body", Map.of(
-                            "model", openAiProperties.model(),
+                            "model", openAiProperties.selected().model(),
                             "store", false,
                             "instructions", AiTaggingPolicy.instructions(),
                             "input", objectMapper.writeValueAsString(input),

@@ -3,10 +3,13 @@ package com.junsang.course_backend.infra.openai.batch;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.junsang.course_backend.global.exception.BusinessException;
 import com.junsang.course_backend.global.exception.ErrorCode;
-import com.junsang.course_backend.infra.openai.config.OpenAiProperties;
+import com.junsang.course_backend.infra.openai.config.AiProviderProperties;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
+import java.net.http.HttpClient;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,22 +18,25 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 /// OpenAI 파일 업로드와 비동기 Batch API 호출을 담당한다.
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class OpenAiBatchClient {
 
     private static final int FILE_PROCESSING_ATTEMPTS = 20;
     private static final long FILE_PROCESSING_INTERVAL_MILLIS = 500;
 
-    private final OpenAiProperties properties;
+    private final AiProviderProperties properties;
     private final RestClient.Builder restClientBuilder;
 
     // JSONL 요청 파일을 업로드한 뒤 OpenAI Batch Job을 제출한다.
     public String submit(String jsonLines) {
         requireConfigured();
         RestClient client = client();
+        String stage = "FILE_UPLOAD";
         try {
             MultipartBodyBuilder body = new MultipartBodyBuilder();
             body.part("purpose", "batch");
@@ -48,8 +54,13 @@ public class OpenAiBatchClient {
                     .body(JsonNode.class);
             String fileId = requiredText(file, "id");
 
-            // Batch가 파일을 읽기 전에 OpenAI의 파일 처리가 끝났는지 확인한다.
-            awaitFileProcessing(client, fileId);
+            // OmniRoute 파일 메타데이터에는 status가 없으며 Batch 생성 시 파일을 검증한다.
+            stage = "FILE_PROCESSING";
+            if ("OPENAI".equalsIgnoreCase(properties.provider())) {
+                awaitFileProcessing(client, fileId);
+            }
+
+            stage = "BATCH_CREATE";
 
             JsonNode batch = client.post()
                     .uri("/v1/batches")
@@ -62,7 +73,13 @@ public class OpenAiBatchClient {
                     .retrieve()
                     .body(JsonNode.class);
             return requiredText(batch, "id");
+        } catch (RestClientResponseException exception) {
+            log.warn("AI Batch HTTP failure: provider={}, stage={}, status={}, response={}",
+                    properties.provider(), stage, exception.getStatusCode(),
+                    exception.getResponseBodyAsString().replace(properties.selected().apiKey(), "[REDACTED]"));
+            throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);
         } catch (RestClientException exception) {
+            log.warn("AI Batch request failure: provider={}, stage={}", properties.provider(), stage, exception);
             throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);
         }
     }
@@ -111,31 +128,51 @@ public class OpenAiBatchClient {
             if (!"completed".equals(status)) {
                 return null;
             }
-            String outputFileId = requiredText(batch, "output_file_id");
-            return client().get()
-                    .uri("/v1/files/{fileId}/content", outputFileId)
-                    .retrieve()
-                    .body(String.class);
+            // 실패 줄은 별도 error 파일에 있으므로 성공·실패 결과를 함께 수집한다.
+            java.util.List<String> outputs = new java.util.ArrayList<>();
+            for (String field : java.util.List.of("output_file_id", "error_file_id")) {
+                JsonNode fileId = batch.path(field);
+                if (fileId.isTextual() && !fileId.asText().isBlank()) {
+                    String content = client().get()
+                            .uri("/v1/files/{fileId}/content", fileId.asText())
+                            .retrieve()
+                            .body(String.class);
+                    if (content != null && !content.isBlank()) {
+                        outputs.add(content.strip());
+                    }
+                }
+            }
+            if (outputs.isEmpty()) {
+                throw new IllegalStateException("완료된 AI Batch에 성공·실패 결과 파일이 없습니다: " + batchId);
+            }
+            return String.join("\n", outputs);
         } catch (RestClientException exception) {
             throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);
         }
     }
 
     private RestClient client() {
-        return restClientBuilder
-                .baseUrl(properties.baseUrl().toString())
+        RestClient.Builder builder = restClientBuilder.clone();
+        if ("OMNIROUTE".equalsIgnoreCase(properties.provider())) {
+            // 로컬 Node 게이트웨이의 h2c 업그레이드 연결 종료를 피한다.
+            builder.requestFactory(new JdkClientHttpRequestFactory(HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .build()));
+        }
+        return builder
+                .baseUrl(properties.selected().baseUrl().toString())
                 .defaultHeaders(this::applyAuthentication)
                 .build();
     }
 
     // 파일과 Batch 요청이 반드시 같은 조직·프로젝트 컨텍스트에서 실행되도록 공통 헤더를 적용한다.
     private void applyAuthentication(HttpHeaders headers) {
-        headers.setBearerAuth(properties.apiKey());
-        if (StringUtils.hasText(properties.organization())) {
-            headers.set("OpenAI-Organization", properties.organization());
+        headers.setBearerAuth(properties.selected().apiKey());
+        if (StringUtils.hasText(properties.selected().organization())) {
+            headers.set("OpenAI-Organization", properties.selected().organization());
         }
-        if (StringUtils.hasText(properties.project())) {
-            headers.set("OpenAI-Project", properties.project());
+        if (StringUtils.hasText(properties.selected().project())) {
+            headers.set("OpenAI-Project", properties.selected().project());
         }
     }
 
@@ -146,7 +183,7 @@ public class OpenAiBatchClient {
     }
 
     private String requiredText(JsonNode node, String field) {
-        String value = node == null ? "" : node.path(field).asText();
+        String value = node == null || !node.path(field).isTextual() ? "" : node.path(field).asText();
         if (value.isBlank()) {
             throw new BusinessException(ErrorCode.OPENAI_API_EMPTY_RESPONSE);
         }

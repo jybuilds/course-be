@@ -12,6 +12,10 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.util.List;
 
 /// 세부 지역이 어떤 활동과 분위기를 대표하는지 연결하는 태그다.
 @Entity
@@ -34,4 +38,19 @@ public class AreaTag {
 
     @Column(nullable = false)
     private int weight;
+
+    @Column(name = "recommendation_rank")
+    private Integer recommendationRank;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "recommend_visit_places", columnDefinition = "jsonb")
+    private List<String> recommendVisitPlaces;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "attraction_features", columnDefinition = "jsonb")
+    private List<String> attractionFeatures;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "differentiators", columnDefinition = "jsonb")
+    private List<String> differentiators;
 }

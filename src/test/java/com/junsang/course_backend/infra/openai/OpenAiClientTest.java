@@ -6,7 +6,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import com.junsang.course_backend.infra.openai.config.OpenAiProperties;
+import com.junsang.course_backend.infra.openai.config.AiProviderProperties;
 import java.net.URI;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -22,12 +22,16 @@ class OpenAiClientTest {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         OpenAiClient client = new OpenAiClient(
-                new OpenAiProperties(
-                        URI.create("https://api.openai.com"),
-                        "api-key",
-                        "gpt-5.4-nano",
-                        "org-test",
-                        "proj-test"
+                new AiProviderProperties(
+                        "OPENAI",
+                        new AiProviderProperties.ProviderSettings(
+                                URI.create("https://api.openai.com"),
+                                "api-key",
+                                "gpt-5.4-nano",
+                                "org-test",
+                                "proj-test"
+                        ),
+                        null
                 ),
                 builder
         );

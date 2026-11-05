@@ -3,8 +3,10 @@ package com.junsang.course_backend.infra.openai;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.junsang.course_backend.global.exception.BusinessException;
 import com.junsang.course_backend.global.exception.ErrorCode;
-import com.junsang.course_backend.infra.openai.config.OpenAiProperties;
+import com.junsang.course_backend.infra.openai.config.AiProviderProperties;
 import java.util.Map;
+import java.net.http.HttpClient;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +25,7 @@ public class OpenAiClient {
 
     private static final int MAX_OUTPUT_TOKENS = 500;
 
-    private final OpenAiProperties properties;
+    private final AiProviderProperties properties;
     private final RestClient.Builder restClientBuilder;
 
     // JSON Schema를 강제한 Responses API 결과에서 출력 텍스트만 반환한다.
@@ -39,7 +41,7 @@ public class OpenAiClient {
 
         // 모델이 정한 JSON Schema만 반환하도록 요청 본문을 구성한다.
         Map<String, Object> request = Map.of(
-                "model", properties.model(),
+                "model", properties.selected().model(),
                 "store", false,
                 "max_output_tokens", MAX_OUTPUT_TOKENS,
                 "instructions", instructions,
@@ -94,20 +96,27 @@ public class OpenAiClient {
     }
 
     private RestClient client() {
-        return restClientBuilder
-                .baseUrl(properties.baseUrl().toString())
+        RestClient.Builder builder = restClientBuilder.clone();
+        if ("OMNIROUTE".equalsIgnoreCase(properties.provider())) {
+            // 로컬 Node 게이트웨이의 h2c 업그레이드 연결 종료를 피한다.
+            builder.requestFactory(new JdkClientHttpRequestFactory(HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .build()));
+        }
+        return builder
+                .baseUrl(properties.selected().baseUrl().toString())
                 .defaultHeaders(this::applyAuthentication)
                 .build();
     }
 
     // Responses 요청도 Batch와 같은 조직·프로젝트 컨텍스트를 사용한다.
     private void applyAuthentication(HttpHeaders headers) {
-        headers.setBearerAuth(properties.apiKey());
-        if (StringUtils.hasText(properties.organization())) {
-            headers.set("OpenAI-Organization", properties.organization());
+        headers.setBearerAuth(properties.selected().apiKey());
+        if (StringUtils.hasText(properties.selected().organization())) {
+            headers.set("OpenAI-Organization", properties.selected().organization());
         }
-        if (StringUtils.hasText(properties.project())) {
-            headers.set("OpenAI-Project", properties.project());
+        if (StringUtils.hasText(properties.selected().project())) {
+            headers.set("OpenAI-Project", properties.selected().project());
         }
     }
 }

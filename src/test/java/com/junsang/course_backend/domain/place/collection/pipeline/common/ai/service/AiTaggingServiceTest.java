@@ -118,9 +118,11 @@ class AiTaggingServiceTest {
         assertThat(map(map(itemSchema, "properties"), "keywords").get("type"))
                 .isEqualTo("array");
         Map<String, Object> scores = map(map(map(itemSchema, "properties"), "priorityScores"), "properties");
-        assertThat(map(scores, "experience").get("maximum")).isEqualTo(40);
-        assertThat(map(scores, "distinctiveness").get("maximum")).isEqualTo(35);
-        assertThat(map(scores, "outingDemand").get("maximum")).isEqualTo(25);
+        assertThat(scores.keySet()).containsExactlyInAnyOrder("experience", "distinctiveness");
+        for (String field : scores.keySet()) {
+            assertThat(map(scores, field).get("minimum")).isEqualTo(-25);
+            assertThat(map(scores, field).get("maximum")).isEqualTo(25);
+        }
         assertThat(weightSchema.get("minimum")).isEqualTo(0);
         assertThat(weightSchema.get("maximum")).isEqualTo(100);
     }

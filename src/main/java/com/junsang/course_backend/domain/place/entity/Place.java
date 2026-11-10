@@ -98,9 +98,6 @@ public class Place {
     @Column(name = "priority_distinctiveness")
     private Short priorityDistinctiveness;
 
-    @Column(name = "priority_outing_demand")
-    private Short priorityOutingDemand;
-
     @Column(name = "operating_hours", length = 1000)
     private String operatingHours;
 
@@ -189,14 +186,12 @@ public class Place {
 
     public int getPriorityScore() {
         return (priorityExperience == null ? 0 : priorityExperience)
-                + (priorityDistinctiveness == null ? 0 : priorityDistinctiveness)
-                + (priorityOutingDemand == null ? 0 : priorityOutingDemand);
+                + (priorityDistinctiveness == null ? 0 : priorityDistinctiveness);
     }
 
-    public void updatePriorityScores(short experience, short distinctiveness, short outingDemand) {
+    public void updatePriorityScores(short experience, short distinctiveness) {
         this.priorityExperience = experience;
         this.priorityDistinctiveness = distinctiveness;
-        this.priorityOutingDemand = outingDemand;
     }
 
     public void updateImageUrls(List<String> imageUrls) {

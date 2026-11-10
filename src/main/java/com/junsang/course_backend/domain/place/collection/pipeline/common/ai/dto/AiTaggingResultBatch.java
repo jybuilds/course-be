@@ -19,22 +19,18 @@ public record AiTaggingResultBatch(List<AiTaggingResult> results) {
     ) {
     }
 
-    public record PriorityScores(Integer experience, Integer distinctiveness, Integer outingDemand) {
+    public record PriorityScores(Integer experience, Integer distinctiveness) {
 
-        public static final int MAX_EXPERIENCE = 40;
-        public static final int MAX_DISTINCTIVENESS = 35;
-        public static final int MAX_OUTING_DEMAND = 25;
+        public static final int BASE_SCORE = 25;
 
         public PriorityScores {
-            if (outsideRange(experience, MAX_EXPERIENCE)
-                    || outsideRange(distinctiveness, MAX_DISTINCTIVENESS)
-                    || outsideRange(outingDemand, MAX_OUTING_DEMAND)) {
-                throw new IllegalArgumentException("추천 우선도의 항목별 점수가 배점 범위를 벗어났습니다.");
+            if (outsideRange(experience) || outsideRange(distinctiveness)) {
+                throw new IllegalArgumentException("추천 우선도의 조정값은 -25부터 25까지의 정수여야 합니다.");
             }
         }
 
-        private static boolean outsideRange(Integer score, int max) {
-            return score == null || score < 0 || score > max;
+        private static boolean outsideRange(Integer adjustment) {
+            return adjustment == null || adjustment < -BASE_SCORE || adjustment > BASE_SCORE;
         }
     }
 

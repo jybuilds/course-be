@@ -24,8 +24,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             select p from Place p
             where (:placeType is null or p.placeType = :placeType)
             order by (coalesce(p.priorityExperience, 0)
-                    + coalesce(p.priorityDistinctiveness, 0)
-                    + coalesce(p.priorityOutingDemand, 0)) desc, p.id asc
+                    + coalesce(p.priorityDistinctiveness, 0)) desc, p.id asc
             """)
     Page<Place> findAllForCheckOrderByPriority(
             @Param("placeType") PlaceType placeType,

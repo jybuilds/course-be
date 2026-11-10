@@ -61,7 +61,7 @@ class AiTaggingWriterTest {
         when(place.getId()).thenReturn(10L);
         when(placeTagRepository.findByPlaceId(10L)).thenReturn(List.of());
 
-        var priorityScores = new PriorityScores(29, 23, 18);
+        var priorityScores = new PriorityScores(4, -2);
         writer.complete(
                 1L,
                 new AiTaggingResult(1L, PlaceType.CAFE, List.of("브런치", "샌드위치", " 브런치 "), priorityScores, List.of(new TagWeight("CAFE", 100))),
@@ -75,7 +75,7 @@ class AiTaggingWriterTest {
         assertThat(tagsCaptor.getValue()).extracting(tag -> tag.getTag().getCode())
                 .containsExactlyInAnyOrder("CAFE", "BRUNCH", "RESTAURANT");
         verify(place).updateKeywords(List.of("브런치", "샌드위치"));
-        verify(place).updatePriorityScores((short) 29, (short) 23, (short) 18);
+        verify(place).updatePriorityScores((short) 29, (short) 23);
         verify(place).refresh(any(), eq(PlaceType.MEAL), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
@@ -84,8 +84,8 @@ class AiTaggingWriterTest {
         Place place = mock(Place.class, CALLS_REAL_METHODS);
 
         assertThat(place.getPriorityScore()).isZero();
-        place.updatePriorityScores((short) 29, (short) 23, (short) 18);
-        assertThat(place.getPriorityScore()).isEqualTo(70);
+        place.updatePriorityScores((short) 29, (short) 23);
+        assertThat(place.getPriorityScore()).isEqualTo(52);
     }
 
     private PlaceCollectionTemp brunchTemp() {
@@ -110,7 +110,7 @@ class AiTaggingWriterTest {
                 PlaceType.CAFE,
                 "유주얼하우스",
                 "https://map.naver.com/p/search/유주얼하우스",
-                "음식점>카페,디저트",
+                "음식점>브런치 카페",
                 "서울특별시 마포구 서교동 386-3",
                 "서울특별시 마포구 양화로11길 41",
                 "유주얼하우스는 합정 브런치 카페다.",

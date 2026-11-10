@@ -2,6 +2,7 @@ package com.junsang.course_backend.domain.place.collection.pipeline.common.ai.se
 
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResponse;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.AiTaggingResult;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.PriorityScores;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.TagWeight;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
@@ -85,9 +86,8 @@ public class AiTaggingWriter {
         var scores = result.priorityScores();
         if (scores != null) {
             place.updatePriorityScores(
-                    scores.experience().shortValue(),
-                    scores.distinctiveness().shortValue(),
-                    scores.outingDemand().shortValue()
+                    (short) (scores.experience() + PriorityScores.BASE_SCORE),
+                    (short) (scores.distinctiveness() + PriorityScores.BASE_SCORE)
             );
         }
         placeRepository.save(place);

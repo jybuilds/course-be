@@ -187,9 +187,8 @@
 
     addSection(body, '추천 태그·우선도');
     addField(body, '연결 태그', place.tags.map(tag => `${tag.code} · ${tag.displayName} (${tag.weight})`).join('\n'), 'place_tags에 연결된 태그 코드, 이름, 적합도 가중치');
-    addField(body, 'priority_experience', place.priorityExperience, '장소 경험 점수');
+    addField(body, 'priority_experience', place.priorityExperience, '경험 매력 점수');
     addField(body, 'priority_distinctiveness', place.priorityDistinctiveness, '장소 차별성 점수');
-    addField(body, 'priority_outing_demand', place.priorityOutingDemand, '나들이 수요 점수');
     addField(body, '추천 우선도 합계', place.totalPriorityScore, '위 세 점수를 합산한 화면용 값(DB 별도 컬럼 아님)');
 
     addSection(body, '운영·링크·기록');

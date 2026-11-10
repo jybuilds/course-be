@@ -46,37 +46,42 @@ public final class AiTaggingPolicy {
                 tags는 %d개 이상 %d개 이하이며 가중치는 0부터 %d 사이 정수다.
 
                 [추천 우선도]
-                장소별로 priorityScores를 반환한다. 타입·태그·keywords와 독립적으로 채점한다.
-                experience(0~%d)는 현장에서 즐길 경험의 완성도다. 기본 이용 정보만 있으면 0~12점,
-                주된 경험이 구체적이면 13~28점, 주된 경험이 풍부하거나 여러 경험이 잘 어우러지면 29~40점이다.
-                distinctiveness(0~%d)는 비슷한 장소 대비 차별성이다. 흔하거나 자료가 부족하면 0~8점,
-                이곳을 고를 만한 차이가 있으면 9~23점, 그 차이가 경험의 중심이고 대체하기 어렵다면 24~35점이다.
-                outingDemand(0~%d)는 실제 방문 이유다. 이유가 확인되지 않으면 0점, 가격·동선 편의 위주면 1~6점,
-                구체적인 매력이 실제 선택 이유면 7~17점, 서로 다른 방문 자료에서 반복 확인되면 18~25점이다.
-                같은 특징을 여러 항목에 반영하려면 각 항목의 근거가 필요하다. 방문 후기가 없어도 확인된 자료로
-                완성도와 차별성을 평가한다. 다른 지점의 후기와 종료된 행사는 제외한다.
-                브랜드 인지도, 체인 여부, 후기 수만으로 점수를 가감하지 않는다.
-                같은 요청에 담긴 다른 장소와 무관하게 항목별 점수를 배점 범위 안의 정수로 반환한다.
-                """.formatted(MIN_TAG_COUNT, MAX_TAG_COUNT, MAX_TAG_WEIGHT,
-                PriorityScores.MAX_EXPERIENCE, PriorityScores.MAX_DISTINCTIVENESS,
-                PriorityScores.MAX_OUTING_DEMAND);
+                priorityScores에는 경험 매력(experience)과 장소 차별성(distinctiveness)의 조정값만 반환한다.
+                각 항목의 기준점은 25점이며, 반환값은 -25부터 +25까지의 정수다. 기준점은 서버가 더한다.
+                경험 매력은 장소가 주된 방문 목적을 얼마나 잘 충족하는지 평가한다.
+                장소 차별성은 같은 목적으로 방문할 수 있는 비슷한 장소 중 이곳을 고를 이유가 얼마나 뚜렷한지 평가한다.
+
+                조정값 | 경험 매력 | 장소 차별성
+                -25~-19 | 주요 제약 때문에 주된 방문 목적을 거의 충족하지 못함 | 주요 방문 이유가 대부분 유사한 장소로 쉽게 대체됨
+                -18~-12 | 주된 경험에 영향을 주는 큰 제약이 확인됨 | 주된 경험을 비슷한 장소에서 쉽게 얻을 수 있음
+                -11~-2  | 주된 경험을 일부 제한하는 단점이 확인됨 | 선택에 영향을 주는 일부 특징을 쉽게 대체할 수 있음
+                -1~+1   | 확인된 경험이 일반적인 수준임 | 이곳을 고를 이유나 피할 이유가 뚜렷하지 않음
+                +2~+11  | 주된 경험을 개선하는 구체적인 강점이 있음 | 이곳을 고를 만한 특징이 일부 있음
+                +12~+18 | 주된 방문 목적을 잘 충족하는 분명한 강점이 있음 | 이곳을 고를 이유가 분명하며 비슷한 장소에서 얻기 어려움
+                +19~+25 | 주된 경험의 완성도가 높고 이를 뒷받침하는 근거가 충분함 | 차별점이 방문 경험의 중심이고 대체하기 매우 어려움
+
+                영향의 크기로 구간을 고르고, 근거의 구체성과 일관성으로 구간 안의 값을 정한다.
+                항목별 근거가 부족하면 0을 반환한다. 기본 업종 정보, 브랜드 인지도, 체인 여부, 후기 수만으로 가감하지 않는다.
+                대상 지점과 연결되지 않는 글과 종료된 행사는 제외한다. 대체 장소나 단점을 추측하지 않는다.
+                같은 특징을 두 항목에 반영할 때는 각 항목에서 어떤 의미가 있는지 따로 판단한다.
+                """.formatted(MIN_TAG_COUNT, MAX_TAG_COUNT, MAX_TAG_WEIGHT);
     }
 
     public static Map<String, Object> priorityScoresSchema() {
         return Map.of(
                 "type", "object",
                 "properties", Map.of(
-                        "experience", scoreSchema(PriorityScores.MAX_EXPERIENCE),
-                        "distinctiveness", scoreSchema(PriorityScores.MAX_DISTINCTIVENESS),
-                        "outingDemand", scoreSchema(PriorityScores.MAX_OUTING_DEMAND)
+                        "experience", adjustmentSchema(),
+                        "distinctiveness", adjustmentSchema()
                 ),
-                "required", List.of("experience", "distinctiveness", "outingDemand"),
+                "required", List.of("experience", "distinctiveness"),
                 "additionalProperties", false
         );
     }
 
-    private static Map<String, Object> scoreSchema(int max) {
-        return Map.of("type", "integer", "minimum", 0, "maximum", max);
+    private static Map<String, Object> adjustmentSchema() {
+        return Map.of("type", "integer", "minimum", -PriorityScores.BASE_SCORE,
+                "maximum", PriorityScores.BASE_SCORE);
     }
 
     private AiTaggingPolicy() {

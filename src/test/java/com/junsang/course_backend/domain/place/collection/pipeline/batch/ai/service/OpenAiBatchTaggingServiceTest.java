@@ -126,7 +126,7 @@ class OpenAiBatchTaggingServiceTest {
 
         String result = """
                 {"results":[{"tempId":47,"placeType":"MEAL","keywords":["브런치","샌드위치"],
-                  "priorityScores":{"experience":29,"distinctiveness":23,"outingDemand":18},
+                  "priorityScores":{"experience":4,"distinctiveness":-2},
                   "tags":[{"code":"BRUNCH","weight":90},{"code":"INDOOR","weight":80}]}]}
                 """;
         var content = Map.of("type", "output_text", "text", result);
@@ -140,7 +140,7 @@ class OpenAiBatchTaggingServiceTest {
         var saved = ArgumentCaptor.forClass(AiTaggingResult.class);
         verify(writer).complete(eq(47L), saved.capture(), any(), any());
         assertThat(saved.getValue().keywords()).containsExactly("브런치", "샌드위치");
-        assertThat(saved.getValue().priorityScores()).isEqualTo(new PriorityScores(29, 23, 18));
+        assertThat(saved.getValue().priorityScores()).isEqualTo(new PriorityScores(4, -2));
     }
 
     @Test

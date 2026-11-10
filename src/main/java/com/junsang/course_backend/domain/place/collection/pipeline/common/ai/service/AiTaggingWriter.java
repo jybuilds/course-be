@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -58,12 +59,37 @@ public class AiTaggingWriter {
         List<PlaceTagValue> tagValues = validateTags(result.tags(), activeTags, matchedRule);
 
         // 같은 공급자 장소는 새 행을 만들지 않고 네이버 보강 정보로 갱신한다.
+        applyFoodTags(placeType, tagValues, activeTags);
+        if (tagValues.isEmpty()) {
+            throw new IllegalArgumentException("장소 유형에 맞는 AI 태그가 없습니다.");
+        }
+
         Place place = placeRepository.findByProviderAndProviderPlaceId(
                         temp.getProvider(),
                         temp.getProviderPlaceId()
                 )
                 .map(existing -> refresh(existing, temp, placeType))
                 .orElseGet(() -> create(temp, placeType));
+        if (placeType != PlaceType.MEAL) {
+            place.updateKeywords(List.of());
+        } else if (result.keywords() != null) {
+            place.updateKeywords(result.keywords().stream()
+                    .filter(Objects::nonNull)
+                    .map(String::strip)
+                    .filter(keyword -> !keyword.isEmpty()
+                            && keyword.length() <= AiTaggingPolicy.MAX_KEYWORD_LENGTH
+                            && keyword.lines().count() == 1)
+                    .distinct()
+                    .toList());
+        }
+        var scores = result.priorityScores();
+        if (scores != null) {
+            place.updatePriorityScores(
+                    scores.experience().shortValue(),
+                    scores.distinctiveness().shortValue(),
+                    scores.outingDemand().shortValue()
+            );
+        }
         placeRepository.save(place);
 
         // 재태깅 시 과거 태그를 남기지 않고 이번 AI 결과로 완전히 교체한다.
@@ -132,6 +158,24 @@ public class AiTaggingWriter {
         return values;
     }
 
+    private void applyFoodTags(PlaceType placeType, List<PlaceTagValue> values, Map<String, Tag> activeTags) {
+        boolean hasCuisine = values.stream().anyMatch(value -> AiTaggingPolicy.CUISINE_TAGS.contains(value.tag().getCode()));
+        values.removeIf(value -> {
+            String code = value.tag().getCode();
+            if (AiTaggingPolicy.RESTAURANT_TAG.equals(code)) {
+                return placeType != PlaceType.MEAL || hasCuisine;
+            }
+            return placeType != PlaceType.MEAL && AiTaggingPolicy.CUISINE_TAGS.contains(code);
+        });
+        if (placeType == PlaceType.MEAL && !hasCuisine
+                && values.stream().noneMatch(value -> AiTaggingPolicy.RESTAURANT_TAG.equals(value.tag().getCode()))) {
+            Tag fallback = activeTags.get(AiTaggingPolicy.RESTAURANT_TAG);
+            if (fallback != null) {
+                addMandatoryRuleTag(values, fallback);
+            }
+        }
+    }
+
     // AI가 최대 개수를 채운 경우에는 가장 약한 AI 태그를 빼고 직접 매칭된 규칙 태그를 보존한다.
     private void addMandatoryRuleTag(List<PlaceTagValue> values, Tag tag) {
         if (values.size() == AiTaggingPolicy.MAX_TAG_COUNT) {
@@ -142,19 +186,16 @@ public class AiTaggingWriter {
         values.add(new PlaceTagValue(tag, AiTaggingPolicy.MAX_TAG_WEIGHT));
     }
 
-    // 직접 근거와 같은 블로그 글 안의 장소 식별 근거를 함께 사용해 최상위 규칙을 찾는다.
+    // 장소명과 카테고리에서 일치하는 최상위 규칙을 찾는다.
     private Optional<PlaceCategoryRule> findMatchingRule(
             PlaceCollectionTemp temp,
             List<PlaceCategoryRule> rules
     ) {
-        return placeTypeClassifier.findMatchingRuleWithRelevantBlog(
+        return placeTypeClassifier.findMatchingRule(
                 temp.getName(),
                 temp.getNaverTitle(),
                 temp.getKakaoCategoryName(),
                 temp.getNaverCategoryName(),
-                temp.getRoadAddressName(),
-                temp.getNaverRoadAddressName(),
-                temp.getNaverBlogEvidence(),
                 rules
         );
     }

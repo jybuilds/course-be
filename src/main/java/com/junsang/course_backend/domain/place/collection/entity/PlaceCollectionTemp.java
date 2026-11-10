@@ -119,6 +119,9 @@ public class PlaceCollectionTemp {
     @Column(name = "attempt_count", nullable = false)
     private int attemptCount;
 
+    @Column(name = "ai_retry_count", nullable = false)
+    private int aiRetryCount;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "error_code", length = 100)
     private PlaceRefinementErrorCode errorCode;
@@ -310,7 +313,11 @@ public class PlaceCollectionTemp {
 
     // OpenAI Batch Job에 묶인 AI 태깅 대상을 처리 중으로 선점한다.
     public void startAiBatchTagging(Long aiBatchJobId) {
+        boolean retrying = status == PlaceCollectionTempStatus.FAILED;
         startAiTagging();
+        if (retrying && aiRetryCount < 3) {
+            aiRetryCount++;
+        }
         this.aiBatchJobId = aiBatchJobId;
     }
 
@@ -334,6 +341,7 @@ public class PlaceCollectionTemp {
             throw new IllegalStateException("처리 중인 장소만 AI 태깅을 완료할 수 있습니다.");
         }
         status = PlaceCollectionTempStatus.COMPLETED;
+        aiRetryCount = 0;
         aiBatchJobId = null;
         clearError();
     }
@@ -353,6 +361,9 @@ public class PlaceCollectionTemp {
         aiBatchJobId = null;
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
+        if (processingStep == PlaceCollectionStep.AI_TAGGING) {
+            lastAttemptAt = LocalDateTime.now();
+        }
     }
 
     // 실패한 현재 단계를 다시 대기 상태로 되돌린다.

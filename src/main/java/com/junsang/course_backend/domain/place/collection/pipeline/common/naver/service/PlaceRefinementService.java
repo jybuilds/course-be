@@ -17,6 +17,9 @@ import com.junsang.course_backend.infra.naver.NaverLocalClient;
 import com.junsang.course_backend.infra.naver.dto.response.NaverLocalSearchResponse;
 import com.junsang.course_backend.infra.naver.dto.response.NaverLocalSearchResponse.NaverLocalItem;
 import java.util.List;
+import java.time.LocalDateTime;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientResponseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -50,8 +53,11 @@ public class PlaceRefinementService {
             return PlaceRefinementResponse.invalidStep(temp);
         }
 
+        if (!writer.tryStart(tempId)) {
+            return PlaceRefinementResponse.invalidStep(writer.find(tempId));
+        }
+        temp = writer.find(tempId);
         try {
-            temp = writer.start(tempId);
             NaverLocalItem matched = findMatchedPlace(temp);
             BlogEvidenceResult blogEvidence = findBlogEvidence(temp, matched);
             PlaceType classification = placeTypeClassifier.classifyAfterNaver(
@@ -88,27 +94,7 @@ public class PlaceRefinementService {
 
     // 대기 중인 네이버 정제 대상을 ID 순서대로 제한 개수만 처리한다.
     public PlaceRefinementBatchResponse refinePending(int limit) {
-        if (limit < 1 || limit > MAX_BATCH_SIZE) {
-            throw new IllegalArgumentException("정제 개수는 1 이상 1000 이하여야 합니다.");
-        }
-        List<PlaceCollectionTemp> targets = tempRepository.findByProcessingStepAndStatusOrderByIdAsc(
-                PlaceCollectionStep.NAVER_ENRICHMENT,
-                PlaceCollectionTempStatus.PENDING,
-                PageRequest.of(0, limit)
-        );
-        List<PlaceCategoryRule> rules = placeTypeClassifier.findActiveRules();
-        int successCount = 0;
-        for (PlaceCollectionTemp target : targets) {
-            if (refine(target.getId(), rules).success()) {
-                successCount++;
-            }
-        }
-        return new PlaceRefinementBatchResponse(
-                limit,
-                targets.size(),
-                successCount,
-                targets.size() - successCount
-        );
+        return refinePendingByArea(null, limit);
     }
 
     // 지정한 Area의 네이버 정제 대기 데이터만 제한 개수까지 처리한다.
@@ -116,10 +102,14 @@ public class PlaceRefinementService {
         if (limit < 1 || limit > MAX_BATCH_SIZE) {
             throw new IllegalArgumentException("정제 개수는 1 이상 1000 이하여야 합니다.");
         }
-        List<PlaceCollectionTemp> targets = tempRepository.findByAreaIdAndProcessingStepAndStatusOrderByIdAsc(
+        List<PlaceCollectionTemp> targets = tempRepository.findNaverTargets(
                 areaId,
                 PlaceCollectionStep.NAVER_ENRICHMENT,
                 PlaceCollectionTempStatus.PENDING,
+                PlaceCollectionTempStatus.FAILED,
+                List.of(PlaceRefinementErrorCode.NAVER_API_TEMPORARY_FAILURE,
+                        PlaceRefinementErrorCode.NAVER_API_RATE_LIMITED),
+                LocalDateTime.now().minusMinutes(5),
                 PageRequest.of(0, limit)
         );
         List<PlaceCategoryRule> rules = placeTypeClassifier.findActiveRules();
@@ -236,6 +226,10 @@ public class PlaceRefinementService {
 
     // 인프라 HTTP 오류를 Temp의 네이버 정제 오류 코드로 변환한다.
     private PlaceRefinementErrorCode naverErrorCode(BusinessException exception) {
+        PlaceRefinementErrorCode transportError = transportErrorCode(exception.getCause());
+        if (transportError != null) {
+            return transportError;
+        }
         return switch (exception.getErrorCode()) {
             case NAVER_SEARCH_API_KEY_NOT_CONFIGURED -> PlaceRefinementErrorCode.NAVER_SEARCH_API_KEY_NOT_CONFIGURED;
             case NAVER_LOCAL_API_EMPTY_RESPONSE -> PlaceRefinementErrorCode.NAVER_LOCAL_API_EMPTY_RESPONSE;
@@ -246,12 +240,35 @@ public class PlaceRefinementService {
 
     // 블로그 보조 자료 실패는 정제를 막지 않고, 별도 오류 코드만 보관한다.
     private PlaceRefinementErrorCode naverBlogErrorCode(BusinessException exception) {
+        PlaceRefinementErrorCode transportError = transportErrorCode(exception.getCause());
+        if (transportError != null) {
+            return transportError;
+        }
         return switch (exception.getErrorCode()) {
             case NAVER_SEARCH_API_KEY_NOT_CONFIGURED -> PlaceRefinementErrorCode.NAVER_SEARCH_API_KEY_NOT_CONFIGURED;
             case NAVER_BLOG_API_EMPTY_RESPONSE -> PlaceRefinementErrorCode.NAVER_BLOG_API_EMPTY_RESPONSE;
             case NAVER_BLOG_API_REQUEST_FAILED -> PlaceRefinementErrorCode.NAVER_BLOG_API_REQUEST_FAILED;
             default -> PlaceRefinementErrorCode.NAVER_API_REQUEST_FAILED;
         };
+    }
+
+    private PlaceRefinementErrorCode transportErrorCode(Throwable cause) {
+        if (cause instanceof RestClientResponseException response) {
+            int status = response.getStatusCode().value();
+            if (status == 401 || status == 403) {
+                return PlaceRefinementErrorCode.NAVER_API_AUTH_FAILED;
+            }
+            if (status == 429) {
+                return PlaceRefinementErrorCode.NAVER_API_RATE_LIMITED;
+            }
+            if (status >= 500 || status == 408) {
+                return PlaceRefinementErrorCode.NAVER_API_TEMPORARY_FAILURE;
+            }
+        }
+        if (cause instanceof ResourceAccessException) {
+            return PlaceRefinementErrorCode.NAVER_API_TEMPORARY_FAILURE;
+        }
+        return null;
     }
 
     private static class PossibleRelocationException extends RuntimeException {

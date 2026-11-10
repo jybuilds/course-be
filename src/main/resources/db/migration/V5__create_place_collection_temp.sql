@@ -25,6 +25,7 @@ CREATE TABLE place_collection_temp (
     processing_step VARCHAR(30) NOT NULL DEFAULT 'NAVER_ENRICHMENT',
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     attempt_count INTEGER NOT NULL DEFAULT 0,
+    ai_retry_count INTEGER NOT NULL DEFAULT 0,
     error_code VARCHAR(100),
     error_message VARCHAR(1000),
     last_attempt_at TIMESTAMP,
@@ -36,7 +37,8 @@ CREATE TABLE place_collection_temp (
     CONSTRAINT ck_place_collection_temp_place_type CHECK (default_place_type IN ('ACTIVITY', 'MEAL', 'CAFE')),
     CONSTRAINT ck_place_collection_temp_step CHECK (processing_step IN ('NAVER_ENRICHMENT', 'AI_TAGGING')),
     CONSTRAINT ck_place_collection_temp_status CHECK (status IN ('PENDING', 'PROCESSING', 'FAILED', 'COMPLETED')),
-    CONSTRAINT ck_place_collection_temp_attempt_count CHECK (attempt_count >= 0)
+    CONSTRAINT ck_place_collection_temp_attempt_count CHECK (attempt_count >= 0),
+    CONSTRAINT ck_place_collection_temp_ai_retry_count CHECK (ai_retry_count >= 0)
 );
 
 CREATE INDEX idx_place_collection_temp_step_status_id ON place_collection_temp (processing_step, status, id);

@@ -55,14 +55,11 @@ public class AiTaggingInputBuilder {
             PlaceCollectionTemp temp,
             List<PlaceCategoryRule> rules
     ) {
-        var matchedRule = classifier.findMatchingRuleWithRelevantBlog(
+        var matchedRule = classifier.findMatchingRule(
                 temp.getName(),
                 temp.getNaverTitle(),
                 temp.getKakaoCategoryName(),
                 temp.getNaverCategoryName(),
-                temp.getRoadAddressName(),
-                temp.getNaverRoadAddressName(),
-                temp.getNaverBlogEvidence(),
                 rules
         );
         var place = new LinkedHashMap<String, Object>();

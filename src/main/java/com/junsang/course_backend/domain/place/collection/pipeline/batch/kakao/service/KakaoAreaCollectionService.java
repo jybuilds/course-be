@@ -102,18 +102,8 @@ public class KakaoAreaCollectionService {
             job.recordSearchMeta(first.meta().totalCount(), first.meta().pageableCount());
             jobRepository.save(job);
 
-            // 포화 상태.
-            if (first.meta().totalCount() > first.meta().pageableCount()) {
-                if (isMinimum(job)) {
-                    saveDocuments(first.documents(), job, rules);
-                    job.partial(
-                            PlaceRefinementErrorCode.KAKAO_RESULT_LIMIT_EXCEEDED,
-                            "RESULT_LIMIT_EXCEEDED_AT_MIN_RECT"
-                    );
-                    jobRepository.save(job);
-                    return;
-                }
-
+            boolean saturated = first.meta().totalCount() > first.meta().pageableCount();
+            if (saturated && !isMinimum(job)) {
                 // 500m 초과는 4등분하고, 그 이하부터는 긴 축 기준으로 2등분한다.
                 for (PlaceCollectionJob child : job.split(isAtMost(job, BINARY_SPLIT_THRESHOLD_METERS))) {
                     process(jobRepository.save(child), rules);
@@ -129,7 +119,14 @@ public class KakaoAreaCollectionService {
                     break;
                 }
             }
-            job.complete();
+            if (saturated) {
+                job.partial(
+                        PlaceRefinementErrorCode.KAKAO_RESULT_LIMIT_EXCEEDED,
+                        "RESULT_LIMIT_EXCEEDED_AT_MIN_RECT"
+                );
+            } else {
+                job.complete();
+            }
             jobRepository.save(job);
         } catch (BusinessException exception) {
             // 카카오 클라이언트가 이미 분류한 외부 API 오류를 Job 조회용 코드로 보존한다.

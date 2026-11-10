@@ -3,6 +3,7 @@ package com.junsang.course_backend.domain.place.collection.pipeline.common.ai.se
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.junsang.course_backend.domain.place.collection.entity.NaverBlogCollectionStatus;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.AiTaggingResult;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.PriorityScores;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.TagWeight;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.entity.PlaceCategoryRule;
 import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.repository.PlaceCategoryRuleRepository;
@@ -59,10 +61,11 @@ class AiTaggingWriterTest {
         when(place.getId()).thenReturn(10L);
         when(placeTagRepository.findByPlaceId(10L)).thenReturn(List.of());
 
+        var priorityScores = new PriorityScores(29, 23, 18);
         writer.complete(
                 1L,
-                new AiTaggingResult(1L, PlaceType.CAFE, List.of(new TagWeight("CAFE", 100))),
-                Map.of("CAFE", cafe, "BRUNCH", brunch),
+                new AiTaggingResult(1L, PlaceType.CAFE, List.of("브런치", "샌드위치", " 브런치 "), priorityScores, List.of(new TagWeight("CAFE", 100))),
+                Map.of("CAFE", cafe, "BRUNCH", brunch, "RESTAURANT", Tag.create("RESTAURANT", "음식점", 30)),
                 List.of(brunchRule)
         );
 
@@ -70,8 +73,19 @@ class AiTaggingWriterTest {
         ArgumentCaptor<List<PlaceTag>> tagsCaptor = ArgumentCaptor.forClass(List.class);
         verify(placeTagRepository).saveAll(tagsCaptor.capture());
         assertThat(tagsCaptor.getValue()).extracting(tag -> tag.getTag().getCode())
-                .containsExactlyInAnyOrder("CAFE", "BRUNCH");
+                .containsExactlyInAnyOrder("CAFE", "BRUNCH", "RESTAURANT");
+        verify(place).updateKeywords(List.of("브런치", "샌드위치"));
+        verify(place).updatePriorityScores((short) 29, (short) 23, (short) 18);
         verify(place).refresh(any(), eq(PlaceType.MEAL), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void calculatesPriorityScoreFromStoredComponents() {
+        Place place = mock(Place.class, CALLS_REAL_METHODS);
+
+        assertThat(place.getPriorityScore()).isZero();
+        place.updatePriorityScores((short) 29, (short) 23, (short) 18);
+        assertThat(place.getPriorityScore()).isEqualTo(70);
     }
 
     private PlaceCollectionTemp brunchTemp() {

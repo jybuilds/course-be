@@ -168,6 +168,8 @@ public class AiTaggingService {
                                 "type", "string",
                                 "enum", List.of("ACTIVITY", "MEAL", "CAFE")
                         ),
+                        "keywords", Map.of("type", "array", "items", Map.of("type", "string")),
+                        "priorityScores", AiTaggingPolicy.priorityScoresSchema(),
                         "tags", Map.of(
                                 "type", "array",
                                 "items", tag,
@@ -175,7 +177,7 @@ public class AiTaggingService {
                                 "maxItems", AiTaggingPolicy.MAX_TAG_COUNT
                         )
                 ),
-                "required", List.of("tempId", "placeType", "tags"),
+                "required", List.of("tempId", "placeType", "keywords", "priorityScores", "tags"),
                 "additionalProperties", false
         );
         // 결과 수를 요청 Place 수와 같게 강제해 누락·추가 응답을 조기에 잡는다.

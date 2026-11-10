@@ -3,6 +3,7 @@ package com.junsang.course_backend.domain.place.collection.pipeline.batch.kakao.
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import com.junsang.course_backend.domain.place.entity.Area;
@@ -31,6 +32,15 @@ class KakaoAreaCollectionServiceTest {
 
     @Test
     void storesCollectedKakaoPlaceInTemp() {
+        collectAndVerifyPages(false);
+    }
+
+    @Test
+    void storesLaterPagesInMinimumSaturatedCell() {
+        collectAndVerifyPages(true);
+    }
+
+    private void collectAndVerifyPages(boolean saturated) {
         CityRepository cityRepository = mock(CityRepository.class);
         AreaRepository areaRepository = mock(AreaRepository.class);
         PlaceCollectionTempRepository tempRepository = mock(PlaceCollectionTempRepository.class);
@@ -53,6 +63,10 @@ class KakaoAreaCollectionServiceTest {
         PlaceCollectionProfile profile = mock(PlaceCollectionProfile.class);
         when(areaRepository.findById(4L)).thenReturn(Optional.of(area));
         when(areaRepository.findByCodeIn(any())).thenReturn(List.of(area));
+        when(area.getCollectionMinLatitude()).thenReturn(new BigDecimal("37.5568"));
+        when(area.getCollectionMaxLatitude()).thenReturn(new BigDecimal("37.5570"));
+        when(area.getCollectionMinLongitude()).thenReturn(new BigDecimal("126.9372"));
+        when(area.getCollectionMaxLongitude()).thenReturn(new BigDecimal("126.9375"));
         when(area.getCode()).thenReturn("SEOUL_SINCHON_EWHA");
         when(profileRepository.findByProviderAndIsActiveTrueOrderById(PlaceProvider.KAKAO))
                 .thenReturn(List.of(profile));
@@ -68,8 +82,8 @@ class KakaoAreaCollectionServiceTest {
         when(areaResolver.resolveAreaCode("서울 서대문구 창천동 18-11"))
                 .thenReturn("SEOUL_SINCHON_EWHA");
         when(tempRepository.findByProviderAndProviderPlaceIdIn(any(), any())).thenReturn(List.of());
-        when(kakaoLocalClient.searchCategory(any())).thenReturn(new KakaoKeywordSearchResponse(
-                new KakaoSearchMeta(1, 1, true),
+        KakaoKeywordSearchResponse first = new KakaoKeywordSearchResponse(
+                new KakaoSearchMeta(saturated ? 46 : 1, saturated ? 45 : 1, !saturated),
                 List.of(new KakaoPlaceDocument(
                         "27329834",
                         "룸익스케이프 블랙점",
@@ -84,10 +98,15 @@ class KakaoAreaCollectionServiceTest {
                         "https://place.map.kakao.com/27329834",
                         ""
                 ))
-        ));
+        );
+        when(kakaoLocalClient.searchCategory(any())).thenReturn(
+                first,
+                new KakaoKeywordSearchResponse(new KakaoSearchMeta(46, 45, true), first.documents())
+        );
 
         service.collectArea(4L);
 
-        verify(tempRepository).saveAll(any());
+        verify(kakaoLocalClient, times(saturated ? 2 : 1)).searchCategory(any());
+        verify(tempRepository, times(saturated ? 2 : 1)).saveAll(any());
     }
 }

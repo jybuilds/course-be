@@ -8,6 +8,8 @@ import com.junsang.course_backend.domain.place.collection.pipeline.batch.ai.enti
 import com.junsang.course_backend.domain.place.collection.pipeline.batch.ai.repository.OpenAiBatchTaggingJobRepository;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
 import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -24,11 +26,24 @@ public class OpenAiBatchJobWriter {
     // 전체 대기열에서 잠근 Temp를 Batch Job에 선점한다.
     @Transactional
     public BatchClaim claimPending(int limit) {
+        return claimGlobal(limit, false);
+    }
+
+    @Transactional
+    public BatchClaim claimRetries(int limit) {
+        return claimGlobal(limit, true);
+    }
+
+    private BatchClaim claimGlobal(int limit, boolean retryOnly) {
+        LocalDateTime now = LocalDateTime.now();
         List<PlaceCollectionTemp> targets = tempRepository.findAiBatchSubmissionTargets(
                 PlaceCollectionStep.AI_TAGGING,
                 PlaceCollectionTempStatus.PENDING,
                 PlaceCollectionTempStatus.FAILED,
                 retryableSubmissionErrorCodes(),
+                now.minusMinutes(5),
+                now.minusHours(48),
+                retryOnly,
                 PageRequest.of(0, limit)
         );
         return claim(targets, false);
@@ -48,12 +63,16 @@ public class OpenAiBatchJobWriter {
     // 지정 Area의 잠근 Temp를 Batch Job에 선점한다.
     @Transactional
     public BatchClaim claimPendingByArea(Long areaId, int limit) {
+        LocalDateTime now = LocalDateTime.now();
         List<PlaceCollectionTemp> targets = tempRepository.findAiBatchSubmissionTargetsByAreaId(
                 areaId,
                 PlaceCollectionStep.AI_TAGGING,
                 PlaceCollectionTempStatus.PENDING,
                 PlaceCollectionTempStatus.FAILED,
                 retryableSubmissionErrorCodes(),
+                now.minusMinutes(5),
+                now.minusHours(48),
+                false,
                 PageRequest.of(0, limit)
         );
         return claim(targets, false);
@@ -85,6 +104,20 @@ public class OpenAiBatchJobWriter {
         OpenAiBatchTaggingJob job = find(jobId);
         job.fail(errorCode, errorMessage);
         jobRepository.save(job);
+    }
+
+    @Transactional
+    public void failTargets(
+            Long jobId,
+            Set<Long> targetIds,
+            PlaceRefinementErrorCode errorCode,
+            String errorMessage
+    ) {
+        for (Long targetId : targetIds) {
+            tempRepository.findByIdForUpdate(targetId)
+                    .filter(temp -> jobId.equals(temp.getAiBatchJobId()))
+                    .ifPresent(temp -> temp.fail(errorCode, errorMessage));
+        }
     }
 
     // 결과 반영이 끝난 Job을 완료 처리한다.
@@ -123,9 +156,7 @@ public class OpenAiBatchJobWriter {
     // 원격 요청 자체가 끝나지 않은 경우만 새 Batch 제출 대상으로 다시 잡는다.
     private List<PlaceRefinementErrorCode> retryableSubmissionErrorCodes() {
         return List.of(
-                PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED,
-                PlaceRefinementErrorCode.OPENAI_BATCH_SUBMISSION_FAILED,
-                PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED
+                PlaceRefinementErrorCode.OPENAI_BATCH_TEMPORARY_FAILURE
         );
     }
 

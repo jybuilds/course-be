@@ -29,8 +29,58 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.anyString;
+import org.springframework.web.client.RestClientResponseException;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.ParameterizedTest;
 
 class PlaceRefinementServiceTest {
+
+    @ParameterizedTest
+    @CsvSource({
+            "401,NAVER_API_AUTH_FAILED",
+            "403,NAVER_API_AUTH_FAILED",
+            "429,NAVER_API_RATE_LIMITED",
+            "503,NAVER_API_TEMPORARY_FAILURE",
+            "400,NAVER_LOCAL_API_REQUEST_FAILED"
+    })
+    void distinguishesNaverHttpFailures(int status, PlaceRefinementErrorCode expected) {
+        PlaceCollectionTempRepository repository = mock(PlaceCollectionTempRepository.class);
+        NaverLocalClient client = mock(NaverLocalClient.class);
+        PlaceCollectionTemp temp = createTemp();
+        when(repository.findById(1L)).thenReturn(Optional.of(temp));
+        when(repository.findByIdForUpdate(1L)).thenReturn(Optional.of(temp));
+        var cause = new RestClientResponseException(
+                "provider error", status, "", null, null, null
+        );
+        when(client.search(anyString())).thenThrow(
+                new BusinessException(ErrorCode.NAVER_LOCAL_API_REQUEST_FAILED, cause)
+        );
+
+        createService(repository, client, mock(NaverBlogClient.class)).refine(1L);
+
+        assertThat(temp.getStatus()).isEqualTo(PlaceCollectionTempStatus.FAILED);
+        assertThat(temp.getErrorCode()).isEqualTo(expected);
+    }
+
+    @Test
+    void leavesAlreadyClaimedTempProcessing() {
+        PlaceCollectionTempRepository repository = mock(PlaceCollectionTempRepository.class);
+        NaverLocalClient client = mock(NaverLocalClient.class);
+        PlaceCollectionTemp pendingSnapshot = createTemp();
+        PlaceCollectionTemp claimed = createTemp();
+        claimed.startProcessing();
+        when(repository.findById(1L)).thenReturn(Optional.of(pendingSnapshot), Optional.of(claimed));
+        when(repository.findByIdForUpdate(1L)).thenReturn(Optional.of(claimed));
+
+        assertThat(createService(repository, client, mock(NaverBlogClient.class)).refine(1L).success())
+                .isFalse();
+
+        assertThat(claimed.getStatus()).isEqualTo(PlaceCollectionTempStatus.PROCESSING);
+        verifyNoInteractions(client);
+    }
+
 
     @Test
     void enrichesTempWithMatchedNaverPlace() {
@@ -62,6 +112,7 @@ class PlaceRefinementServiceTest {
                 "363275000"
         );
         when(repository.findById(1L)).thenReturn(Optional.of(temp));
+        when(repository.findByIdForUpdate(1L)).thenReturn(Optional.of(temp));
         when(repository.save(temp)).thenReturn(temp);
         when(client.search("성심당 본점 은행"))
                 .thenReturn(new NaverLocalSearchResponse("", 1, 1, 1, List.of(differentAddress)));
@@ -106,6 +157,7 @@ class PlaceRefinementServiceTest {
                 "363275000"
         );
         when(repository.findById(1L)).thenReturn(Optional.of(temp));
+        when(repository.findByIdForUpdate(1L)).thenReturn(Optional.of(temp));
         when(repository.save(temp)).thenReturn(temp);
         when(client.search("성심당 본점 은행"))
                 .thenReturn(new NaverLocalSearchResponse("", 1, 1, 1, List.of(differentAddress)));
@@ -129,6 +181,7 @@ class PlaceRefinementServiceTest {
                 "대전광역시 중구 은행동 145", "대전광역시 중구 대종로480번길 15", "", ""
         );
         when(repository.findById(1L)).thenReturn(Optional.of(temp));
+        when(repository.findByIdForUpdate(1L)).thenReturn(Optional.of(temp));
         when(localClient.search("성심당 본점 은행"))
                 .thenReturn(new NaverLocalSearchResponse("", 1, 1, 1, List.of(matched)));
         when(blogClient.search("성심당 본점 은행"))

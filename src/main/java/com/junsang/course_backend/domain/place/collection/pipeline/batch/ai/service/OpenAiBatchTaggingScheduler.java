@@ -16,6 +16,15 @@ public class OpenAiBatchTaggingScheduler {
     private final OpenAiBatchTaggingJobRepository jobRepository;
     private final OpenAiBatchTaggingService openAiBatchTaggingService;
 
+    @Scheduled(fixedDelayString = "${place-collection.ai.batch.retry-poll-millis:60000}")
+    public void submitRetryableFailures() {
+        try {
+            openAiBatchTaggingService.submitRetries();
+        } catch (RuntimeException exception) {
+            log.warn("AI Batch 재시도 제출 실패", exception);
+        }
+    }
+
     // 원격 완료·실패를 확인해 Temp가 PROCESSING 상태에 멈지 않도록 한다.
     @Scheduled(fixedDelayString = "${place-collection.ai.batch.poll-interval-millis:60000}")
     public void collectSubmittedBatches() {

@@ -135,7 +135,7 @@
     name.textContent = place.name;
     const type = document.createElement('span');
     type.className = 'type';
-    type.textContent = place.placeType;
+    type.textContent = (place.keywords ?? []).join(' · ') || place.placeType;
     element.append(name, type);
     return element;
   }

@@ -11,6 +11,7 @@ CREATE TABLE areas (
     code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
     rank INTEGER,
+    image_urls JSONB,
     collection_center_latitude NUMERIC(10, 7) NOT NULL,
     collection_center_longitude NUMERIC(10, 7) NOT NULL,
     collection_min_latitude NUMERIC(10, 7) NOT NULL,
@@ -51,6 +52,8 @@ CREATE TABLE places (
     area_id BIGINT NOT NULL,
     place_type VARCHAR(20) NOT NULL,
     name VARCHAR(200) NOT NULL,
+    keywords JSONB,
+    image_urls JSONB,
     address_name VARCHAR(500),
     road_address_name VARCHAR(500),
     source_category_name VARCHAR(500),
@@ -61,7 +64,9 @@ CREATE TABLE places (
     naver_search_url VARCHAR(1000),
     phone VARCHAR(50),
     is_anchor_candidate BOOLEAN NOT NULL DEFAULT FALSE,
-    priority_score INTEGER NOT NULL DEFAULT 0,
+    priority_experience SMALLINT CHECK (priority_experience BETWEEN 0 AND 40),
+    priority_distinctiveness SMALLINT CHECK (priority_distinctiveness BETWEEN 0 AND 35),
+    priority_outing_demand SMALLINT CHECK (priority_outing_demand BETWEEN 0 AND 25),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     operating_hours VARCHAR(1000),
     operating_days VARCHAR(500),
@@ -71,8 +76,7 @@ CREATE TABLE places (
     CONSTRAINT fk_places_area FOREIGN KEY (area_id) REFERENCES areas (id),
     CONSTRAINT uk_places_provider_place_id UNIQUE (provider, provider_place_id),
     CONSTRAINT ck_places_provider CHECK (provider IN ('KAKAO', 'TOUR')),
-    CONSTRAINT ck_places_place_type CHECK (place_type IN ('ACTIVITY', 'MEAL', 'CAFE')),
-    CONSTRAINT ck_places_priority_score_non_negative CHECK (priority_score >= 0)
+    CONSTRAINT ck_places_place_type CHECK (place_type IN ('ACTIVITY', 'MEAL', 'CAFE'))
 );
 
 CREATE TABLE area_tags (

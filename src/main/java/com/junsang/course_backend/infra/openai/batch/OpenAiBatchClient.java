@@ -72,15 +72,32 @@ public class OpenAiBatchClient {
                     ))
                     .retrieve()
                     .body(JsonNode.class);
-            return requiredText(batch, "id");
+            try {
+                return requiredText(batch, "id");
+            } catch (BusinessException exception) {
+                throw new SubmissionUnknownException(exception);
+            }
         } catch (RestClientResponseException exception) {
+            if ("BATCH_CREATE".equals(stage)
+                    && (exception.getStatusCode().is5xxServerError() || exception.getStatusCode().value() == 408)) {
+                throw new SubmissionUnknownException(exception);
+            }
             log.warn("AI Batch HTTP failure: provider={}, stage={}, status={}, response={}",
                     properties.provider(), stage, exception.getStatusCode(),
                     exception.getResponseBodyAsString().replace(properties.selected().apiKey(), "[REDACTED]"));
             throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);
-        } catch (RestClientException exception) {
+        } catch (RestClientException | IllegalStateException exception) {
+            if ("BATCH_CREATE".equals(stage)) {
+                throw new SubmissionUnknownException(exception);
+            }
             log.warn("AI Batch request failure: provider={}, stage={}", properties.provider(), stage, exception);
             throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);
+        }
+    }
+
+    public static class SubmissionUnknownException extends RuntimeException {
+        public SubmissionUnknownException(Throwable cause) {
+            super("원격 AI 배치 접수 여부를 확인할 수 없습니다.", cause);
         }
     }
 

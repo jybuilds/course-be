@@ -1,6 +1,8 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.common.naver.service;
 
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
+import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionStep;
+import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTempStatus;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
 import com.junsang.course_backend.domain.place.collection.entity.NaverBlogCollectionStatus;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
@@ -24,10 +26,16 @@ public class NaverRefinementWriter {
 
     // 외부 API 호출 전에 처리 상태를 저장한다.
     @Transactional
-    public PlaceCollectionTemp start(Long tempId) {
-        PlaceCollectionTemp temp = findTemp(tempId);
+    public boolean tryStart(Long tempId) {
+        PlaceCollectionTemp temp = tempRepository.findByIdForUpdate(tempId)
+                .orElseThrow(() -> new IllegalArgumentException("정제할 임시 장소를 찾을 수 없습니다: " + tempId));
+        if (temp.getProcessingStep() != PlaceCollectionStep.NAVER_ENRICHMENT
+                || (temp.getStatus() != PlaceCollectionTempStatus.PENDING
+                && temp.getStatus() != PlaceCollectionTempStatus.FAILED)) {
+            return false;
+        }
         temp.startProcessing();
-        return temp;
+        return true;
     }
 
     // 지역·블로그 검색이 끝난 네이버 정제 결과를 저장한다.

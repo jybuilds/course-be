@@ -81,7 +81,7 @@ class AiTaggingServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void requestsTagsOnlyWithTheStoredWeightRange() {
+    void requestsKeywordListAndTagsWithTheStoredWeightRange() {
         PlaceCollectionTempRepository tempRepository = mock(PlaceCollectionTempRepository.class);
         TagRepository tagRepository = mock(TagRepository.class);
         OpenAiClient openAiClient = mock(OpenAiClient.class);
@@ -114,7 +114,13 @@ class AiTaggingServiceTest {
         Map<String, Object> tagItemSchema = map(tagSchema, "items");
         Map<String, Object> weightSchema = map(map(tagItemSchema, "properties"), "weight");
 
-        assertThat(itemSchema.get("required")).isEqualTo(List.of("tempId", "placeType", "tags"));
+        assertThat(itemSchema.get("required")).isEqualTo(List.of("tempId", "placeType", "keywords", "priorityScores", "tags"));
+        assertThat(map(map(itemSchema, "properties"), "keywords").get("type"))
+                .isEqualTo("array");
+        Map<String, Object> scores = map(map(map(itemSchema, "properties"), "priorityScores"), "properties");
+        assertThat(map(scores, "experience").get("maximum")).isEqualTo(40);
+        assertThat(map(scores, "distinctiveness").get("maximum")).isEqualTo(35);
+        assertThat(map(scores, "outingDemand").get("maximum")).isEqualTo(25);
         assertThat(weightSchema.get("minimum")).isEqualTo(0);
         assertThat(weightSchema.get("maximum")).isEqualTo(100);
     }

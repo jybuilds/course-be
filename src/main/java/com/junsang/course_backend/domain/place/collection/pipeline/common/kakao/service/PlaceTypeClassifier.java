@@ -6,7 +6,6 @@ import com.junsang.course_backend.domain.place.collection.pipeline.common.kakao.
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +13,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class PlaceTypeClassifier {
-
-    private static final Pattern ROAD_ADDRESS = Pattern.compile("[가-힣A-Za-z0-9]+(?:로|길)\\s*\\d+(?:\\s*-\\s*\\d+)?");
 
     private final PlaceCategoryRuleRepository placeCategoryRuleRepository;
 
@@ -88,59 +85,15 @@ public class PlaceTypeClassifier {
                 .findFirst();
     }
 
-    // 한 블로그 글 안에 장소 식별 정보와 규칙 키워드가 함께 있을 때만 보조 규칙 근거로 인정한다.
-    public Optional<PlaceCategoryRule> findMatchingRuleWithRelevantBlog(
+    // 네이버 등록 상호명도 장소 자체의 정보로 사용한다.
+    public Optional<PlaceCategoryRule> findMatchingRule(
             String placeName,
             String naverTitle,
             String kakaoCategoryName,
             String naverCategoryName,
-            String roadAddressName,
-            String naverRoadAddressName,
-            String blogEvidence,
             List<PlaceCategoryRule> rules
     ) {
-        Optional<PlaceCategoryRule> directRule = findMatchingRule(
-                placeName + " " + naverTitle,
-                kakaoCategoryName,
-                naverCategoryName,
-                rules
-        );
-        if (directRule.isPresent()) {
-            return directRule;
-        }
-
-        List<String> identities = List.of(
-                normalizedIdentity(placeName),
-                normalizedIdentity(naverTitle),
-                roadAddressIdentity(roadAddressName),
-                roadAddressIdentity(naverRoadAddressName)
-        ).stream()
-                .filter(identity -> identity.length() >= 3)
-                .distinct()
-                .toList();
-        if (identities.isEmpty() || blogEvidence == null || blogEvidence.isBlank()) {
-            return Optional.empty();
-        }
-
-        List<String> relevantEntries = List.of(blogEvidence.split("(?m)(?=^\\d+\\. )")).stream()
-                .map(this::normalizedIdentity)
-                .filter(entry -> identities.stream().anyMatch(entry::contains))
-                .toList();
-        return rules.stream()
-                .filter(rule -> relevantEntries.stream()
-                        .anyMatch(entry -> entry.contains(normalizedIdentity(rule.getKeyword()))))
-                .findFirst();
-    }
-
-    // 공백·괄호·특수문자가 달라도 상호명과 도로명 주소를 비교할 수 있게 정규화한다.
-    private String normalizedIdentity(String value) {
-        return normalize(value).replaceAll("[^\\p{L}\\p{N}]", "");
-    }
-
-    // 도로명과 건물번호만 추려 블로그의 축약 주소와도 비교한다.
-    private String roadAddressIdentity(String address) {
-        var matcher = ROAD_ADDRESS.matcher(address == null ? "" : address);
-        return matcher.find() ? normalizedIdentity(matcher.group()) : "";
+        return findMatchingRule(placeName + " " + naverTitle, kakaoCategoryName, naverCategoryName, rules);
     }
 
     // 카카오 영문·한글 표기의 대소문자 차이를 무시한다.

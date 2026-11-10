@@ -11,6 +11,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.AiTaggingResult;
+import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResultBatch.PriorityScores;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionStep;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTempStatus;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
@@ -25,14 +27,16 @@ import com.junsang.course_backend.infra.openai.batch.OpenAiBatchClient;
 import com.junsang.course_backend.infra.openai.config.AiProviderProperties;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Pageable;
 
 class OpenAiBatchTaggingServiceTest {
 
     @Test
-    void includesOpenAiRequestFailuresInTheNextBatchSubmission() {
+    void selectsOnlyConfirmedTemporaryFailuresForRetry() {
         PlaceCollectionTempRepository tempRepository = mock(PlaceCollectionTempRepository.class);
         OpenAiBatchTaggingService service = new OpenAiBatchTaggingService(
                 tempRepository,
@@ -49,6 +53,9 @@ class OpenAiBatchTaggingServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
+                org.mockito.ArgumentMatchers.anyBoolean(),
                 any()
         )).thenReturn(List.of());
 
@@ -59,11 +66,10 @@ class OpenAiBatchTaggingServiceTest {
                 eq(PlaceCollectionStep.AI_TAGGING),
                 eq(PlaceCollectionTempStatus.PENDING),
                 eq(PlaceCollectionTempStatus.FAILED),
-                eq(List.of(
-                        PlaceRefinementErrorCode.OPENAI_API_REQUEST_FAILED,
-                        PlaceRefinementErrorCode.OPENAI_BATCH_SUBMISSION_FAILED,
-                        PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED
-                )),
+                eq(List.of(PlaceRefinementErrorCode.OPENAI_BATCH_TEMPORARY_FAILURE)),
+                any(java.time.LocalDateTime.class),
+                any(java.time.LocalDateTime.class),
+                eq(false),
                 any(Pageable.class)
         );
     }
@@ -92,6 +98,49 @@ class OpenAiBatchTaggingServiceTest {
                 eq(PlaceCollectionTempStatus.COMPLETED),
                 any(Pageable.class)
         );
+    }
+
+    @Test
+    void collectsStructuredPriorityScoresFromBatchOutput() throws Exception {
+        PlaceCollectionTempRepository tempRepository = mock(PlaceCollectionTempRepository.class);
+        OpenAiBatchTaggingJobRepository jobRepository = mock(OpenAiBatchTaggingJobRepository.class);
+        OpenAiBatchClient batchClient = mock(OpenAiBatchClient.class);
+        AiTaggingWriter writer = mock(AiTaggingWriter.class);
+        ObjectMapper mapper = new ObjectMapper();
+        OpenAiBatchTaggingService service = new OpenAiBatchTaggingService(
+                tempRepository,
+                mock(TagRepository.class),
+                batchClient,
+                openAiProperties(),
+                mapper,
+                writer,
+                new OpenAiBatchJobWriter(tempRepository, jobRepository),
+                new AiTaggingInputBuilder(new PlaceTypeClassifier(mock(PlaceCategoryRuleRepository.class)))
+        );
+        OpenAiBatchTaggingJob job = OpenAiBatchTaggingJob.submitting(1);
+        job.submit("batch-test");
+        PlaceCollectionTemp temp = mock(PlaceCollectionTemp.class);
+        when(jobRepository.findById(1L)).thenReturn(Optional.of(job));
+        when(temp.getId()).thenReturn(47L);
+        when(tempRepository.findByAiBatchJobIdOrderById(1L)).thenReturn(List.of(temp));
+
+        String result = """
+                {"results":[{"tempId":47,"placeType":"MEAL","keywords":["브런치","샌드위치"],
+                  "priorityScores":{"experience":29,"distinctiveness":23,"outingDemand":18},
+                  "tags":[{"code":"BRUNCH","weight":90},{"code":"INDOOR","weight":80}]}]}
+                """;
+        var content = Map.of("type", "output_text", "text", result);
+        var message = Map.of("type", "message", "content", List.of(content));
+        var response = Map.of("status_code", 200, "body", Map.of("output", List.of(message)));
+        when(batchClient.completedOutput("batch-test")).thenReturn(mapper.writeValueAsString(
+                Map.of("custom_id", "places-47-47", "response", response)
+        ));
+
+        assertThat(service.collect(1L)).isTrue();
+        var saved = ArgumentCaptor.forClass(AiTaggingResult.class);
+        verify(writer).complete(eq(47L), saved.capture(), any(), any());
+        assertThat(saved.getValue().keywords()).containsExactly("브런치", "샌드위치");
+        assertThat(saved.getValue().priorityScores()).isEqualTo(new PriorityScores(29, 23, 18));
     }
 
     @Test
@@ -155,9 +204,9 @@ class OpenAiBatchTaggingServiceTest {
 
         assertThat(collected).isFalse();
         assertThat(job.getStatus()).isEqualTo(OpenAiBatchTaggingStatus.FAILED);
-        assertThat(job.getErrorCode()).isEqualTo(PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED);
+        assertThat(job.getErrorCode()).isEqualTo(PlaceRefinementErrorCode.OPENAI_BATCH_REQUEST_REJECTED);
         verify(temp).fail(
-                eq(PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED),
+                eq(PlaceRefinementErrorCode.OPENAI_BATCH_REQUEST_REJECTED),
                 eq("AI Batch HTTP 400: Invalid prompt")
         );
         verify(tempRepository).saveAll(List.of(temp));

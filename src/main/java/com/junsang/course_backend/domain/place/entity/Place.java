@@ -16,7 +16,10 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
+import java.util.List;
 import java.time.LocalDateTime;
 
 /// 외부 API에서 수집·정제한 장소 Table
@@ -47,6 +50,14 @@ public class Place {
 
     @Column(nullable = false, length = 200)
     private String name;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "keywords", columnDefinition = "jsonb")
+    private List<String> keywords;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "image_urls", columnDefinition = "jsonb")
+    private List<String> imageUrls;
 
     @Column(name = "address_name", length = 500)
     private String addressName;
@@ -81,8 +92,14 @@ public class Place {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
-    @Column(name = "priority_score", nullable = false)
-    private int priorityScore;
+    @Column(name = "priority_experience")
+    private Short priorityExperience;
+
+    @Column(name = "priority_distinctiveness")
+    private Short priorityDistinctiveness;
+
+    @Column(name = "priority_outing_demand")
+    private Short priorityOutingDemand;
 
     @Column(name = "operating_hours", length = 1000)
     private String operatingHours;
@@ -168,6 +185,26 @@ public class Place {
         this.naverSearchUrl = naverSearchUrl;
         this.phone = phone;
         this.lastSyncedAt = LocalDateTime.now();
+    }
+
+    public int getPriorityScore() {
+        return (priorityExperience == null ? 0 : priorityExperience)
+                + (priorityDistinctiveness == null ? 0 : priorityDistinctiveness)
+                + (priorityOutingDemand == null ? 0 : priorityOutingDemand);
+    }
+
+    public void updatePriorityScores(short experience, short distinctiveness, short outingDemand) {
+        this.priorityExperience = experience;
+        this.priorityDistinctiveness = distinctiveness;
+        this.priorityOutingDemand = outingDemand;
+    }
+
+    public void updateImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls == null ? null : List.copyOf(imageUrls);
+    }
+
+    public void updateKeywords(List<String> keywords) {
+        this.keywords = keywords == null || keywords.isEmpty() ? null : List.copyOf(keywords);
     }
 
     @PrePersist

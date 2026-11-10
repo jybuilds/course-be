@@ -12,8 +12,11 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /// 도시 안에서 추천을 시작할 수 있는 세부 지역이다. 예: 성수, 서촌, 용산
 @Entity
@@ -36,6 +39,10 @@ public class Area {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "image_urls", columnDefinition = "jsonb")
+    private List<String> imageUrls;
+
     @Column(name = "rank")
     private Integer rank;
 
@@ -57,4 +64,7 @@ public class Area {
     @Column(nullable = false, precision = 10, scale = 7)
     private BigDecimal collectionMaxLongitude;
 
+    public void updateImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls == null ? null : List.copyOf(imageUrls);
+    }
 }

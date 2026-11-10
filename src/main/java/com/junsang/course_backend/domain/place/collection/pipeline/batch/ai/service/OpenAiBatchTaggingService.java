@@ -18,6 +18,7 @@ import com.junsang.course_backend.global.exception.BusinessException;
 import com.junsang.course_backend.infra.openai.batch.OpenAiBatchClient;
 import com.junsang.course_backend.infra.openai.config.AiProviderProperties;
 import java.util.ArrayList;
+import com.junsang.course_backend.domain.place.collection.pipeline.batch.ai.entity.OpenAiBatchTaggingStatus;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,10 @@ public class OpenAiBatchTaggingService {
     private final AiTaggingInputBuilder inputBuilder;
 
     // AI 태깅 대기 Place를 OpenAI Batch API에 제출하고 로컬 Job ID를 반환한다.
+    public Long submitRetries() {
+       return submit(batchJobWriter.claimRetries(MAX_SUBMIT_SIZE));
+    }
+
     public Long submitPending(int limit) {
         validateLimit(limit);
         return submit(batchJobWriter.claimPending(limit));
@@ -71,9 +76,13 @@ public class OpenAiBatchTaggingService {
         // 제출 시점의 활성 태그를 스키마에 고정해 비활성·임의 태그 응답을 차단한다.
         List<Tag> tags = tagRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
         List<PlaceCategoryRule> rules = inputBuilder.findActiveRules();
+        String batchId;
         try {
-            String batchId = openAiBatchClient.submit(createJsonLines(claim.targets(), tags, rules));
-            batchJobWriter.markSubmitted(claim.jobId(), batchId);
+            batchId = openAiBatchClient.submit(createJsonLines(claim.targets(), tags, rules));
+        } catch (OpenAiBatchClient.SubmissionUnknownException exception) {
+            batchJobWriter.fail(claim.jobId(), PlaceRefinementErrorCode.OPENAI_BATCH_SUBMISSION_UNKNOWN,
+                    exception.getMessage());
+            throw exception;
         } catch (BusinessException exception) {
             // 키 누락·외부 API 실패는 Temp와 로컬 Batch Job에 같은 사유로 남긴다.
             batchJobWriter.fail(claim.jobId(), openAiErrorCode(exception), exception.getMessage());
@@ -87,13 +96,15 @@ public class OpenAiBatchTaggingService {
             );
             throw exception;
         }
+        batchJobWriter.markSubmitted(claim.jobId(), batchId);
         return claim.jobId();
     }
 
     // 완료된 OpenAI Batch 결과를 읽어 개별 Place와 PlaceTag에 반영한다.
     public boolean collect(Long jobId) {
         OpenAiBatchTaggingJob job = batchJobWriter.find(jobId);
-        if (job.getOpenAiBatchId() == null) {
+        if (job.getStatus() != OpenAiBatchTaggingStatus.SUBMITTED
+                || job.getOpenAiBatchId() == null) {
             return false;
         }
         String output;
@@ -124,7 +135,7 @@ public class OpenAiBatchTaggingService {
         BatchOutputFailure failure = null;
         for (String line : output.lines().toList()) {
             // 한 JSONL 줄의 실패가 다른 줄의 정상 결과 반영을 막지 않게 끝까지 처리한다.
-            BatchOutputFailure lineFailure = applyLine(line, tags, rules, targetIds);
+            BatchOutputFailure lineFailure = applyLine(jobId, line, tags, rules, targetIds);
             if (failure == null && lineFailure != null) {
                 failure = lineFailure;
             }
@@ -132,7 +143,12 @@ public class OpenAiBatchTaggingService {
 
         if (failure != null) {
             // 한 줄이라도 구조·검증 오류가 있으면 아직 남은 Temp와 Batch Job을 같은 코드로 실패 처리한다.
-            batchJobWriter.fail(jobId, failure.errorCode(), failure.message());
+            batchJobWriter.fail(
+                    jobId,
+                    targetIds.isEmpty() || output.lines().count() == 1
+                            ? failure.errorCode() : PlaceRefinementErrorCode.AI_BATCH_OUTPUT_INVALID,
+                    failure.message()
+            );
             return false;
         }
         if (!targetIds.isEmpty()) {
@@ -150,6 +166,7 @@ public class OpenAiBatchTaggingService {
 
     // OpenAI Batch의 JSONL 한 줄에서 최대 10개 Place의 구조화 응답을 꺼내 최종 저장한다.
     private BatchOutputFailure applyLine(
+            Long jobId,
             String line,
             Map<String, Tag> tags,
             List<PlaceCategoryRule> rules,
@@ -157,14 +174,32 @@ public class OpenAiBatchTaggingService {
     ) {
         try {
             // Batch API는 JSONL 외피 안에 Responses API의 구조화 텍스트를 넣어 반환한다.
-            JsonNode response = objectMapper.readTree(line).path("response");
+            JsonNode lineResult = objectMapper.readTree(line);
+            JsonNode response = lineResult.path("response");
             JsonNode body = response.path("body");
-            if (response.path("status_code").asInt() >= 400) {
-                return new BatchOutputFailure(
-                        PlaceRefinementErrorCode.OPENAI_BATCH_REMOTE_FAILED,
-                        "AI Batch HTTP " + response.path("status_code").asInt() + ": "
+            int status = response.path("status_code").asInt();
+            if (status >= 400) {
+                boolean retryable = status == 408 || status == 429 || status >= 500;
+                BatchOutputFailure failure = new BatchOutputFailure(
+                        retryable ? PlaceRefinementErrorCode.OPENAI_BATCH_TEMPORARY_FAILURE
+                                : PlaceRefinementErrorCode.OPENAI_BATCH_REQUEST_REJECTED,
+                        "AI Batch HTTP " + status + ": "
                                 + body.path("error").path("message").asText("원격 요청 실패")
                 );
+                String customId = lineResult.path("custom_id").asText();
+                if (customId.matches("places-[0-9]+-[0-9]+")) {
+                    String[] parts = customId.split("-");
+                    long first = Long.parseLong(parts[1]);
+                    long last = Long.parseLong(parts[2]);
+                    Set<Long> failedIds = targetIds.stream()
+                            .filter(id -> id >= first && id <= last)
+                            .collect(Collectors.toSet());
+                    if (!failedIds.isEmpty() && failedIds.size() <= PLACES_PER_REQUEST) {
+                        batchJobWriter.failTargets(jobId, failedIds, failure.errorCode(), failure.message());
+                        targetIds.removeAll(failedIds);
+                    }
+                }
+                return failure;
             }
             JsonNode output = body.path("output");
             if (!output.isArray() || output.isEmpty()) {
@@ -277,6 +312,8 @@ public class OpenAiBatchTaggingService {
                                 "type", "string",
                                 "enum", List.of("ACTIVITY", "MEAL", "CAFE")
                         ),
+                        "keywords", Map.of("type", "array", "items", Map.of("type", "string")),
+                        "priorityScores", AiTaggingPolicy.priorityScoresSchema(),
                         "tags", Map.of(
                                 "type", "array",
                                 "items", tag,
@@ -284,7 +321,7 @@ public class OpenAiBatchTaggingService {
                                 "maxItems", AiTaggingPolicy.MAX_TAG_COUNT
                         )
                 ),
-                "required", List.of("tempId", "placeType", "tags"),
+                "required", List.of("tempId", "placeType", "keywords", "priorityScores", "tags"),
                 "additionalProperties", false
         );
         return Map.of(
@@ -318,6 +355,15 @@ public class OpenAiBatchTaggingService {
 
     // OpenAI 인프라 오류를 Temp와 Batch Job에 남길 세부 코드로 변환한다.
     private PlaceRefinementErrorCode openAiErrorCode(BusinessException exception) {
+        if (exception.getCause() instanceof org.springframework.web.client.RestClientResponseException response) {
+            int status = response.getStatusCode().value();
+            if (status == 429 || status == 408 || status >= 500) {
+                return PlaceRefinementErrorCode.OPENAI_BATCH_TEMPORARY_FAILURE;
+            }
+        }
+        if (exception.getCause() instanceof org.springframework.web.client.ResourceAccessException) {
+            return PlaceRefinementErrorCode.OPENAI_BATCH_TEMPORARY_FAILURE;
+        }
         return switch (exception.getErrorCode()) {
             case OPENAI_API_KEY_NOT_CONFIGURED -> PlaceRefinementErrorCode.OPENAI_API_KEY_NOT_CONFIGURED;
             case OPENAI_API_EMPTY_RESPONSE -> PlaceRefinementErrorCode.OPENAI_API_EMPTY_RESPONSE;

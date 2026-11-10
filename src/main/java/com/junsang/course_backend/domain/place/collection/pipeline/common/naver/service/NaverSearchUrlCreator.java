@@ -10,7 +10,8 @@ public class NaverSearchUrlCreator {
     // 장소명에 지번주소의 동네명을 한 번만 보완한 네이버 검색어를 만든다.
     public String createQuery(String name, String address) {
         String locality = extractLocality(address);
-        return locality == null || normalize(name).contains(normalize(locality))
+        String localityStem = locality == null ? null : locality.substring(0, locality.length() - 1);
+        return locality == null || normalize(name).contains(normalize(localityStem))
                 ? name
                 : name + " " + locality;
     }
@@ -29,8 +30,11 @@ public class NaverSearchUrlCreator {
             return null;
         }
         for (String token : address.trim().split("\\s+")) {
+            if (token.matches(".+동\\d+가")) {
+                return token.replaceFirst("(동)\\d+가$", "$1");
+            }
             if (token.endsWith("동") && token.length() > 1) {
-                return token.substring(0, token.length() - 1);
+                return token;
             }
         }
         return null;

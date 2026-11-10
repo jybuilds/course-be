@@ -6,6 +6,7 @@ import com.junsang.course_backend.domain.place.collection.entity.PlaceCollection
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
 import com.junsang.course_backend.domain.place.entity.PlaceProvider;
 import java.util.Collection;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import jakarta.persistence.LockModeType;
@@ -47,10 +48,12 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             from PlaceCollectionTemp temp
             where temp.processingStep = :processingStep
               and (
-                    temp.status = :pendingStatus
+                    (temp.status = :pendingStatus and :retryOnly = false)
                     or (
                         temp.status = :failedStatus
                         and temp.errorCode in :retryableErrorCodes
+                        and ((temp.aiRetryCount < 3 and temp.lastAttemptAt <= :shortRetryBefore)
+                          or (temp.aiRetryCount >= 3 and temp.lastAttemptAt <= :longRetryBefore))
                     )
               )
             order by temp.id asc
@@ -61,6 +64,9 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             @Param("pendingStatus") PlaceCollectionTempStatus pendingStatus,
             @Param("failedStatus") PlaceCollectionTempStatus failedStatus,
             @Param("retryableErrorCodes") List<PlaceRefinementErrorCode> retryableErrorCodes,
+            @Param("shortRetryBefore") LocalDateTime shortRetryBefore,
+            @Param("longRetryBefore") LocalDateTime longRetryBefore,
+            @Param("retryOnly") boolean retryOnly,
             Pageable pageable
     );
 
@@ -71,10 +77,12 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             where temp.area.id = :areaId
               and temp.processingStep = :processingStep
               and (
-                    temp.status = :pendingStatus
+                    (temp.status = :pendingStatus and :retryOnly = false)
                     or (
                         temp.status = :failedStatus
                         and temp.errorCode in :retryableErrorCodes
+                        and ((temp.aiRetryCount < 3 and temp.lastAttemptAt <= :shortRetryBefore)
+                          or (temp.aiRetryCount >= 3 and temp.lastAttemptAt <= :longRetryBefore))
                     )
               )
             order by temp.id asc
@@ -86,6 +94,31 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             @Param("pendingStatus") PlaceCollectionTempStatus pendingStatus,
             @Param("failedStatus") PlaceCollectionTempStatus failedStatus,
             @Param("retryableErrorCodes") List<PlaceRefinementErrorCode> retryableErrorCodes,
+            @Param("shortRetryBefore") LocalDateTime shortRetryBefore,
+            @Param("longRetryBefore") LocalDateTime longRetryBefore,
+            @Param("retryOnly") boolean retryOnly,
+            Pageable pageable
+    );
+
+    @Query("""
+            select temp from PlaceCollectionTemp temp
+            where (:areaId is null or temp.area.id = :areaId)
+              and temp.processingStep = :step
+              and (temp.status = :pending or (
+                    temp.status = :failed
+                    and temp.errorCode in :retryable
+                    and temp.attemptCount < 3
+                    and temp.lastAttemptAt <= :retryBefore
+              ))
+            order by temp.id asc
+            """)
+    List<PlaceCollectionTemp> findNaverTargets(
+            @Param("areaId") Long areaId,
+            @Param("step") PlaceCollectionStep step,
+            @Param("pending") PlaceCollectionTempStatus pending,
+            @Param("failed") PlaceCollectionTempStatus failed,
+            @Param("retryable") List<PlaceRefinementErrorCode> retryable,
+            @Param("retryBefore") java.time.LocalDateTime retryBefore,
             Pageable pageable
     );
 

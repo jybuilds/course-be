@@ -3,47 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>저장된 장소 확인</title>
+  <title>장소 DB 검토</title>
   <style>
-    :root { color-scheme: light; --ink:#182230; --muted:#667085; --line:#e4e7ec; --blue:#2563eb; --paper:#fff; --soft:#f8fafc; }
+    :root { color-scheme:light; --ink:#172033; --muted:#667085; --line:#e4e7ec; --blue:#175cd3; --paper:#fff; --bg:#f5f7fa; --green:#067647; --amber:#b54708; }
     * { box-sizing:border-box; }
-    body { margin:0; background:var(--soft); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif; }
-    main { width:min(1440px, calc(100% - 32px)); margin:40px auto 72px; }
-    h1 { margin:0 0 8px; font-size:28px; letter-spacing:-.04em; }
-    p { margin:0; color:var(--muted); }
-    .toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:24px 0 12px; }
-    .status { color:var(--muted); font-size:14px; }
-    .pager { display:flex; align-items:center; gap:8px; }
-    button { min-height:36px; padding:0 13px; border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); font:inherit; font-size:14px; cursor:pointer; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif; }
+    main { width:min(1120px,calc(100% - 32px)); margin:36px auto 72px; }
+    h1 { margin:0 0 7px; font-size:28px; letter-spacing:-.04em; }
+    .intro { color:var(--muted); line-height:1.6; }
+    .toolbar { display:flex; align-items:center; gap:12px; margin:24px 0 14px; }
+    input { flex:1; min-width:180px; height:42px; padding:0 13px; border:1px solid var(--line); border-radius:9px; background:#fff; font:inherit; }
+    .status,.pager { color:var(--muted); font-size:14px; }
+    .pager { display:flex; align-items:center; gap:9px; white-space:nowrap; }
+    .filters { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+    .filters button { border-radius:999px; padding:0 16px; }
+    .filters button.selected { border-color:var(--blue); color:#fff; background:var(--blue); }
+    .priority-badge { white-space:nowrap; }
+    button { min-height:36px; padding:0 12px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); font:inherit; cursor:pointer; }
     button:hover:not(:disabled) { border-color:var(--blue); color:var(--blue); }
     button:disabled { opacity:.45; cursor:not-allowed; }
-    .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--paper); }
-    table { width:100%; min-width:1030px; border-collapse:collapse; font-size:14px; }
-    th, td { padding:14px 16px; border-bottom:1px solid var(--line); vertical-align:top; text-align:left; }
-    th { background:#f9fafb; color:#475467; font-size:12px; white-space:nowrap; }
-    tr:last-child td { border-bottom:0; }
-    .id { color:var(--muted); font-variant-numeric:tabular-nums; }
-    .name { font-weight:700; }
-    .type { display:inline-block; margin-top:5px; padding:3px 6px; border-radius:5px; background:#eef4ff; color:#175cd3; font-size:11px; font-weight:700; }
-    .address { min-width:235px; line-height:1.5; }
-    .address div + div { margin-top:4px; color:var(--muted); }
-    a { color:var(--blue); text-decoration:none; white-space:nowrap; }
-    a:hover { text-decoration:underline; }
-    .empty-link { color:#98a2b3; }
-    .tags { display:flex; min-width:220px; flex-wrap:wrap; gap:5px; }
-    .tag { display:inline-flex; gap:4px; align-items:center; padding:4px 7px; border-radius:999px; background:#f2f4f7; font-size:12px; white-space:nowrap; }
+    #places { display:grid; gap:12px; }
+    .place { overflow:hidden; border:1px solid var(--line); border-radius:12px; background:var(--paper); }
+    .place-head { display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:14px; align-items:start; padding:17px 18px; }
+    .id { color:var(--muted); font:12px ui-monospace,SFMono-Regular,Menlo,monospace; padding-top:4px; }
+    .title-line { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+    .name { font-size:18px; font-weight:750; }
+    .badge { display:inline-flex; padding:4px 8px; border-radius:999px; background:#eff8ff; color:#175cd3; font-size:12px; font-weight:650; }
+    .badge.warning { background:#fffaeb; color:var(--amber); }
+    .sub { margin-top:7px; color:var(--muted); font-size:13px; line-height:1.5; }
+    .keywords { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:11px; }
+    .keyword-label { color:var(--muted); font-size:12px; }
+    .keyword { display:inline-flex; padding:4px 8px; border-radius:999px; background:#fff4e5; color:#9a4d00; font-size:12px; }
+    .tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .tag { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:999px; background:#f2f4f7; font-size:12px; }
     .tag small { color:var(--muted); }
-    .empty { padding:44px; color:var(--muted); text-align:center; }
-    @media (max-width:640px) { main { width:min(100% - 24px, 1440px); margin-top:24px; } .toolbar { align-items:flex-start; flex-direction:column; } }
+    .links { display:flex; flex-wrap:wrap; gap:7px; padding-top:2px; }
+    a { color:var(--blue); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .link { padding:7px 9px; border:1px solid var(--line); border-radius:7px; font-size:12px; white-space:nowrap; }
+    details { border-top:1px solid var(--line); }
+    summary { padding:11px 18px; color:var(--blue); font-size:13px; cursor:pointer; user-select:none; }
+    .details { overflow-x:auto; padding:0 18px 17px; }
+    .field-table { width:100%; min-width:680px; border-collapse:collapse; font-size:13px; }
+    .field-table th,.field-table td { padding:9px 10px; border-top:1px solid #f0f1f3; text-align:left; vertical-align:top; line-height:1.5; }
+    .field-table th { width:190px; color:#475467; font-weight:650; white-space:nowrap; }
+    .field-table td:nth-child(2) { width:38%; overflow-wrap:anywhere; white-space:pre-wrap; }
+    .field-table td:last-child { color:var(--muted); }
+    .field-table .section th { padding-top:14px; background:#f9fafb; color:var(--ink); }
+    .value.missing { color:#98a2b3; }
+    .images { display:flex; flex-wrap:wrap; gap:8px; }
+    .images a { display:block; width:86px; height:68px; overflow:hidden; border-radius:7px; background:#f2f4f7; }
+    .images img { width:100%; height:100%; object-fit:cover; }
+    .empty { padding:42px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); text-align:center; background:#fff; }
+    @media (max-width:760px) { main { width:calc(100% - 20px); margin-top:22px; } .toolbar { align-items:stretch; flex-direction:column; } .place-head { grid-template-columns:45px minmax(0,1fr); } .links { grid-column:2; } }
+    @media (max-width:460px) { .place-head { padding:14px; gap:9px; } summary,.details { padding-left:14px; padding-right:14px; } }
   </style>
 </head>
 <body>
 <main>
-  <h1>저장된 장소 확인</h1>
-  <p>정제와 AI 태깅이 완료되어 <code>places</code>에 저장된 장소만 보여줍니다.</p>
+  <h1>장소 DB 검토</h1>
+  <p class="intro">DB의 <code>places</code>와 연결 태그를 확인합니다. 유형별로 필터링하고 추천 우선도 순으로 확인합니다.</p>
 
   <div class="toolbar">
-    <div id="status" class="status">장소를 불러오는 중...</div>
+    <input id="search" type="search" placeholder="현재 페이지에서 이름, 주소, 카테고리, 태그 검색" aria-label="장소 검색" />
+    <div id="status" class="status" role="status">장소를 불러오는 중...</div>
     <div class="pager">
       <button id="previous" type="button">이전</button>
       <span id="page" class="status"></span>
@@ -51,42 +74,37 @@
     </div>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>장소</th>
-        <th>주소</th>
-        <th>카카오</th>
-        <th>네이버</th>
-        <th>태그</th>
-      </tr>
-      </thead>
-      <tbody id="places"></tbody>
-    </table>
-    <div id="empty" class="empty" hidden>저장된 장소가 없습니다.</div>
-  </div>
+  <nav id="type-filters" class="filters" aria-label="장소 유형 필터">
+    <button type="button" data-type="ALL" class="selected" aria-pressed="true">전체</button>
+    <button type="button" data-type="CAFE" aria-pressed="false">CAFE</button>
+    <button type="button" data-type="MEAL" aria-pressed="false">MEAL</button>
+    <button type="button" data-type="ACTIVITY" aria-pressed="false">ACTIVITY</button>
+  </nav>
+  <section id="places" aria-live="polite"></section>
+  <div id="empty" class="empty" hidden>표시할 장소가 없습니다.</div>
 </main>
 <script>
   const pageSize = 50;
   const status = document.querySelector('#status');
   const pageLabel = document.querySelector('#page');
-  const placesBody = document.querySelector('#places');
+  const places = document.querySelector('#places');
   const empty = document.querySelector('#empty');
+  const search = document.querySelector('#search');
+  const typeFilters = document.querySelector('#type-filters');
   const previous = document.querySelector('#previous');
   const next = document.querySelector('#next');
   let currentPage = 0;
   let totalPages = 0;
+  let selectedType = 'ALL';
 
-  // 장소 목록과 태그를 서버에서 페이지 단위로 읽는다.
+  // 현재 유형에 맞는 페이지를 API에서 추천 우선도 순으로 가져온다.
   async function loadPlaces(page) {
     status.textContent = '장소를 불러오는 중...';
     previous.disabled = true;
     next.disabled = true;
-
     try {
-      const response = await fetch(`api/places/check?page=${page}&size=${pageSize}`);
+      const typeQuery = selectedType === 'ALL' ? '' : `&placeType=${selectedType}`;
+      const response = await fetch(`api/places/check?page=${page}&size=${pageSize}${typeQuery}`);
       if (!response.ok) throw new Error('장소 목록을 불러오지 못했습니다.');
       const data = await response.json();
       currentPage = data.page;
@@ -94,98 +112,206 @@
       render(data);
     } catch (error) {
       status.textContent = error.message;
-      placesBody.replaceChildren();
+      places.replaceChildren();
       empty.hidden = false;
       empty.textContent = '장소 목록을 불러오지 못했습니다.';
     }
   }
 
-  // 서버 문자열을 HTML로 해석하지 않고 DOM에 넣어 테스트 데이터도 안전하게 표시한다.
+  // 목록은 핵심 식별정보만 요약하고, 수집 필드는 상세 영역에 모아 둔다.
   function render(data) {
-    placesBody.replaceChildren();
+    places.replaceChildren();
     empty.hidden = data.places.length > 0;
-    status.textContent = `총 ${data.totalElements.toLocaleString()}개 장소`;
+    status.textContent = `전체 ${data.totalElements.toLocaleString()}개 · 이 페이지 ${data.places.length}개`;
     pageLabel.textContent = data.totalPages ? `${data.page + 1} / ${data.totalPages}` : '0 / 0';
     previous.disabled = data.page === 0;
     next.disabled = data.page + 1 >= data.totalPages;
-
-    for (const place of data.places) {
-      const row = document.createElement('tr');
-      row.append(cell(place.id, 'id'));
-      row.append(placeCell(place));
-      row.append(addressCell(place));
-      row.append(linkCell(place.kakaoUrl, '카카오맵'));
-      row.append(linkCell(place.naverUrl, '네이버 지도'));
-      row.append(tagsCell(place.tags));
-      placesBody.append(row);
-    }
+    for (const place of data.places) places.append(placeCard(place));
+    filterCurrentPage();
   }
 
-  function cell(value, className) {
-    const element = document.createElement('td');
+  function placeCard(place) {
+    const card = document.createElement('article');
+    card.className = 'place';
+    const head = document.createElement('div');
+    head.className = 'place-head';
+    head.append(textElement('div', `#${place.id}`, 'id'));
+
+    const summary = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'title-line';
+    title.append(textElement('span', place.name, 'name'));
+    title.append(textElement('span', place.placeType, 'badge'));
+    title.append(textElement('span', `추천 우선도 ${place.totalPriorityScore}`, 'badge priority-badge'));
+    if (!place.active) title.append(textElement('span', '비활성', 'badge warning'));
+    summary.append(title);
+    summary.append(textElement('div', `${place.areaName} · ${place.roadAddressName || place.addressName || '주소 없음'}`, 'sub'));
+    if (place.keywords?.length) summary.append(keywordList(place.keywords));
+    summary.append(tagList(place.tags));
+    head.append(summary);
+
+    const links = document.createElement('div');
+    links.className = 'links';
+    links.append(link(place.kakaoUrl, '카카오맵'));
+    links.append(link(place.naverUrl, '네이버맵'));
+    head.append(links);
+    card.append(head);
+
+    const details = document.createElement('details');
+    const summaryToggle = document.createElement('summary');
+    summaryToggle.textContent = '전체 DB 필드 보기';
+    details.append(summaryToggle);
+    const fields = document.createElement('table');
+    fields.className = 'field-table';
+    const body = document.createElement('tbody');
+    fields.append(body);
+    addSection(body, '장소 기본 정보');
+    addField(body, 'id', place.id, 'places 테이블에서 사용하는 장소 고유 번호');
+    addField(body, 'provider', place.provider, '장소 원본을 수집한 제공자');
+    addField(body, 'provider_place_id', place.providerPlaceId, '원본 제공자(카카오 등)의 장소 ID');
+    addField(body, 'area_id / 지역명', `${place.areaId} / ${place.areaName}`, '이 장소가 속한 서비스 지역');
+    addField(body, 'place_type', place.placeType, '장소의 큰 유형: ACTIVITY, MEAL, CAFE');
+    addField(body, 'name', place.name, '장소 표시명');
+    addField(body, 'keywords', listText(place.keywords), '장소의 세부 특징 키워드 목록');
+    addField(body, 'image_urls', imageList(place.imageUrls), '장소에 연결된 이미지 URL 목록', false, true);
+
+    addSection(body, '주소·분류·연락처');
+    addField(body, 'address_name', place.addressName, '지번 주소');
+    addField(body, 'road_address_name', place.roadAddressName, '도로명 주소');
+    addField(body, 'source_category_name', place.sourceCategoryName, '카카오 등 원본에서 제공한 상세 카테고리');
+    addField(body, 'source_category_group_code', place.sourceCategoryGroupCode, '원본 카테고리 그룹 코드');
+    addField(body, 'latitude / longitude', `${place.latitude}, ${place.longitude}`, '지도 표시와 거리 계산에 사용하는 위도·경도');
+    addField(body, 'phone', place.phone, '원본 제공자가 제공한 전화번호');
+    addField(body, 'is_anchor_candidate', place.anchorCandidate, '앵커 후보 장소로 수집되었는지 여부');
+    addField(body, 'is_active', place.active, '추천에 사용할 수 있는 활성 상태인지 여부');
+
+    addSection(body, '추천 태그·우선도');
+    addField(body, '연결 태그', place.tags.map(tag => `${tag.code} · ${tag.displayName} (${tag.weight})`).join('\n'), 'place_tags에 연결된 태그 코드, 이름, 적합도 가중치');
+    addField(body, 'priority_experience', place.priorityExperience, '장소 경험 점수');
+    addField(body, 'priority_distinctiveness', place.priorityDistinctiveness, '장소 차별성 점수');
+    addField(body, 'priority_outing_demand', place.priorityOutingDemand, '나들이 수요 점수');
+    addField(body, '추천 우선도 합계', place.totalPriorityScore, '위 세 점수를 합산한 화면용 값(DB 별도 컬럼 아님)');
+
+    addSection(body, '운영·링크·기록');
+    addField(body, 'operating_hours', place.operatingHours, '저장된 영업시간 정보');
+    addField(body, 'operating_days', place.operatingDays, '저장된 영업일 정보');
+    addField(body, 'place_url', place.kakaoUrl, '카카오 장소 상세 페이지 URL', true);
+    addField(body, 'naver_search_url', place.naverUrl, 'DB에 저장된 네이버 지도 검색 URL', true);
+    addField(body, 'last_synced_at', place.lastSyncedAt, '외부 장소 정보를 마지막으로 동기화한 시각');
+    addField(body, 'created_at', place.createdAt, 'DB에 처음 저장된 시각');
+    addField(body, 'updated_at', place.updatedAt, 'DB 값이 마지막으로 수정된 시각');
+    details.append(fields);
+    card.append(details);
+    card.dataset.search = [place.name, place.areaName, place.placeType, place.provider, place.addressName, place.roadAddressName, place.sourceCategoryName, ...(place.keywords ?? []), ...place.tags.map(tag => `${tag.code} ${tag.displayName}`)].join(' ').toLocaleLowerCase();
+    return card;
+  }
+
+  function keywordList(keywords) {
+    const element = document.createElement('div');
+    element.className = 'keywords';
+    element.append(textElement('span', '키워드', 'keyword-label'));
+    for (const keyword of keywords) element.append(textElement('span', keyword, 'keyword'));
+    return element;
+  }
+
+  function textElement(tagName, value, className) {
+    const element = document.createElement(tagName);
     element.className = className;
-    element.textContent = value ?? '-';
+    element.textContent = value ?? '미입력';
     return element;
   }
 
-  function placeCell(place) {
-    const element = document.createElement('td');
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = place.name;
-    const type = document.createElement('span');
-    type.className = 'type';
-    type.textContent = (place.keywords ?? []).join(' · ') || place.placeType;
-    element.append(name, type);
-    return element;
-  }
-
-  function addressCell(place) {
-    const element = document.createElement('td');
-    element.className = 'address';
-    const roadAddress = document.createElement('div');
-    roadAddress.textContent = place.roadAddressName || '-';
-    const parcelAddress = document.createElement('div');
-    parcelAddress.textContent = place.addressName || '-';
-    element.append(roadAddress, parcelAddress);
-    return element;
-  }
-
-  function linkCell(url, label) {
-    const element = document.createElement('td');
-    if (!url) {
-      element.className = 'empty-link';
-      element.textContent = '없음';
-      return element;
-    }
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.textContent = label;
-    element.append(link);
-    return element;
-  }
-
-  function tagsCell(tags) {
-    const element = document.createElement('td');
+  function tagList(tags) {
+    const element = document.createElement('div');
     element.className = 'tags';
-    if (!tags.length) {
-      element.textContent = '-';
-      return element;
-    }
+    if (!tags.length) return textElement('div', '연결 태그 없음', 'sub');
     for (const tag of tags) {
       const item = document.createElement('span');
       item.className = 'tag';
-      item.textContent = tag.displayName;
-      const weight = document.createElement('small');
-      weight.textContent = tag.weight;
-      item.append(weight);
+      item.append(document.createTextNode(tag.displayName));
+      item.append(textElement('small', tag.weight, ''));
       element.append(item);
     }
     return element;
   }
 
+  function link(url, label) {
+    const element = document.createElement('a');
+    element.className = 'link';
+    element.textContent = url ? label : `${label} 없음`;
+    if (url) { element.href = url; element.target = '_blank'; element.rel = 'noopener noreferrer'; }
+    else { element.setAttribute('aria-disabled', 'true'); element.classList.add('empty-value'); }
+    return element;
+  }
+
+  function addSection(container, label) {
+    const row = document.createElement('tr');
+    row.className = 'section';
+    const heading = document.createElement('th');
+    heading.colSpan = 3;
+    heading.textContent = label;
+    row.append(heading);
+    container.append(row);
+  }
+
+  function addField(container, label, value, meaning, asLink = false, asImages = false) {
+    const field = document.createElement('tr');
+    const key = document.createElement('th');
+    key.scope = 'row';
+    key.textContent = label;
+    const content = document.createElement('div');
+    content.className = 'value';
+    if (asImages && Array.isArray(value) && value.length) {
+      content.className = 'images';
+      for (const url of value) {
+        const anchor = document.createElement('a');
+        anchor.href = url; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; anchor.title = url;
+        const image = document.createElement('img'); image.src = url; image.alt = '장소 이미지'; image.loading = 'lazy';
+        anchor.append(image); content.append(anchor);
+      }
+    } else if (asLink && value) {
+      const anchor = document.createElement('a'); anchor.href = value; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; anchor.textContent = value;
+      content.append(anchor);
+    } else {
+      const missing = value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0);
+      content.textContent = missing ? '미입력' : String(value);
+      if (content.textContent === '미입력') content.classList.add('missing');
+    }
+    const valueCell = document.createElement('td');
+    valueCell.append(content);
+    const meaningCell = document.createElement('td');
+    meaningCell.textContent = meaning;
+    field.append(key, valueCell, meaningCell);
+    container.append(field);
+  }
+
+  function imageList(images) { return images ?? []; }
+  function listText(values) { return values?.length ? values.join(', ') : null; }
+
+  // 검색은 페이지네이션을 유지하면서 현재 불러온 50개 안에서만 동작한다.
+  function filterCurrentPage() {
+    const query = search.value.trim().toLocaleLowerCase();
+    let visible = 0;
+    for (const card of places.children) {
+      card.hidden = query && !card.dataset.search.includes(query);
+      if (!card.hidden) visible++;
+    }
+    empty.hidden = visible > 0;
+    empty.textContent = query ? '현재 페이지에서 검색 결과가 없습니다.' : '저장된 장소가 없습니다.';
+  }
+
+  search.addEventListener('input', filterCurrentPage);
+  typeFilters.addEventListener('click', event => {
+    const button = event.target.closest('button[data-type]');
+    if (!button) return;
+    selectedType = button.dataset.type;
+    for (const filter of typeFilters.querySelectorAll('button')) {
+      const isSelected = filter === button;
+      filter.classList.toggle('selected', isSelected);
+      filter.setAttribute('aria-pressed', String(isSelected));
+    }
+    loadPlaces(0);
+  });
   previous.addEventListener('click', () => loadPlaces(currentPage - 1));
   next.addEventListener('click', () => loadPlaces(currentPage + 1));
   loadPlaces(currentPage);

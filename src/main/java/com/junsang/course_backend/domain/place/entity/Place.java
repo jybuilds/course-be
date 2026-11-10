@@ -203,6 +203,10 @@ public class Place {
         this.imageUrls = imageUrls == null ? null : List.copyOf(imageUrls);
     }
 
+    public void updateNaverSearchUrl(String naverSearchUrl) {
+        this.naverSearchUrl = naverSearchUrl;
+    }
+
     public void updateKeywords(List<String> keywords) {
         this.keywords = keywords == null || keywords.isEmpty() ? null : List.copyOf(keywords);
     }

@@ -1,7 +1,7 @@
 # 이음 로컬 인프라 명령어 모음
 # 사용법: make [명령어]
 
-.PHONY: up build rebuild down restart logs logs-app ps clean reset refresh-seoul-area build-seoul-collection-rectangles
+.PHONY: up build rebuild down restart logs logs-app ps clean reset refresh-seoul-area build-seoul-collection-rectangles run course-seed course-clean course-check course-show
 
 ## 전체 서비스 시작 (앱 + 인프라, 백그라운드)
 up:
@@ -55,6 +55,28 @@ reset:
 ## PostgreSQL 직접 접속
 db:
 	docker compose exec postgres psql -U course -d course
+
+## 앱을 로컬에서 실행 (8080은 프론트가 쓰므로 8081)
+run:
+	PORT=8081 ./gradlew bootRun
+
+## 직접 코스 생성 테스트용 장소 넣기 (여러 번 실행해도 안전)
+course-seed: course-clean
+	@docker compose exec -T postgres psql -q -U course -d course < src/test/resources/course-creation-data.sql
+	@echo "테스트 장소 $$(docker compose exec -T postgres psql -tA -U course -d course -c 'select count(*) from places where id between 931001 and 931011')개를 넣었습니다. 다음: make run"
+
+## 직접 코스 생성 테스트 데이터와 그 장소로 만든 코스 지우기
+course-clean:
+	@docker compose exec -T postgres psql -q -U course -d course < src/test/resources/course-creation-cleanup.sql
+	@echo "코스 생성 테스트 데이터를 지웠습니다."
+
+## http/course-creation.http 요청을 터미널에서 한 번에 실행 (make run 상태에서)
+course-check:
+	python3 tools/http/run-http.py http/course-creation.http
+
+## 직접 코스 생성 테스트 데이터가 DB에 실제로 어떻게 들어갔는지 표로 보기
+course-show:
+	@docker compose exec -T postgres psql -q -U course -d course < src/test/resources/course-creation-show.sql
 
 ## seoul-service-areas.csv의 이름을 매핑 파일과 지도에 반영
 refresh-seoul-area:

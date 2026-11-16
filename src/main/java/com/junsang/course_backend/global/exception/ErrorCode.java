@@ -18,6 +18,10 @@ public enum ErrorCode {
     COURSE_ANCHOR_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 지역의 코스 중심지를 찾을 수 없습니다."),
     PREFERENCE_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "선호도 옵션을 찾을 수 없습니다."),
 
+    // ── 코스 생성 ─────────────────────────────────────────────────────────
+    COURSE_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "코스에 담을 장소를 찾을 수 없습니다."),
+    COURSE_DUPLICATE_PLACE(HttpStatus.BAD_REQUEST, "같은 장소를 코스에 중복해서 담을 수 없습니다."),
+
     // ── 관리자 ────────────────────────────────────────────────────────────
     LOCAL_ADMIN_ACCESS_DENIED(HttpStatus.FORBIDDEN, "로컬 환경에서만 접근할 수 있습니다."),
 

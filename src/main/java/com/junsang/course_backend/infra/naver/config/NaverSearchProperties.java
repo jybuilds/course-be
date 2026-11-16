@@ -1,18 +1,23 @@
 package com.junsang.course_backend.infra.naver.config;
 
 import java.net.URI;
+import java.util.List;
+import com.junsang.course_backend.domain.place.collection.budget.ApiCredential;
+import com.junsang.course_backend.domain.place.collection.budget.ApiScope;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "naver.search")
-public record NaverSearchProperties(
-        URI baseUrl,
-        String clientId,
-        String clientSecret
-) {
+public record NaverSearchProperties(URI baseUrl, List<ApiCredential> credentials) {
+    public NaverSearchProperties {
+        credentials = credentials == null ? List.of() : List.copyOf(credentials);
+        var ids = new java.util.HashSet<String>();
+        for (var credential : credentials) {
+            if (credential.id() == null || credential.id().isBlank() || !ids.add(credential.id()))
+                throw new IllegalArgumentException("API 인증 정보 id는 비어 있거나 중복될 수 없습니다.");
+        }
+    }
 
-    // 클라이언트 ID와 Secret이 모두 설정됐는지 확인한다.
     public boolean isConfigured() {
-        return clientId != null && !clientId.isBlank()
-                && clientSecret != null && !clientSecret.isBlank();
+        return credentials.stream().anyMatch(c -> c.configured(ApiScope.NAVER_SEARCH));
     }
 }

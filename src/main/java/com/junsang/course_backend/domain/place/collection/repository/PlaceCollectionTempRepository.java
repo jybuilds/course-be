@@ -29,27 +29,13 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             Collection<String> providerPlaceIds
     );
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    List<PlaceCollectionTemp> findByProcessingStepAndStatusOrderByIdAsc(
-            PlaceCollectionStep processingStep,
-            PlaceCollectionTempStatus status,
-            Pageable pageable
-    );
-
-    List<PlaceCollectionTemp> findByAreaIdAndProcessingStepAndStatusOrderByIdAsc(
-            Long areaId,
-            PlaceCollectionStep processingStep,
-            PlaceCollectionTempStatus status,
-            Pageable pageable
-    );
-
     // 신규 대기 건과 OpenAI 요청 자체가 실패한 건만 다음 Batch 제출 후보로 조회한다.
     @Query("""
             select temp
             from PlaceCollectionTemp temp
             where temp.processingStep = :processingStep
               and (
-                    (temp.status = :pendingStatus and :retryOnly = false)
+                    temp.status = :pendingStatus
                     or (
                         temp.status = :failedStatus
                         and temp.errorCode in :retryableErrorCodes
@@ -65,43 +51,13 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             @Param("failedStatus") PlaceCollectionTempStatus failedStatus,
             @Param("retryableErrorCodes") List<PlaceRefinementErrorCode> retryableErrorCodes,
             @Param("retryBefore") LocalDateTime retryBefore,
-            @Param("retryOnly") boolean retryOnly,
-            Pageable pageable
-    );
-
-    // 지정 Area에서 신규 대기 건과 재시도 가능한 OpenAI 요청 실패 건만 조회한다.
-    @Query("""
-            select temp
-            from PlaceCollectionTemp temp
-            where temp.area.id = :areaId
-              and temp.processingStep = :processingStep
-              and (
-                    (temp.status = :pendingStatus and :retryOnly = false)
-                    or (
-                        temp.status = :failedStatus
-                        and temp.errorCode in :retryableErrorCodes
-                        and temp.nextRetryAt <= :retryBefore
-                    )
-              )
-            order by temp.id asc
-            """)
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    List<PlaceCollectionTemp> findAiBatchSubmissionTargetsByAreaId(
-            @Param("areaId") Long areaId,
-            @Param("processingStep") PlaceCollectionStep processingStep,
-            @Param("pendingStatus") PlaceCollectionTempStatus pendingStatus,
-            @Param("failedStatus") PlaceCollectionTempStatus failedStatus,
-            @Param("retryableErrorCodes") List<PlaceRefinementErrorCode> retryableErrorCodes,
-            @Param("retryBefore") LocalDateTime retryBefore,
-            @Param("retryOnly") boolean retryOnly,
             Pageable pageable
     );
 
     @Query("""
             select temp from PlaceCollectionTemp temp
-            where (:areaId is null or temp.area.id = :areaId)
-              and temp.processingStep = :step
-              and (temp.status = :pending or (
+            where temp.processingStep = :step
+              and ((temp.status = :pending and (temp.nextRetryAt is null or temp.nextRetryAt <= :retryBefore)) or (
                     temp.status = :failed
                     and temp.errorCode in :retryable
                     and temp.nextRetryAt <= :retryBefore
@@ -109,7 +65,6 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             order by temp.id asc
             """)
     List<PlaceCollectionTemp> findNaverTargets(
-            @Param("areaId") Long areaId,
             @Param("step") PlaceCollectionStep step,
             @Param("pending") PlaceCollectionTempStatus pending,
             @Param("failed") PlaceCollectionTempStatus failed,
@@ -118,12 +73,13 @@ public interface PlaceCollectionTempRepository extends JpaRepository<PlaceCollec
             Pageable pageable
     );
 
-    @Query("select temp from PlaceCollectionTemp temp where temp.processingStep = 'NAVER_ENRICHMENT' "
-            + "and temp.nextRetryAt <= :now and (temp.status = 'FAILED' or "
-            + "(temp.status = 'PENDING' and temp.errorCode = 'COLLECTION_INTERRUPTED')) order by temp.id")
-    List<PlaceCollectionTemp> findNaverRecoveryTargets(@Param("now") java.time.LocalDateTime now, Pageable page);
+    @Query("select count(temp) from PlaceCollectionTemp temp where temp.processingStep=:step and "
+            + "(temp.status in ('PENDING','PROCESSING') or (temp.status='FAILED' and temp.nextRetryAt is not null))")
+    long countBacklog(@Param("step") PlaceCollectionStep step);
 
-    long countByAreaId(Long areaId);
+    @Query("select max(temp.nextRetryAt) from PlaceCollectionTemp temp where temp.processingStep='AI_TAGGING' "
+            + "and temp.status='FAILED' and temp.errorCode='AI_API_QUOTA_EXHAUSTED'")
+    LocalDateTime findAiQuotaResumeAt();
 
     List<PlaceCollectionTemp> findByAiBatchJobIdOrderById(Long aiBatchJobId);
 

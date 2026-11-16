@@ -1,3 +1,5 @@
+> 2026-11-16 pipeline 정리: 이 문서에 남은 수동 수집 API·즉시 AI·Orchestrator 설명은 이전 구현 기록이다. 해당 API는 제거되었으며 현재 구조와 실행 방법은 [스케줄링 가이드](./scheduling-guide.md)가 기준이다.
+
 # 장소 수집 통합 가이드
 2026-11-13 · 구현 및 장애 복구 검증 보고서 · v1.0
 
@@ -254,7 +256,7 @@ OmniRoute 자체가 종료된 경우의 내부 배치 재개는 외부 공급자
 | PLACE_COLLECTION_SCHEDULING_ENABLED | true | 자동 복구·AI 재시도·결과 조회 worker 활성화 |
 | place-collection.kakao.recovery-poll-millis | 60000 | 카카오 기존 작업 회수, 주기당 최대 100 Job |
 | place-collection.naver.recovery-poll-millis | 60000 | 네이버 중단·예약 실패 회수, 주기당 최대 100 장소 |
-| place-collection.ai.batch.retry-poll-millis | 60000 | AI 재시도 대상 조회, 주기당 최대 1,000 장소 |
+| place-collection.ai.batch.submit-poll-millis | 60000 | 신규·재시도 가능한 AI 태깅 장소 제출 확인 주기, 주기당 최대 1,000 장소 (환경변수: `PLACE_COLLECTION_AI_BATCH_SUBMIT_POLL_MILLIS`) |
 | place-collection.ai.batch.poll-interval-millis | 60000 | SUBMITTED 배치 결과 확인 |
 
 fixedDelay이므로 이전 실행 종료 후 설정 시간만큼 기다린다. 실제 재시도는 next_retry_at 이후 worker가 확인하는 시점에 실행되며 정확한 초 단위 예약은 아니다. 기본 Spring 스케줄러 실행 스레드 설정은 기존 구성을 따른다.
@@ -377,3 +379,6 @@ OmniRoute는 홈서버 설치 소스에서 버전 3.8.53, Codex 사용량 window
 - 장소의 의미적 분류 정확성은 테스트 통과만으로 보장되지 않는다. needs_review 검토와 실제 표본 확인을 함께 사용한다.
 - 수집 시점과 결과 반영 사이에 태그 활성화·분류 규칙이 바뀌면 현재 저장 정책으로 검증한다. 정책 변경은 진행 배치를 확인하며 운영해야 한다.
 - 검토 화면·운영진 등록·병합·전용 OPERATOR ID 발급은 이번 범위 밖이다.
+
+
+예약 수집의 최신 구조와 설정은 [초기 수집 스케줄링 가이드](./scheduling-guide.md)를 참고한다. 기존 복구 스케줄러 패키지는 scheduling으로 재구성되었다.

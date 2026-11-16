@@ -29,57 +29,18 @@ public class OpenAiBatchJobWriter {
     private final PlaceCollectionTempRepository tempRepository;
     private final OpenAiBatchTaggingJobRepository jobRepository;
 
-    // 전체 대기열에서 잠근 Temp를 Batch Job에 선점한다.
+    // 신규 대기와 예약된 재시도 장소를 잠근 뒤 하나의 Batch에 선점한다.
     @Transactional
     public BatchClaim claimPending(int limit) {
-        return claimGlobal(limit, false);
-    }
-
-    @Transactional
-    public BatchClaim claimRetries(int limit) {
-        return claimGlobal(limit, true);
-    }
-
-    private BatchClaim claimGlobal(int limit, boolean retryOnly) {
-        LocalDateTime now = LocalDateTime.now();
         List<PlaceCollectionTemp> targets = tempRepository.findAiBatchSubmissionTargets(
                 PlaceCollectionStep.AI_TAGGING,
                 PlaceCollectionTempStatus.PENDING,
                 PlaceCollectionTempStatus.FAILED,
                 retryableSubmissionErrorCodes(),
-                now,
-                retryOnly,
+                LocalDateTime.now(),
                 PageRequest.of(0, limit)
         );
-        return claim(targets, false);
-    }
-
-    // 이미 완료된 Temp를 카카오·네이버 재호출 없이 새 AI 정책으로 다시 제출한다.
-    @Transactional
-    public BatchClaim claimCompleted(int limit) {
-        List<PlaceCollectionTemp> targets = tempRepository.findByProcessingStepAndStatusOrderByIdAsc(
-                PlaceCollectionStep.AI_TAGGING,
-                PlaceCollectionTempStatus.COMPLETED,
-                PageRequest.of(0, limit)
-        );
-        return claim(targets, true);
-    }
-
-    // 지정 Area의 잠근 Temp를 Batch Job에 선점한다.
-    @Transactional
-    public BatchClaim claimPendingByArea(Long areaId, int limit) {
-        LocalDateTime now = LocalDateTime.now();
-        List<PlaceCollectionTemp> targets = tempRepository.findAiBatchSubmissionTargetsByAreaId(
-                areaId,
-                PlaceCollectionStep.AI_TAGGING,
-                PlaceCollectionTempStatus.PENDING,
-                PlaceCollectionTempStatus.FAILED,
-                retryableSubmissionErrorCodes(),
-                now,
-                false,
-                PageRequest.of(0, limit)
-        );
-        return claim(targets, false);
+        return claim(targets);
     }
 
     // 원격 Batch ID를 저장하고 결과 대기 상태로 전환한다.
@@ -143,8 +104,16 @@ public class OpenAiBatchJobWriter {
     @Transactional
     public String acquireCollection(Long jobId) {
         String token = UUID.randomUUID().toString();
-        int count = jdbc.update("UPDATE openai_batch_tagging_jobs SET collect_token=?, collect_lease_until=CURRENT_TIMESTAMP + INTERVAL '15 minutes' "
-                + "WHERE id=? AND status='SUBMITTED' AND (collect_lease_until IS NULL OR collect_lease_until < CURRENT_TIMESTAMP)", token, jobId);
+
+        int count = jdbc.update(
+                "UPDATE openai_batch_tagging_jobs SET collect_token=?, "
+                        + "collect_lease_until=CURRENT_TIMESTAMP + INTERVAL '15 minutes', "
+                        + "last_polled_at=CURRENT_TIMESTAMP "
+                        + "WHERE id=? AND status='SUBMITTED' "
+                        + "AND (collect_lease_until IS NULL OR collect_lease_until < CURRENT_TIMESTAMP)",
+                token, jobId
+        );
+
         return count == 1 ? token : null;
     }
 
@@ -155,7 +124,9 @@ public class OpenAiBatchJobWriter {
     }
 
     public static class CollectionLeaseLostException extends IllegalStateException {
-        public CollectionLeaseLostException() { super("AI 수집 소유권 만료"); }
+        public CollectionLeaseLostException() {
+            super("AI 수집 소유권 만료");
+        }
     }
 
     private void checkOwner(Long jobId, String token) {
@@ -214,7 +185,7 @@ public class OpenAiBatchJobWriter {
                 .orElseThrow(() -> new IllegalArgumentException("AI Batch Job을 찾을 수 없습니다: " + jobId));
     }
 
-    private BatchClaim claim(List<PlaceCollectionTemp> targets, boolean retagging) {
+    private BatchClaim claim(List<PlaceCollectionTemp> targets) {
         if (targets.isEmpty()) {
             return null;
         }
@@ -230,10 +201,6 @@ public class OpenAiBatchJobWriter {
                     "INSERT INTO ai_batch_tagging_items(job_id,temp_id,request_key) VALUES (?,?,?)", job.getId(), temp.getId(), key);
         }
         targets.forEach(target -> {
-            if (retagging) {
-                target.restartAiBatchTagging(job.getId());
-                return;
-            }
             target.startAiBatchTagging(job.getId());
         });
         tempRepository.saveAll(targets);

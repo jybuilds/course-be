@@ -3,7 +3,7 @@ package com.junsang.course_backend.domain.place.collection.pipeline.ai.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.junsang.course_backend.domain.place.collection.pipeline.orchestration.PlaceCollectionRestartRecovery;
+import com.junsang.course_backend.domain.place.collection.scheduling.service.CollectionRestartRecovery;
 import com.junsang.course_backend.domain.place.collection.pipeline.kakao.service.KakaoCollectionJobWriter;
 import com.junsang.course_backend.domain.place.collection.pipeline.kakao.repository.PlaceCollectionProfileRepository;
 import com.junsang.course_backend.domain.place.collection.pipeline.kakao.repository.PlaceCollectionJobRepository;
@@ -27,10 +27,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @SpringBootTest(properties={"place-collection.scheduling.enabled=false", "place-collection.recovery.single-instance=true"})
 @EnabledIfEnvironmentVariable(named="DB_URL",matches=".*course_recovery_test.*")
 class CollectionRecoveryIntegrationTest {
+    @Autowired com.junsang.course_backend.domain.place.collection.scheduling.service.CollectionJobRegistrationService registration;
+    @Autowired com.junsang.course_backend.domain.place.collection.budget.CollectionBudgetWriter budget;
+    @Autowired com.junsang.course_backend.domain.place.collection.pipeline.naver.service.NaverRefinementWriter naverWriter;
+    @Autowired com.junsang.course_backend.domain.place.collection.pipeline.kakao.service.KakaoAreaCollectionService kakaoService;
+    @MockitoBean com.junsang.course_backend.infra.kakao.KakaoLocalClient kakaoClient;
     @Autowired JdbcTemplate jdbc;
     @Autowired OpenAiBatchJobWriter jobs;
     @Autowired OpenAiBatchTaggingService service;
-    @Autowired PlaceCollectionRestartRecovery recovery;
+    @Autowired CollectionRestartRecovery recovery;
     @Autowired KakaoCollectionJobWriter kakao;
     @Autowired PlaceCollectionProfileRepository profiles;
     @Autowired PlaceCollectionJobRepository kakaoJobs;
@@ -41,9 +46,19 @@ class CollectionRecoveryIntegrationTest {
     final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach void clean() {
-        jdbc.execute("TRUNCATE ai_batch_tagging_items, place_tags, places, place_collection_temp, openai_batch_tagging_jobs, place_collection_jobs RESTART IDENTITY CASCADE");
+        jdbc.execute("TRUNCATE collection_credential_blocks, ai_batch_tagging_items, place_tags, places, place_collection_temp, openai_batch_tagging_jobs, place_collection_jobs RESTART IDENTITY CASCADE");
     }
     @AfterEach void cleanupTrigger() { jdbc.execute("DROP FUNCTION IF EXISTS test_reject_place_tag() CASCADE"); jdbc.execute("DROP FUNCTION IF EXISTS test_reject_kakao_child() CASCADE"); jdbc.execute("DROP FUNCTION IF EXISTS test_reject_batch_receipt() CASCADE"); }
+    List<com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCollectionJob> createKakaoRoots(
+            List<com.junsang.course_backend.domain.place.entity.Area> targetAreas,
+            List<com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCollectionProfile> targetProfiles) {
+        String key = UUID.randomUUID().toString();
+        var roots = new ArrayList<com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCollectionJob>();
+        for (var area : targetAreas) for (var profile : targetProfiles)
+            roots.add(com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCollectionJob.initial(area, profile, key));
+        return kakaoJobs.saveAll(roots);
+    }
+
     Long temp(String id) {
         return jdbc.queryForObject("INSERT INTO place_collection_temp(area_id,provider,provider_place_id,default_place_type,name,latitude,longitude,processing_step,status) "
             + "SELECT id,'KAKAO',?,'CAFE',?,37.55,126.95,'AI_TAGGING','PENDING' FROM areas ORDER BY id LIMIT 1 RETURNING id",Long.class,id,"fixture-"+id);
@@ -57,6 +72,82 @@ class CollectionRecoveryIntegrationTest {
         when(client.poll("remote-"+c.jobId(),jobs.find(c.jobId()).getProvider())).thenReturn(new OpenAiBatchClient.BatchPoll("completed",line,null));
     }
     String state(Long id) { return jdbc.queryForObject("SELECT status FROM place_collection_temp WHERE id=?",String.class,id); }
+
+    @Test void concurrentInitialRegistrationCreatesExactlyOneRootPerProfile() throws Exception {
+        Long areaId = areas.findAll().getFirst().getId();
+        var pool = Executors.newFixedThreadPool(2);
+        var start = new CountDownLatch(1);
+        try {
+            var a = pool.submit(() -> { start.await(); return registration.register(areaId); });
+            var b = pool.submit(() -> { start.await(); return registration.register(areaId); });
+            start.countDown();
+            assertThat(List.of(a.get(10, TimeUnit.SECONDS), b.get(10, TimeUnit.SECONDS)))
+                    .containsExactlyInAnyOrder(true, false);
+            assertThat(kakaoJobs.findByAreaIdAndParentJobIsNullOrderByIdAsc(areaId))
+                    .hasSize(profiles.findByProviderAndIsActiveTrueOrderById(PlaceProvider.KAKAO).size());
+            assertThat(areas.findUnregisteredCollectionAreas("SEOUL", org.springframework.data.domain.PageRequest.of(0, 100)))
+                    .extracting(v -> v.getId()).doesNotContain(areaId).isSorted();
+        } finally { pool.shutdownNow(); }
+    }
+    @Test void providerDeferralPreservesTempAndRetryAttemptsAndPersistsCredentialBlock() {
+        Long id = temp("deferred");
+        jdbc.update("UPDATE place_collection_temp SET processing_step='NAVER_ENRICHMENT' WHERE id=?", id);
+        assertThat(naverWriter.tryStart(id)).isTrue();
+        var later = java.time.LocalDateTime.now().plusDays(1);
+        naverWriter.defer(id, later);
+        assertThat(state(id)).isEqualTo("PENDING");
+        assertThat(temps.findById(id).orElseThrow().getAttemptCount()).isZero();
+        assertThat(naverWriter.tryStart(id)).isFalse();
+        assertThat(temps.findNaverTargets(
+                com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionStep.NAVER_ENRICHMENT,
+                com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTempStatus.PENDING,
+                com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTempStatus.FAILED,
+                java.util.List.of(com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode.NAVER_STORAGE_FAILED),
+                java.time.LocalDateTime.now(), org.springframework.data.domain.PageRequest.of(0, 100))).isEmpty();
+        var until = java.time.Instant.now().plusSeconds(3600).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        budget.block(com.junsang.course_backend.domain.place.collection.budget.ApiScope.NAVER_SEARCH, "main", until, "QUOTA");
+        assertThat(budget.find(com.junsang.course_backend.domain.place.collection.budget.ApiScope.NAVER_SEARCH, "main").orElseThrow().until()).isEqualTo(until);
+    }
+    @Test void deferredKakaoRootDoesNotBecomeRunnableBeforeResumeTime() {
+        var area = areas.findAll().getFirst();
+        var roots = createKakaoRoots(List.of(area), profiles.findByProviderAndIsActiveTrueOrderById(PlaceProvider.KAKAO).subList(0,1));
+        Long id = roots.getFirst().getId();
+        kakao.tryStart(id);
+        kakao.defer(id, java.time.LocalDateTime.now().plusDays(1));
+        assertThat(kakaoJobs.findById(id).orElseThrow().getStatus().name()).isEqualTo("READY");
+        assertThat(kakao.tryStart(id)).isNull();
+        assertThat(kakaoJobs.findRunnable(java.time.LocalDateTime.now(), org.springframework.data.domain.PageRequest.of(0,100))).isEmpty();
+        recovery.run(new DefaultApplicationArguments());
+        assertThat(kakaoJobs.findRunnable(java.time.LocalDateTime.now(), org.springframework.data.domain.PageRequest.of(0,100))).isEmpty();
+    }
+
+    @Test void kakaoPageBudgetStopIsReadyAndCanRestartFromFirstPage() {
+        var area = areas.findAll().getFirst();
+        var profile = profiles.findByProviderAndIsActiveTrueOrderById(PlaceProvider.KAKAO).stream()
+                .filter(p -> p.getSearchType() == com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.CollectionSearchType.CATEGORY)
+                .findFirst().orElseThrow();
+        var roots = createKakaoRoots(List.of(area), List.of(profile));
+        Long id = roots.getFirst().getId();
+        var first = new com.junsang.course_backend.infra.kakao.dto.response.KakaoKeywordSearchResponse(
+                new com.junsang.course_backend.infra.kakao.dto.response.KakaoSearchMeta(2, 2, false), List.of());
+        when(kakaoClient.searchCategory(any())).thenReturn(first)
+                .thenThrow(new com.junsang.course_backend.domain.place.collection.budget.CollectionDeferredException(java.time.Instant.now().plusSeconds(3600)));
+        kakaoService.resumePendingJobs(10, () -> true);
+        var paused = kakaoJobs.findById(id).orElseThrow();
+        assertThat(paused.getStatus().name()).isEqualTo("READY");
+        assertThat(paused.getAttemptCount()).isZero();
+        assertThat(paused.getErrorCode()).isNull();
+        assertThat(paused.getNextRetryAt()).isAfter(java.time.LocalDateTime.now());
+        jdbc.update("UPDATE place_collection_jobs SET next_retry_at=CURRENT_TIMESTAMP-INTERVAL '1 minute' WHERE id=?", id);
+        doReturn(new com.junsang.course_backend.infra.kakao.dto.response.KakaoKeywordSearchResponse(
+                new com.junsang.course_backend.infra.kakao.dto.response.KakaoSearchMeta(1,1,true), List.of()))
+                .when(kakaoClient).searchCategory(any());
+        kakaoService.resumePendingJobs(10, () -> true);
+        assertThat(kakaoJobs.findById(id).orElseThrow().getStatus().name()).isEqualTo("COMPLETED");
+        var requests = org.mockito.ArgumentCaptor.forClass(com.junsang.course_backend.infra.kakao.dto.request.KakaoCategorySearchRequest.class);
+        verify(kakaoClient, times(3)).searchCategory(requests.capture());
+        assertThat(requests.getAllValues()).extracting(r -> r.page()).containsExactly(1, 2, 1);
+    }
 
     @Test void commitsSuccessAndRollsBackOnlyPlaceWhoseTagInsertFails() throws Exception {
         Long a=temp("a"),b=temp("b"); var c=claim(); output(c,place(a,99),place(b,90));
@@ -92,6 +183,38 @@ class CollectionRecoveryIntegrationTest {
         service.collect(c.jobId());
         assertThat(jdbc.queryForObject("SELECT count(*) FROM places",Integer.class)).isEqualTo(2);
     }
+    @Test void concurrentBatchSubmissionsCannotClaimSameTemp() throws Exception {
+        Long id = temp("claim-race");
+        var start = new CountDownLatch(1);
+        var pool = Executors.newFixedThreadPool(2);
+        try {
+            var immediate = pool.submit(() -> {
+                start.await();
+                return jobs.claimPending(1);
+            });
+            var batch = pool.submit(() -> {
+                start.await();
+                return jobs.claimPending(1);
+            });
+
+            start.countDown();
+            var immediateTargets = immediate.get(10, TimeUnit.SECONDS);
+            var batchClaim = batch.get(10, TimeUnit.SECONDS);
+
+            long immediateCount = immediateTargets == null ? 0 : immediateTargets.targets().stream()
+                .filter(target -> target.getId().equals(id))
+                .count();
+            long batchCount = batchClaim == null ? 0 : batchClaim.targets().stream()
+                .filter(target -> target.getId().equals(id))
+                .count();
+
+            assertThat(immediateCount + batchCount).isEqualTo(1);
+            assertThat(state(id)).isNotEqualTo("PENDING");
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
     @Test void onlyOneConcurrentCollectorAcquiresJob() throws Exception {
         temp("a"); var c=claim(); var pool=Executors.newFixedThreadPool(2);
         try {
@@ -103,7 +226,7 @@ class CollectionRecoveryIntegrationTest {
     @Test void kakaoPersistsAllRootsAndChildrenBeforeExecutionAndReusesInterruptedRun() {
         var area=areas.findAll().getFirst();
         var ps=profiles.findByProviderAndIsActiveTrueOrderById(PlaceProvider.KAKAO).subList(0,2);
-        var roots=kakao.initialize(List.of(area),ps);
+        var roots=createKakaoRoots(List.of(area),ps);
         assertThat(roots).hasSize(2);
         var started=kakao.tryStart(roots.getFirst().getId());
         var children=kakao.split(started.getId(),false);
@@ -111,7 +234,8 @@ class CollectionRecoveryIntegrationTest {
         assertThat(kakaoJobs.findByParentJobIdOrderByIdAsc(started.getId())).hasSize(4);
         kakao.tryStart(children.getFirst().getId());
         recovery.run(new DefaultApplicationArguments());
-        var resumed=kakao.initialize(List.of(area),ps);
+        assertThat(registration.register(area.getId())).isFalse();
+        var resumed=kakaoJobs.findByAreaIdAndParentJobIsNullOrderByIdAsc(area.getId());
         assertThat(resumed).extracting(v->v.getId()).containsExactlyElementsOf(roots.stream().map(v->v.getId()).toList());
         assertThat(kakao.tryStart(children.getFirst().getId())).isNotNull();
         assertThat(kakaoJobs.count()).isEqualTo(6);
@@ -122,21 +246,26 @@ class CollectionRecoveryIntegrationTest {
         jdbc.update("UPDATE place_collection_temp SET status='COMPLETED' WHERE id=?",b);
         recovery.run(new DefaultApplicationArguments());
         assertThat(state(a)).isEqualTo("PENDING"); assertThat(state(b)).isEqualTo("COMPLETED");
-        assertThat(temps.findNaverRecoveryTargets(java.time.LocalDateTime.now(),org.springframework.data.domain.PageRequest.of(0,10)))
+        assertThat(temps.findNaverTargets(
+                com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionStep.NAVER_ENRICHMENT,
+                com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTempStatus.PENDING,
+                com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTempStatus.FAILED,
+                new java.util.ArrayList<>(com.junsang.course_backend.domain.place.collection.pipeline.support.error.CollectionErrorPolicy.NAVER_RETRYABLE),
+                java.time.LocalDateTime.now(),org.springframework.data.domain.PageRequest.of(0,10)))
             .extracting(v->v.getId()).containsExactly(a);
     }
     @Test void failedPlacesAloneAreReclaimedWhenTheirRetryBecomesDue() throws Exception {
         Long a=temp("a"),b=temp("b"); var c=claim(); output(c,place(a,90)); service.collect(c.jobId());
         assertThat(state(a)).isEqualTo("COMPLETED"); assertThat(state(b)).isEqualTo("FAILED");
-        assertThat(jobs.claimRetries(10)).isNull();
+        assertThat(jobs.claimPending(10)).isNull();
         jdbc.update("UPDATE place_collection_temp SET next_retry_at=CURRENT_TIMESTAMP-INTERVAL '1 day' WHERE id=?",b);
-        var retry=jobs.claimRetries(10);
+        var retry=jobs.claimPending(10);
         assertThat(retry.targets()).extracting(v->v.getId()).containsExactly(b);
     }
     @Test void kakaoSplitRollsBackAllChildrenAndParentStateOnInsertFailure() {
         var area=areas.findAll().getFirst();
         var ps=profiles.findByProviderAndIsActiveTrueOrderById(PlaceProvider.KAKAO).subList(0,1);
-        var root=kakao.initialize(List.of(area),ps).getFirst(); kakao.tryStart(root.getId());
+        var root=createKakaoRoots(List.of(area),ps).getFirst(); kakao.tryStart(root.getId());
         jdbc.execute("CREATE FUNCTION test_reject_kakao_child() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.parent_job_id IS NOT NULL AND NEW.min_latitude>"+root.getMinLatitude()+" THEN RAISE EXCEPTION 'synthetic child failure'; END IF; RETURN NEW; END $$");
         jdbc.execute("CREATE TRIGGER test_kakao_failure BEFORE INSERT ON place_collection_jobs FOR EACH ROW EXECUTE FUNCTION test_reject_kakao_child()");
         assertThatThrownBy(()->kakao.split(root.getId(),false)).isInstanceOf(org.springframework.dao.DataAccessException.class);
@@ -155,7 +284,7 @@ class CollectionRecoveryIntegrationTest {
         Long id=temp("unacknowledged"); var claim=jobs.claimPending(10);
         recovery.run(new DefaultApplicationArguments());
         assertThat(jobs.find(claim.jobId()).getErrorCode().name()).isEqualTo("OPENAI_BATCH_SUBMISSION_UNKNOWN");
-        assertThat(state(id)).isEqualTo("FAILED"); assertThat(jobs.claimRetries(10)).isNull();
+        assertThat(state(id)).isEqualTo("FAILED"); assertThat(jobs.claimPending(10)).isNull();
         assertThat(jobs.items(claim.jobId())).hasSize(1);
     }
     @Test void acceptedRemoteBatchWithFailedLocalReceiptWriteDoesNotResubmit() {
@@ -166,7 +295,7 @@ class CollectionRecoveryIntegrationTest {
         assertThatThrownBy(()->service.submitPending(10)).isInstanceOf(RuntimeException.class);
         assertThat(state(id)).isEqualTo("FAILED");
         assertThat(jdbc.queryForObject("SELECT error_code FROM place_collection_temp WHERE id=?",String.class,id)).isEqualTo("OPENAI_BATCH_SUBMISSION_UNKNOWN");
-        assertThat(jobs.claimRetries(10)).isNull();
+        assertThat(jobs.claimPending(10)).isNull();
         verify(client,times(1)).submit(anyString(),anyString());
     }
 

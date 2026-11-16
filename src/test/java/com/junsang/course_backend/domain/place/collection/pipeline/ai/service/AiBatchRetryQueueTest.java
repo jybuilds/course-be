@@ -42,18 +42,17 @@ class AiBatchRetryQueueTest {
                 PlaceCollectionTempStatus.FAILED,
                 List.of(PlaceRefinementErrorCode.OPENAI_BATCH_TEMPORARY_FAILURE),
                 now,
-                true,
                 PageRequest.of(0, 100)
         );
 
         assertThat(targets).extracting(PlaceCollectionTemp::getProviderPlaceId)
-                .containsExactly("retry-short", "retry-long");
+                .containsExactly("retry-short", "retry-long", "retry-pending");
         Long jobId = jdbc.queryForObject(
-                "INSERT INTO openai_batch_tagging_jobs (status, requested_count) VALUES ('SUBMITTING', 2) RETURNING id",
+                "INSERT INTO openai_batch_tagging_jobs (status, requested_count) VALUES ('SUBMITTING', 3) RETURNING id",
                 Long.class
         );
         targets.forEach(temp -> temp.startAiBatchTagging(jobId));
-        assertThat(targets).extracting(PlaceCollectionTemp::getAiRetryCount).containsExactly(3, 3);
+        assertThat(targets).extracting(PlaceCollectionTemp::getAiRetryCount).containsExactly(3, 3, 0);
     }
 
     private void insert(String providerId, String status, String errorCode, int retryCount, LocalDateTime lastAttempt) {

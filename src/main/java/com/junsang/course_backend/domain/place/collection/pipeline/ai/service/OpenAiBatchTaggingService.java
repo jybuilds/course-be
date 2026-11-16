@@ -43,26 +43,9 @@ public class OpenAiBatchTaggingService {
     private final AiBatchResultWriter resultWriter;
     private final AiTaggingErrorHandler errorHandler;
 
-    // AI 태깅 대기 Place를 OpenAI Batch API에 제출하고 로컬 Job ID를 반환한다.
-    public Long submitRetries() {
-       return submit(batchJobWriter.claimRetries(MAX_SUBMIT_SIZE));
-    }
-
     public Long submitPending(int limit) {
         validateLimit(limit);
         return submit(batchJobWriter.claimPending(limit));
-    }
-
-    // 완료된 Temp를 기존 네이버·블로그 근거로 다시 AI 태깅한다.
-    public Long submitCompletedForRetagging(int limit) {
-        validateLimit(limit);
-        return submit(batchJobWriter.claimCompleted(limit));
-    }
-
-    // 지정한 Area의 AI 태깅 대기 Place만 OpenAI Batch API에 제출한다.
-    public Long submitPendingByArea(Long areaId, int limit) {
-        validateLimit(limit);
-        return submit(batchJobWriter.claimPendingByArea(areaId, limit));
     }
 
     // 선별된 AI 태깅 대기 Place를 하나의 OpenAI Batch Job으로 제출한다.

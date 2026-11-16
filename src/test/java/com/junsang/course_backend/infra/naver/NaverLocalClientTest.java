@@ -25,8 +25,11 @@ class NaverLocalClientTest {
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         NaverLocalClient client = new NaverLocalClient(
                 builder,
-                new NaverSearchProperties(URI.create("https://naverapihub.apigw.ntruss.com"), "client-id", "client-secret"),
-                new ObjectMapper()
+                new NaverSearchProperties(URI.create("https://naverapihub.apigw.ntruss.com"), java.util.List.of(new com.junsang.course_backend.domain.place.collection.budget.ApiCredential("main", "client-id", "client-secret"))),
+                new ObjectMapper(),
+                new com.junsang.course_backend.domain.place.collection.budget.CollectionBudgetService(
+                    org.mockito.Mockito.mock(com.junsang.course_backend.domain.place.collection.budget.CollectionBudgetWriter.class),
+                    java.time.Clock.systemUTC(), new ObjectMapper())
         );
         server.expect(requestTo("https://naverapihub.apigw.ntruss.com/search/v1/local?query=%EC%84%B1%EC%8B%AC%EB%8B%B9%20%EB%8C%80%EC%A0%84&display=5&start=1&sort=random&format=json"))
                 .andExpect(method(HttpMethod.GET))

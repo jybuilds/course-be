@@ -1,11 +1,13 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.naver.service;
 
+import com.junsang.course_backend.domain.place.collection.budget.CollectionDeferredException;
+import com.junsang.course_backend.domain.place.collection.pipeline.support.error.CollectionErrorPolicy;
+
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionStep;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTempStatus;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceRefinementErrorCode;
 import com.junsang.course_backend.domain.place.collection.entity.NaverBlogCollectionStatus;
-import com.junsang.course_backend.domain.place.collection.pipeline.naver.dto.PlaceRefinementBatchResponse;
 import com.junsang.course_backend.domain.place.collection.pipeline.naver.dto.PlaceRefinementResponse;
 import com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCategoryRule;
 import com.junsang.course_backend.domain.place.collection.pipeline.kakao.service.PlaceTypeClassifier;
@@ -79,6 +81,9 @@ public class PlaceRefinementService {
                     blogEvidence.errorCode(),
                     blogEvidence.errorMessage()
             );
+        } catch (CollectionDeferredException waiting) {
+            writer.defer(tempId, LocalDateTime.ofInstant(waiting.retryAt(), java.time.ZoneId.systemDefault()));
+            throw waiting;
         } catch (PossibleRelocationException exception) {
             temp = recordPossibleRelocation(tempId, exception.candidate());
         } catch (RuntimeException exception) {
@@ -87,45 +92,27 @@ public class PlaceRefinementService {
         return PlaceRefinementResponse.from(temp);
     }
 
-    // 대기 중인 네이버 정제 대상을 ID 순서대로 제한 개수만 처리한다.
-    public PlaceRefinementBatchResponse refinePending(int limit) {
-        return refinePendingByArea(null, limit);
-    }
-
-    // 지정한 Area의 네이버 정제 대기 데이터만 제한 개수까지 처리한다.
-    public PlaceRefinementBatchResponse refinePendingByArea(Long areaId, int limit) {
+    // 신규 대기·예약된 재시도를 같은 경로로 처리한다.
+    public void refinePending(int limit) {
         if (limit < 1 || limit > MAX_BATCH_SIZE) {
             throw new IllegalArgumentException("정제 개수는 1 이상 1000 이하여야 합니다.");
         }
         List<PlaceCollectionTemp> targets = tempRepository.findNaverTargets(
-                areaId,
                 PlaceCollectionStep.NAVER_ENRICHMENT,
                 PlaceCollectionTempStatus.PENDING,
                 PlaceCollectionTempStatus.FAILED,
-                new java.util.ArrayList<>(com.junsang.course_backend.domain.place.collection.pipeline.support.error.CollectionErrorPolicy.NAVER_RETRYABLE),
+                new java.util.ArrayList<>(CollectionErrorPolicy.NAVER_RETRYABLE),
                 LocalDateTime.now(),
                 PageRequest.of(0, limit)
         );
         List<PlaceCategoryRule> rules = placeTypeClassifier.findActiveRules();
-        int successCount = 0;
         for (PlaceCollectionTemp target : targets) {
-            if (refine(target.getId(), rules).success()) {
-                successCount++;
+            try {
+                refine(target.getId(), rules);
+            } catch (CollectionDeferredException waiting) {
+                break;
             }
         }
-        return new PlaceRefinementBatchResponse(
-                limit,
-                targets.size(),
-                successCount,
-                targets.size() - successCount
-        );
-    }
-
-    // 새 수집 일정을 대신하지 않고, 중단 복구 및 재시도 예약된 장소만 처리한다.
-    public void refineRecoverable(int limit) {
-        List<PlaceCategoryRule> rules = placeTypeClassifier.findActiveRules();
-        for (PlaceCollectionTemp temp : tempRepository.findNaverRecoveryTargets(LocalDateTime.now(), PageRequest.of(0, limit)))
-            refine(temp.getId(), rules);
     }
 
     // 장소명에 지번주소의 동명을 보완해 검색하고, 실패하면 전체 주소로 한 번 더 검색한다.
@@ -216,13 +203,6 @@ public class PlaceRefinementService {
         return temp.getProcessingStep() == PlaceCollectionStep.NAVER_ENRICHMENT
                 && (temp.getStatus() == PlaceCollectionTempStatus.PENDING
                 || temp.getStatus() == PlaceCollectionTempStatus.FAILED);
-    }
-
-    // 비어 있는 예외 메시지 대신 예외 이름을 기록한다.
-    private String messageOf(RuntimeException exception) {
-        return exception.getMessage() == null
-                ? exception.getClass().getSimpleName()
-                : exception.getMessage();
     }
 
     private static class PossibleRelocationException extends RuntimeException {

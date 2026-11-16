@@ -38,16 +38,25 @@ management:
 kakao:
   local:
     base-url: https://dapi.kakao.com
-    rest-api-key: ${KAKAO_REST_API_KEY:}
+    credentials:
+      - id: main
+        key: ${KAKAO_REST_API_KEY:}
+      - id: team
+        key: ${KAKAO_TEAM_REST_API_KEY:}
 
 naver:
   search:
     base-url: https://naverapihub.apigw.ntruss.com
-    client-id: ${NAVER_SEARCH_CLIENT_ID:}
-    client-secret: ${NAVER_SEARCH_API_KEY:}
+    credentials:
+      - id: main
+        key-id: ${NAVER_SEARCH_CLIENT_ID:}
+        key: ${NAVER_SEARCH_API_KEY:}
+      - id: team
+        key-id: ${NAVER_TEAM_SEARCH_CLIENT_ID:}
+        key: ${NAVER_TEAM_SEARCH_API_KEY:}
 
 ai:
-  provider: ${AI_PROVIDER:OPENAI}
+  provider: ${AI_PROVIDER:OMNIROUTE}
   openai:
     base-url: ${OPENAI_BASE_URL:https://api.openai.com}
     api-key: ${OPENAI_API_KEY:}
@@ -57,4 +66,28 @@ ai:
   omniroute:
     base-url: ${OMNIROUTE_BASE_URL:http://localhost:20128}
     api-key: ${OMNIROUTE_API_KEY:}
-    model: ${OMNIROUTE_MODEL:cx/gpt-6-luna}
+    model: ${OMNIROUTE_MODEL:codex/gpt-6-luna}
+place-collection:
+  recovery:
+    single-instance: ${PLACE_COLLECTION_RECOVERY_SINGLE_INSTANCE:true}
+  scheduling:
+    enabled: ${PLACE_COLLECTION_SCHEDULING_ENABLED:false}
+    policy: INIT
+    city-code: SEOUL
+    zone: Asia/Seoul
+    start-at: "03:00"
+    kakao:
+      interval-millis: 60000
+      batch-size: 100
+    naver:
+      interval-millis: 60000
+      batch-size: 100
+    ai-submission:
+      interval-millis: 60000
+      batch-size: 1000
+    ai-result:
+      interval-millis: 60000
+      batch-size: 5
+    max-active-batches: 2
+    max-naver-backlog: 10000
+    max-ai-backlog: 5000

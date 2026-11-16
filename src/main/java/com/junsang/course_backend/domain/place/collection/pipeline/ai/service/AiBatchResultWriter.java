@@ -1,35 +1,274 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.ai.service;
 
 import com.junsang.course_backend.domain.place.collection.pipeline.ai.dto.AiTaggingResultBatch.AiTaggingResult;
-import com.junsang.course_backend.domain.place.collection.pipeline.ai.service.AiTaggingWriter;
+import com.junsang.course_backend.domain.place.collection.pipeline.ai.dto.AiTaggingResultBatch.PriorityScores;
+import com.junsang.course_backend.domain.place.collection.pipeline.ai.dto.AiTaggingResultBatch.TagWeight;
+import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
 import com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCategoryRule;
+import com.junsang.course_backend.domain.place.collection.pipeline.kakao.service.PlaceTypeClassifier;
+import com.junsang.course_backend.domain.place.collection.pipeline.naver.service.NaverSearchUrlCreator;
 import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
+import com.junsang.course_backend.domain.place.entity.Place;
+import com.junsang.course_backend.domain.place.entity.PlaceTag;
+import com.junsang.course_backend.domain.place.entity.PlaceType;
 import com.junsang.course_backend.domain.place.entity.Tag;
-import java.util.*;
+import com.junsang.course_backend.domain.place.repository.PlaceRepository;
+import com.junsang.course_backend.domain.place.repository.PlaceTagRepository;
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 장소 저장과 반영 완료 기록을 같은 트랜잭션에 넣어 재수집을 안전하게 한다. */
+/// 검증된 AI 결과를 Place와 PlaceTag로 원자적으로 저장한다.
 @Service
 @RequiredArgsConstructor
 public class AiBatchResultWriter {
-    private final JdbcTemplate jdbc;
-    private final PlaceCollectionTempRepository temps;
-    private final AiTaggingWriter writer;
 
+    private final PlaceCollectionTempRepository tempRepository;
+    private final PlaceRepository placeRepository;
+    private final PlaceTagRepository placeTagRepository;
+    private final NaverSearchUrlCreator naverSearchUrlCreator;
+    private final PlaceTypeClassifier placeTypeClassifier;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    // 처리권·요청 항목 확인부터 Place·태그·완료 기록까지 같은 트랜잭션이다.
     @Transactional
-    public void complete(Long jobId, String token, AiTaggingResult result, Map<String, Tag> tags, List<PlaceCategoryRule> rules) {
-        String owner = jdbc.queryForObject("SELECT collect_token FROM openai_batch_tagging_jobs WHERE id=? FOR UPDATE", String.class, jobId);
+    public void complete(
+            Long jobId,
+            String token,
+            AiTaggingResult result,
+            Map<String, Tag> activeTags,
+            List<PlaceCategoryRule> rules
+    ) {
+        String owner = jdbc.queryForObject(
+                "SELECT collect_token FROM openai_batch_tagging_jobs WHERE id=? FOR UPDATE", String.class, jobId);
         if (!token.equals(owner)) throw new OpenAiBatchJobWriter.CollectionLeaseLostException();
-        String state = jdbc.queryForObject("SELECT status FROM ai_batch_tagging_items WHERE job_id=? AND temp_id=? FOR UPDATE",
+
+        String state = jdbc.queryForObject(
+                "SELECT status FROM ai_batch_tagging_items WHERE job_id=? AND temp_id=? FOR UPDATE",
                 String.class, jobId, result.tempId());
         if (!"PENDING".equals(state)) return;
-        var temp = temps.findByIdForUpdate(result.tempId()).orElseThrow();
+
+        PlaceCollectionTemp temp = findTemp(result.tempId());
         if (!jobId.equals(temp.getAiBatchJobId())) throw new IllegalStateException("Temp의 현재 Batch가 변경됨");
-        writer.complete(result.tempId(), result, tags, rules);
+
+        Optional<PlaceCategoryRule> matchedRule = findMatchingRule(temp, rules);
+        // 직접 매칭된 운영 규칙은 모델 응답보다 우선해 최종 Type을 일관되게 보장한다.
+        PlaceType placeType = temp.applyAiPlaceType(
+                matchedRule.map(PlaceCategoryRule::getTargetPlaceType)
+                        .orElse(result.placeType())
+        );
+
+        // AI 결과의 태그 수·중복·활성 여부·가중치를 저장 전에 검증한다.
+        List<PlaceTagValue> tagValues = validateTags(result.tags(), activeTags, matchedRule);
+
+        // 같은 공급자 장소는 새 행을 만들지 않고 네이버 보강 정보로 갱신한다.
+        applyFoodTags(placeType, tagValues, activeTags);
+        if (tagValues.isEmpty()) {
+            throw new IllegalArgumentException("장소 유형에 맞는 AI 태그가 없습니다.");
+        }
+
+        Place place = placeRepository.findByProviderAndProviderPlaceId(
+                        temp.getProvider(),
+                        temp.getProviderPlaceId()
+                )
+                .map(existing -> refresh(existing, temp, placeType))
+                .orElseGet(() -> create(temp, placeType));
+        if (placeType != PlaceType.MEAL) {
+            place.updateKeywords(List.of());
+        } else if (result.keywords() != null) {
+            place.updateKeywords(result.keywords().stream()
+                    .filter(Objects::nonNull)
+                    .map(String::strip)
+                    .filter(keyword -> !keyword.isEmpty()
+                            && keyword.length() <= AiTaggingPolicy.MAX_KEYWORD_LENGTH
+                            && keyword.lines().count() == 1)
+                    .distinct()
+                    .toList());
+        }
+        place.updateNeedsReview(isReviewCandidate(placeType, tagValues));
+        var scores = result.priorityScores();
+        if (scores != null) {
+            place.updatePriorityScores(
+                    (short) (scores.experience() + PriorityScores.BASE_SCORE),
+                    (short) (scores.distinctiveness() + PriorityScores.BASE_SCORE)
+            );
+        }
+        placeRepository.save(place);
+
+        // 재태깅 시 과거 태그를 남기지 않고 이번 AI 결과로 완전히 교체한다.
+        placeTagRepository.deleteAllInBatch(placeTagRepository.findByPlaceId(place.getId()));
+        placeTagRepository.saveAll(tagValues.stream()
+                .map(value -> PlaceTag.create(place, value.tag(), value.weight()))
+                .toList());
+
+        // Place와 태그 저장이 끝난 뒤에만 Temp를 완료 상태로 변경한다.
+        temp.completeAiTagging();
+        tempRepository.save(temp);
         jdbc.update("UPDATE ai_batch_tagging_items SET status='COMPLETED', updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND temp_id=?",
                 jobId, result.tempId());
+    }
+
+    // 활성 태그와 공통 태깅 정책을 검증한다.
+    private List<PlaceTagValue> validateTags(
+            List<TagWeight> results,
+            Map<String, Tag> activeTags,
+            Optional<PlaceCategoryRule> matchedRule
+    ) {
+        if (results == null
+                || results.size() < AiTaggingPolicy.MIN_TAG_COUNT
+                || results.size() > AiTaggingPolicy.MAX_TAG_COUNT) {
+            throw new IllegalArgumentException("AI 태그 개수가 올바르지 않습니다.");
+        }
+        Set<String> seenCodes = new HashSet<>();
+        List<PlaceTagValue> values = new ArrayList<>(results.stream()
+                .map(result -> {
+                    // 동일 태그가 여러 번 오면 가중치 의미가 모호하므로 거부한다.
+                    if (result.code() == null || !seenCodes.add(result.code())) {
+                        throw new IllegalArgumentException("AI 태그 코드가 비어 있거나 중복됐습니다.");
+                    }
+                    Tag tag = activeTags.get(result.code());
+                    if (tag == null) {
+                        throw new IllegalArgumentException("등록되지 않은 AI 태그입니다: " + result.code());
+                    }
+                    if (result.weight() == null
+                            || result.weight() < 0
+                            || result.weight() > AiTaggingPolicy.MAX_TAG_WEIGHT) {
+                        throw new IllegalArgumentException("AI 태그 가중치가 올바르지 않습니다.");
+                    }
+                    return new PlaceTagValue(tag, result.weight());
+                })
+                .toList());
+        // 규칙 키워드와 같은 활성 태그가 있으면 AI 누락과 무관하게 직접 매칭 근거를 보존한다.
+        matchedRule.map(PlaceCategoryRule::getKeyword)
+                .flatMap(keyword -> activeTags.values().stream()
+                        .filter(tag -> tag.getDisplayName().equalsIgnoreCase(keyword))
+                        .findFirst())
+                .filter(tag -> seenCodes.add(tag.getCode()))
+                .ifPresent(tag -> addMandatoryRuleTag(values, tag));
+        return values;
+    }
+
+    private void applyFoodTags(PlaceType placeType, List<PlaceTagValue> values, Map<String, Tag> activeTags) {
+        boolean hasCuisine = values.stream().anyMatch(value -> AiTaggingPolicy.CUISINE_TAGS.contains(value.tag().getCode()));
+        // 타입과 충돌하는 음식 태그도 검토 근거로 저장하고, MEAL의 중복 음식 분류만 정리한다.
+        if (placeType == PlaceType.MEAL && hasCuisine) {
+            values.removeIf(value -> AiTaggingPolicy.RESTAURANT_TAG.equals(value.tag().getCode()));
+        }
+        if (placeType == PlaceType.MEAL && !hasCuisine
+                && values.stream().noneMatch(value -> AiTaggingPolicy.RESTAURANT_TAG.equals(value.tag().getCode()))) {
+            Tag fallback = activeTags.get(AiTaggingPolicy.RESTAURANT_TAG);
+            if (fallback != null) {
+                addMandatoryRuleTag(values, fallback);
+            }
+        }
+    }
+
+    // AI가 최대 개수를 채운 경우에는 가장 약한 AI 태그를 빼고 직접 매칭된 규칙 태그를 보존한다.
+    private void addMandatoryRuleTag(List<PlaceTagValue> values, Tag tag) {
+        if (values.size() == AiTaggingPolicy.MAX_TAG_COUNT) {
+            values.stream()
+                    .min(Comparator.comparingInt(PlaceTagValue::weight))
+                    .ifPresent(values::remove);
+        }
+        values.add(new PlaceTagValue(tag, AiTaggingPolicy.MAX_TAG_WEIGHT));
+    }
+
+    // 장소명과 카테고리에서 일치하는 최상위 규칙을 찾는다.
+    private Optional<PlaceCategoryRule> findMatchingRule(
+            PlaceCollectionTemp temp,
+            List<PlaceCategoryRule> rules
+    ) {
+        return placeTypeClassifier.findMatchingRule(
+                temp.getName(),
+                temp.getNaverTitle(),
+                temp.getKakaoCategoryName(),
+                temp.getNaverCategoryName(),
+                rules
+        );
+    }
+
+    // 기존 Place를 네이버 우선 정보와 AI 분류 결과로 갱신한다.
+    private Place refresh(Place place, PlaceCollectionTemp temp, PlaceType placeType) {
+        // 사용자 노출 정보는 네이버 값을 우선하고, 누락된 값만 카카오 원본으로 보완한다.
+        place.refresh(
+                temp.getArea(),
+                placeType,
+                firstNonBlank(temp.getNaverTitle(), temp.getName()),
+                firstNonBlank(temp.getNaverAddressName(), temp.getAddressName()),
+                firstNonBlank(temp.getNaverRoadAddressName(), temp.getRoadAddressName()),
+                firstNonBlank(temp.getNaverCategoryName(), temp.getKakaoCategoryName()),
+                temp.getKakaoCategoryGroupCode(),
+                temp.getLatitude(),
+                temp.getLongitude(),
+                temp.getKakaoPlaceUrl(),
+                createNaverSearchUrl(temp),
+                temp.getPhone()
+        );
+        return place;
+    }
+
+    // Temp와 AI 결과로 최종 Place를 생성한다.
+    private Place create(PlaceCollectionTemp temp, PlaceType placeType) {
+        // 신규 Place도 기존 Place 갱신과 동일한 네이버 우선 정책으로 생성한다.
+        return Place.create(
+                temp.getProvider(),
+                temp.getProviderPlaceId(),
+                temp.getArea(),
+                placeType,
+                firstNonBlank(temp.getNaverTitle(), temp.getName()),
+                firstNonBlank(temp.getNaverAddressName(), temp.getAddressName()),
+                firstNonBlank(temp.getNaverRoadAddressName(), temp.getRoadAddressName()),
+                firstNonBlank(temp.getNaverCategoryName(), temp.getKakaoCategoryName()),
+                temp.getKakaoCategoryGroupCode(),
+                temp.getLatitude(),
+                temp.getLongitude(),
+                temp.getKakaoPlaceUrl(),
+                createNaverSearchUrl(temp),
+                temp.getPhone(),
+                false,
+                null,
+                null
+        );
+    }
+
+    private boolean isReviewCandidate(PlaceType placeType, List<PlaceTagValue> tags) {
+        Set<String> codes = tags.stream().map(value -> value.tag().getCode()).collect(Collectors.toSet());
+        return switch (placeType) {
+            case CAFE -> codes.stream().anyMatch(Set.of(
+                    "MARKET", "BOARD_GAME", "ESCAPE_ROOM", "KOREAN_FOOD",
+                    "JAPANESE_FOOD", "WESTERN_FOOD", "ASIAN_FOOD")::contains);
+            case MEAL -> codes.stream().anyMatch(Set.of("CAFE", "BOARD_GAME", "ESCAPE_ROOM")::contains);
+            case ACTIVITY -> codes.stream().anyMatch(Set.of(
+                    "CAFE", "KOREAN_FOOD", "JAPANESE_FOOD", "WESTERN_FOOD",
+                    "ASIAN_FOOD", "RESTAURANT")::contains);
+        };
+    }
+
+    // 첫 번째 값이 비어 있으면 카카오 원본 값을 사용한다.
+    private String firstNonBlank(String preferred, String fallback) {
+        return preferred == null || preferred.isBlank() ? fallback : preferred;
+    }
+
+    // 기존 Temp 데이터도 최종 Place 저장 시 최신 형식의 네이버 검색 링크로 보정한다.
+    private String createNaverSearchUrl(PlaceCollectionTemp temp) {
+        return naverSearchUrlCreator.create(temp.getName(), temp.getAddressName());
+    }
+
+    // Temp를 조회하고 없으면 입력 오류로 처리한다.
+    private PlaceCollectionTemp findTemp(Long tempId) {
+        return tempRepository.findByIdForUpdate(tempId)
+                .orElseThrow(() -> new IllegalArgumentException("AI 태깅할 임시 장소를 찾을 수 없습니다: " + tempId));
+    }
+
+    private record PlaceTagValue(Tag tag, int weight) {
     }
 }

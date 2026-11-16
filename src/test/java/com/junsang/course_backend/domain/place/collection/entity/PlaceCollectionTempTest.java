@@ -39,6 +39,56 @@ class PlaceCollectionTempTest {
     }
 
     @Test
+    void refreshKakaoUpdatesFallbackTypeBeforeNaverRefinement() {
+        PlaceCollectionTemp temp = createTemp();
+
+        refreshKakao(temp, PlaceType.MEAL, "updated-source");
+
+        assertThat(temp.getDefaultPlaceType()).isEqualTo(PlaceType.MEAL);
+        assertThat(temp.getName()).isEqualTo("updated-source");
+    }
+
+    @Test
+    void refreshKakaoPreservesRefinedTypeAfterNaverRefinement() {
+        PlaceCollectionTemp temp = createTemp();
+        temp.startProcessing();
+        temp.completeNaverEnrichment(
+                PlaceType.CAFE,
+                "성심당 본점",
+                "https://example.com",
+                "카페,디저트>베이커리",
+                "대전광역시 중구 은행동 145",
+                "대전광역시 중구 대종로480번길 15",
+                "",
+                NaverBlogCollectionStatus.EMPTY,
+                null,
+                null
+        );
+        temp.applyAiPlaceType(PlaceType.ACTIVITY);
+
+        refreshKakao(temp, PlaceType.MEAL, "updated-source");
+
+        assertThat(temp.getDefaultPlaceType()).isEqualTo(PlaceType.ACTIVITY);
+        assertThat(temp.getName()).isEqualTo("updated-source");
+    }
+
+    private void refreshKakao(PlaceCollectionTemp temp, PlaceType placeType, String name) {
+        temp.refreshKakao(
+                Mockito.mock(Area.class),
+                placeType,
+                name,
+                "서울특별시 성동구 성수동1가 1",
+                "서울특별시 성동구 성수일로 1",
+                "음식점 > 카페",
+                "CE7",
+                new BigDecimal("37.5400000"),
+                new BigDecimal("127.0400000"),
+                "https://place.map.kakao.com/1",
+                "02-000-0000"
+        );
+    }
+
+    @Test
     void recordsFailureAndReturnsToPendingForRetry() {
         PlaceCollectionTemp temp = createTemp();
         temp.startProcessing();
@@ -75,30 +125,6 @@ class PlaceCollectionTempTest {
         assertThat(temp.getProcessingStep()).isEqualTo(PlaceCollectionStep.AI_TAGGING);
         assertThat(temp.getStatus()).isEqualTo(PlaceCollectionTempStatus.COMPLETED);
         assertThat(temp.getAttemptCount()).isEqualTo(2);
-    }
-
-    @Test
-    void restartsCompletedAiTaggingForRetagging() {
-        PlaceCollectionTemp temp = createTemp();
-        temp.startProcessing();
-        temp.completeNaverEnrichment(
-                PlaceType.CAFE,
-                "성심당 본점",
-                "https://example.com",
-                "카페,디저트>베이커리",
-                "대전광역시 중구 은행동 145",
-                "대전광역시 중구 대종로480번길 15",
-                "",
-                NaverBlogCollectionStatus.EMPTY,
-                null
-        );
-        temp.startAiTagging();
-        temp.completeAiTagging();
-
-        temp.restartAiBatchTagging(1L);
-
-        assertThat(temp.getStatus()).isEqualTo(PlaceCollectionTempStatus.PROCESSING);
-        assertThat(temp.getAiBatchJobId()).isEqualTo(1L);
     }
 
     @Test

@@ -1,5 +1,8 @@
 package com.junsang.course_backend.infra.naver;
 
+import com.junsang.course_backend.domain.place.collection.budget.ApiScope;
+import com.junsang.course_backend.domain.place.collection.budget.CollectionBudgetService;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junsang.course_backend.global.exception.BusinessException;
@@ -22,11 +25,13 @@ public class NaverBlogClient {
     private final NaverSearchProperties properties;
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
+    private final CollectionBudgetService budget;
 
     public NaverBlogClient(
             NaverSearchProperties properties,
             RestClient.Builder restClientBuilder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, CollectionBudgetService budget) {
+        this.budget = budget;
         this.properties = properties;
         this.restClient = restClientBuilder
                 .baseUrl(properties.baseUrl().toString())
@@ -44,7 +49,7 @@ public class NaverBlogClient {
         }
 
         try {
-            String body = restClient.get()
+            String body = budget.execute(ApiScope.NAVER_SEARCH, properties.credentials(), credential -> restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/search/v1/blog")
                             .queryParam("query", query)
@@ -53,10 +58,10 @@ public class NaverBlogClient {
                             .queryParam("sort", "sim")
                             .queryParam("format", "json")
                             .build())
-                    .header(API_KEY_ID_HEADER, properties.clientId())
-                    .header(API_KEY_HEADER, properties.clientSecret())
+                    .header(API_KEY_ID_HEADER, credential.keyId())
+                    .header(API_KEY_HEADER, credential.key())
                     .retrieve()
-                    .body(String.class);
+                    .body(String.class));
 
             if (body == null || body.isBlank()) {
                 throw new BusinessException(ErrorCode.NAVER_BLOG_API_EMPTY_RESPONSE);
@@ -64,7 +69,7 @@ public class NaverBlogClient {
 
             return objectMapper.readValue(body, NaverBlogSearchResponse.class);
         } catch (RestClientException | JsonProcessingException exception) {
-            log.warn("Naver API Hub blog search failed: {}", exception.getMessage());
+            log.warn("Naver API Hub blog search failed: {}", exception.getClass().getSimpleName());
             throw new BusinessException(ErrorCode.NAVER_BLOG_API_REQUEST_FAILED, exception);
         }
     }

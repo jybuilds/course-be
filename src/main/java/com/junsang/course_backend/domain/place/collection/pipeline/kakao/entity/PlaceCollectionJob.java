@@ -220,7 +220,16 @@ public class PlaceCollectionJob {
         completedAt = LocalDateTime.now();
     }
 
-    public void scheduleRetry(LocalDateTime nextRetryAt) { this.nextRetryAt = nextRetryAt; }
+    public void defer(LocalDateTime retryAt) {
+        if (status != CollectionJobStatus.RUNNING) return;
+        status = CollectionJobStatus.READY;
+        attemptCount = Math.max(0, attemptCount - 1);
+        nextRetryAt = retryAt;
+    }
+
+    public void scheduleRetry(LocalDateTime nextRetryAt) {
+        this.nextRetryAt = nextRetryAt;
+    }
 
     // API 오류 또는 최소 rect 포화 원인을 남기고 실패 상태로 전환한다.
     public void fail(PlaceRefinementErrorCode errorCode, String message) {

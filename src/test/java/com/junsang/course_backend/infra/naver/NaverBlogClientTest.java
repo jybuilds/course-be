@@ -24,9 +24,12 @@ class NaverBlogClientTest {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         NaverBlogClient client = new NaverBlogClient(
-                new NaverSearchProperties(URI.create("https://naverapihub.apigw.ntruss.com"), "client-id", "client-secret"),
+                new NaverSearchProperties(URI.create("https://naverapihub.apigw.ntruss.com"), java.util.List.of(new com.junsang.course_backend.domain.place.collection.budget.ApiCredential("main", "client-id", "client-secret"))),
                 builder,
-                new ObjectMapper()
+                new ObjectMapper(),
+                new com.junsang.course_backend.domain.place.collection.budget.CollectionBudgetService(
+                    org.mockito.Mockito.mock(com.junsang.course_backend.domain.place.collection.budget.CollectionBudgetWriter.class),
+                    java.time.Clock.systemUTC(), new ObjectMapper())
         );
         server.expect(requestTo("https://naverapihub.apigw.ntruss.com/search/v1/blog?query=%EC%84%B1%EC%8B%AC%EB%8B%B9%20%EB%8C%80%EC%A0%84&display=20&start=1&sort=sim&format=json"))
                 .andExpect(method(HttpMethod.GET))

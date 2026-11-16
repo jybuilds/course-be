@@ -53,9 +53,6 @@ class KakaoAreaCollectionServiceTest {
         var pageWriter = new KakaoPlaceWriter(mock(org.springframework.jdbc.core.JdbcTemplate.class),
                 areaRepository, tempRepository, areaResolver, classifier);
         KakaoAreaCollectionService service = new KakaoAreaCollectionService(
-                cityRepository,
-                areaRepository,
-                profileRepository,
                 jobRepository,
                 kakaoLocalClient,
                 classifier,
@@ -88,7 +85,7 @@ class KakaoAreaCollectionServiceTest {
         when(tempRepository.findByProviderAndProviderPlaceIdIn(any(), any())).thenReturn(List.of());
         var root = com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCollectionJob.initial(area, profile);
         org.springframework.test.util.ReflectionTestUtils.setField(root, "id", 1L);
-        when(jobWriter.initialize(any(), any())).thenReturn(List.of(root));
+        when(jobRepository.findRunnable(any(), any())).thenReturn(List.of(root));
         when(jobWriter.tryStart(1L)).thenAnswer(invocation -> { root.start(); return root; });
         KakaoKeywordSearchResponse first = new KakaoKeywordSearchResponse(
                 new KakaoSearchMeta(saturated ? 46 : 1, saturated ? 45 : 1, !saturated),
@@ -112,7 +109,7 @@ class KakaoAreaCollectionServiceTest {
                 new KakaoKeywordSearchResponse(new KakaoSearchMeta(46, 45, true), first.documents())
         );
 
-        service.collectArea(4L);
+        service.resumePendingJobs(100, () -> true);
 
         verify(kakaoLocalClient, times(saturated ? 2 : 1)).searchCategory(any());
         verify(tempRepository, times(saturated ? 2 : 1)).saveAll(any());

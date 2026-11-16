@@ -36,7 +36,7 @@ public class NaverRefinementWriter {
                 && temp.getStatus() != PlaceCollectionTempStatus.FAILED)) {
             return false;
         }
-        if (temp.getStatus() == PlaceCollectionTempStatus.FAILED && temp.getNextRetryAt() != null
+        if (temp.getNextRetryAt() != null
                 && temp.getNextRetryAt().isAfter(LocalDateTime.now())) return false;
         temp.startProcessing();
         return true;
@@ -104,6 +104,11 @@ public class NaverRefinementWriter {
         temp.fail(failure.code(), failure.message());
         temp.scheduleRetry(CollectionErrorPolicy.nextRetry(failure, temp.getAttemptCount(), LocalDateTime.now()));
         return temp;
+    }
+
+    @Transactional
+    public void defer(Long tempId, LocalDateTime retryAt) {
+        findTemp(tempId).deferNaver(retryAt);
     }
 
     private PlaceCollectionTemp findTemp(Long tempId) {

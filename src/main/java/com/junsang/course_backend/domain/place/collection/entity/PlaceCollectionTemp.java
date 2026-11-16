@@ -195,7 +195,9 @@ public class PlaceCollectionTemp {
             String phone
     ) {
         this.area = area;
-        this.defaultPlaceType = defaultPlaceType;
+        if (processingStep == PlaceCollectionStep.NAVER_ENRICHMENT) {
+            this.defaultPlaceType = defaultPlaceType;
+        }
         this.name = name;
         this.addressName = addressName;
         this.roadAddressName = roadAddressName;
@@ -325,19 +327,6 @@ public class PlaceCollectionTemp {
         this.aiBatchJobId = aiBatchJobId;
     }
 
-    // 완료된 AI 태깅 결과를 새 정책으로 다시 생성할 수 있게 Batch 처리 상태로 되돌린다.
-    public void restartAiBatchTagging(Long aiBatchJobId) {
-        requireAiStep();
-        if (status != PlaceCollectionTempStatus.COMPLETED) {
-            throw new IllegalStateException("완료된 장소만 AI 태깅을 다시 시작할 수 있습니다.");
-        }
-        status = PlaceCollectionTempStatus.PROCESSING;
-        attemptCount++;
-        lastAttemptAt = LocalDateTime.now();
-        this.aiBatchJobId = aiBatchJobId;
-        clearError();
-    }
-
     // 최종 Place와 태그 저장이 끝난 데이터를 완료 처리한다.
     public void completeAiTagging() {
         requireAiStep();
@@ -372,6 +361,14 @@ public class PlaceCollectionTemp {
 
     public void scheduleRetry(LocalDateTime nextRetryAt) {
         this.nextRetryAt = nextRetryAt;
+    }
+
+    public void deferNaver(LocalDateTime retryAt) {
+        requireNaverStep();
+        if (status != PlaceCollectionTempStatus.PROCESSING) throw new IllegalStateException("처리 중인 정제만 대기할 수 있습니다.");
+        status = PlaceCollectionTempStatus.PENDING;
+        attemptCount = Math.max(0, attemptCount - 1);
+        nextRetryAt = retryAt;
     }
 
     // 실패한 현재 단계를 다시 대기 상태로 되돌린다.

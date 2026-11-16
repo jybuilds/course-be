@@ -1,0 +1,120 @@
+package com.junsang.course_backend.domain.place.collection.pipeline.kakao.service;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
+
+import com.junsang.course_backend.domain.place.entity.Area;
+import com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.CollectionSearchType;
+import com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCollectionProfile;
+import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
+import com.junsang.course_backend.domain.place.entity.PlaceProvider;
+import com.junsang.course_backend.domain.place.entity.PlaceType;
+import com.junsang.course_backend.domain.place.repository.AreaRepository;
+import com.junsang.course_backend.domain.place.repository.CityRepository;
+import com.junsang.course_backend.domain.place.collection.pipeline.kakao.repository.PlaceCollectionJobRepository;
+import com.junsang.course_backend.domain.place.collection.pipeline.kakao.repository.PlaceCollectionProfileRepository;
+import com.junsang.course_backend.domain.place.collection.pipeline.kakao.service.LegalDongAreaResolver;
+import com.junsang.course_backend.domain.place.collection.pipeline.kakao.service.PlaceTypeClassifier;
+import com.junsang.course_backend.domain.place.collection.repository.PlaceCollectionTempRepository;
+import com.junsang.course_backend.infra.kakao.KakaoLocalClient;
+import com.junsang.course_backend.infra.kakao.dto.response.KakaoKeywordSearchResponse;
+import com.junsang.course_backend.infra.kakao.dto.response.KakaoPlaceDocument;
+import com.junsang.course_backend.infra.kakao.dto.response.KakaoSearchMeta;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+
+class KakaoAreaCollectionServiceTest {
+
+    @Test
+    void storesCollectedKakaoPlaceInTemp() {
+        collectAndVerifyPages(false);
+    }
+
+    @Test
+    void storesLaterPagesInMinimumSaturatedCell() {
+        collectAndVerifyPages(true);
+    }
+
+    private void collectAndVerifyPages(boolean saturated) {
+        CityRepository cityRepository = mock(CityRepository.class);
+        AreaRepository areaRepository = mock(AreaRepository.class);
+        PlaceCollectionTempRepository tempRepository = mock(PlaceCollectionTempRepository.class);
+        PlaceCollectionProfileRepository profileRepository = mock(PlaceCollectionProfileRepository.class);
+        PlaceCollectionJobRepository jobRepository = mock(PlaceCollectionJobRepository.class);
+        KakaoLocalClient kakaoLocalClient = mock(KakaoLocalClient.class);
+        LegalDongAreaResolver areaResolver = mock(LegalDongAreaResolver.class);
+        PlaceTypeClassifier classifier = mock(PlaceTypeClassifier.class);
+        var jobWriter = mock(KakaoCollectionJobWriter.class);
+        var pageWriter = new KakaoPlaceWriter(mock(org.springframework.jdbc.core.JdbcTemplate.class),
+                areaRepository, tempRepository, areaResolver, classifier);
+        KakaoAreaCollectionService service = new KakaoAreaCollectionService(
+                cityRepository,
+                areaRepository,
+                profileRepository,
+                jobRepository,
+                kakaoLocalClient,
+                classifier,
+                pageWriter,
+                jobWriter,
+                mock(KakaoCollectionErrorHandler.class)
+        );
+        Area area = mock(Area.class);
+        PlaceCollectionProfile profile = mock(PlaceCollectionProfile.class);
+        when(areaRepository.findById(4L)).thenReturn(Optional.of(area));
+        when(areaRepository.findByCodeIn(any())).thenReturn(List.of(area));
+        when(area.getCollectionMinLatitude()).thenReturn(new BigDecimal("37.5568"));
+        when(area.getCollectionMaxLatitude()).thenReturn(new BigDecimal("37.5570"));
+        when(area.getCollectionMinLongitude()).thenReturn(new BigDecimal("126.9372"));
+        when(area.getCollectionMaxLongitude()).thenReturn(new BigDecimal("126.9375"));
+        when(area.getCode()).thenReturn("SEOUL_SINCHON_EWHA");
+        when(profileRepository.findByProviderAndIsActiveTrueOrderById(PlaceProvider.KAKAO))
+                .thenReturn(List.of(profile));
+        when(profile.getId()).thenReturn(1L);
+        when(profile.getCode()).thenReturn("CAFE");
+        when(profile.getSearchType()).thenReturn(CollectionSearchType.CATEGORY);
+        when(profile.getCategoryGroupCode()).thenReturn("CE7");
+        when(profile.getPlaceType()).thenReturn(PlaceType.CAFE);
+        when(jobRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(classifier.findActiveRules()).thenReturn(List.of());
+        when(classifier.classifyForCollection(any(), any(), any(), any()))
+                .thenReturn(PlaceType.CAFE);
+        when(areaResolver.resolveAreaCode("서울 서대문구 창천동 18-11"))
+                .thenReturn("SEOUL_SINCHON_EWHA");
+        when(tempRepository.findByProviderAndProviderPlaceIdIn(any(), any())).thenReturn(List.of());
+        var root = com.junsang.course_backend.domain.place.collection.pipeline.kakao.entity.PlaceCollectionJob.initial(area, profile);
+        org.springframework.test.util.ReflectionTestUtils.setField(root, "id", 1L);
+        when(jobWriter.initialize(any(), any())).thenReturn(List.of(root));
+        when(jobWriter.tryStart(1L)).thenAnswer(invocation -> { root.start(); return root; });
+        KakaoKeywordSearchResponse first = new KakaoKeywordSearchResponse(
+                new KakaoSearchMeta(saturated ? 46 : 1, saturated ? 45 : 1, !saturated),
+                List.of(new KakaoPlaceDocument(
+                        "27329834",
+                        "룸익스케이프 블랙점",
+                        "가정,생활 > 여가시설 > 방탈출카페",
+                        "서울 서대문구 창천동 18-11",
+                        "서울 서대문구 연세로4길 6",
+                        "010-2940-5680",
+                        "",
+                        "",
+                        new BigDecimal("126.9373596"),
+                        new BigDecimal("37.5569184"),
+                        "https://place.map.kakao.com/27329834",
+                        ""
+                ))
+        );
+        when(kakaoLocalClient.searchCategory(any())).thenReturn(
+                first,
+                new KakaoKeywordSearchResponse(new KakaoSearchMeta(46, 45, true), first.documents())
+        );
+
+        service.collectArea(4L);
+
+        verify(kakaoLocalClient, times(saturated ? 2 : 1)).searchCategory(any());
+        verify(tempRepository, times(saturated ? 2 : 1)).saveAll(any());
+    }
+}

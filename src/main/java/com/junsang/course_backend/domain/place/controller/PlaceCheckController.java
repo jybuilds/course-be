@@ -3,7 +3,7 @@ package com.junsang.course_backend.domain.place.controller;
 import com.junsang.course_backend.domain.place.entity.Place;
 import com.junsang.course_backend.domain.place.entity.PlaceTag;
 import com.junsang.course_backend.domain.place.entity.PlaceType;
-import com.junsang.course_backend.domain.place.collection.pipeline.common.naver.service.NaverSearchUrlCreator;
+import com.junsang.course_backend.domain.place.collection.pipeline.naver.service.NaverSearchUrlCreator;
 import com.junsang.course_backend.domain.place.repository.PlaceRepository;
 import com.junsang.course_backend.domain.place.repository.PlaceTagRepository;
 import com.junsang.course_backend.domain.place.service.PlaceNaverLinkRefreshService;

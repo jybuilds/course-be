@@ -5,8 +5,8 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junsang.course_backend.domain.place.collection.entity.PlaceCollectionTemp;
-import com.junsang.course_backend.domain.place.collection.pipeline.batch.ai.service.OpenAiBatchTaggingService;
-import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service.AiTaggingInputBuilder;
+import com.junsang.course_backend.domain.place.collection.pipeline.ai.service.OpenAiBatchTaggingService;
+import com.junsang.course_backend.domain.place.collection.pipeline.ai.service.AiTaggingInputBuilder;
 import com.junsang.course_backend.domain.place.entity.Tag;
 import com.junsang.course_backend.infra.openai.config.AiProviderProperties;
 import java.net.URI;
@@ -40,7 +40,7 @@ class OmniRouteBatchLiveTest {
                 "typeRules", List.of(),
                 "places", List.of(Map.of("tempId", 1, "placeType", "CAFE", "evidence", Map.of(
                         "name", "스타벅스 합정메세나몰점", "naverCategory", "카페,디저트>카페")))));
-        var service = new OpenAiBatchTaggingService(null, null, client, properties, mapper, null, null, builder);
+        var service = new OpenAiBatchTaggingService(null, client, properties, mapper, null, builder, null, null);
         String jsonl = ReflectionTestUtils.invokeMethod(service, "createJsonLines", targets, tags, List.of());
         String batchId = client.submit(jsonl);
         System.out.println("Live batch ID: " + batchId);

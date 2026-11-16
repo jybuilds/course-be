@@ -1,8 +1,8 @@
 package com.junsang.course_backend.domain.place.collection.pipeline.test.ai.controller;
 
-import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingBatchResponse;
-import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.dto.AiTaggingResponse;
-import com.junsang.course_backend.domain.place.collection.pipeline.common.ai.service.AiTaggingService;
+import com.junsang.course_backend.domain.place.collection.pipeline.ai.dto.AiTaggingBatchResponse;
+import com.junsang.course_backend.domain.place.collection.pipeline.ai.dto.AiTaggingResponse;
+import com.junsang.course_backend.domain.place.collection.pipeline.ai.service.AiTaggingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

@@ -44,7 +44,7 @@ public class KakaoLocalClient {
                     .retrieve()
                     .body(KakaoKeywordSearchResponse.class);
         } catch (RestClientException exception) {
-            throw new BusinessException(ErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED);
+            throw new BusinessException(ErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED, exception);
         }
 
         if (response == null) {
@@ -63,6 +63,6 @@ public class KakaoLocalClient {
                     .header(HttpHeaders.AUTHORIZATION, "KakaoAK " + properties.restApiKey()).retrieve().body(KakaoKeywordSearchResponse.class);
             if (response == null) throw new BusinessException(ErrorCode.KAKAO_LOCAL_API_EMPTY_RESPONSE);
             return response;
-        } catch (RestClientException exception) { throw new BusinessException(ErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED); }
+        } catch (RestClientException exception) { throw new BusinessException(ErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED, exception); }
     }
 }

@@ -92,6 +92,9 @@ public class Place {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    @Column(name = "needs_review", nullable = false)
+    private boolean needsReview;
+
     @Column(name = "priority_experience")
     private Short priorityExperience;
 
@@ -192,6 +195,10 @@ public class Place {
     public void updatePriorityScores(short experience, short distinctiveness) {
         this.priorityExperience = experience;
         this.priorityDistinctiveness = distinctiveness;
+    }
+
+    public void updateNeedsReview(boolean needsReview) {
+        this.needsReview = needsReview;
     }
 
     public void updateImageUrls(List<String> imageUrls) {

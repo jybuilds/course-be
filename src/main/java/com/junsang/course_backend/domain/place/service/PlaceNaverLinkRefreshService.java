@@ -2,7 +2,7 @@ package com.junsang.course_backend.domain.place.service;
 
 import com.junsang.course_backend.domain.place.entity.Place;
 import com.junsang.course_backend.domain.place.repository.PlaceRepository;
-import com.junsang.course_backend.domain.place.collection.pipeline.common.naver.service.NaverSearchUrlCreator;
+import com.junsang.course_backend.domain.place.collection.pipeline.naver.service.NaverSearchUrlCreator;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

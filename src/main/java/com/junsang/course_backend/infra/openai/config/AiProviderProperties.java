@@ -10,7 +10,9 @@ public record AiProviderProperties(
         ProviderSettings omniroute
 ) {
 
-    public ProviderSettings selected() {
+    public ProviderSettings selected() { return selected(provider); }
+
+    public ProviderSettings selected(String provider) {
         if ("OPENAI".equalsIgnoreCase(provider)) {
             return openai;
         }

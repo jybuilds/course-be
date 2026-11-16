@@ -24,6 +24,7 @@ import lombok.NoArgsConstructor;
 
 /// 카카오 수집부터 AI 태깅 직전까지 장소 정제 상태와 원본 정보를 보관한다.
 @Entity
+@org.hibernate.annotations.DynamicUpdate
 @Table(name = "place_collection_temp")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -118,6 +119,9 @@ public class PlaceCollectionTemp {
 
     @Column(name = "attempt_count", nullable = false)
     private int attemptCount;
+
+    @Column(name = "next_retry_at")
+    private LocalDateTime nextRetryAt;
 
     @Column(name = "ai_retry_count", nullable = false)
     private int aiRetryCount;
@@ -366,6 +370,10 @@ public class PlaceCollectionTemp {
         }
     }
 
+    public void scheduleRetry(LocalDateTime nextRetryAt) {
+        this.nextRetryAt = nextRetryAt;
+    }
+
     // 실패한 현재 단계를 다시 대기 상태로 되돌린다.
     public void retry() {
         if (status != PlaceCollectionTempStatus.FAILED) {
@@ -393,6 +401,7 @@ public class PlaceCollectionTemp {
     private void clearError() {
         errorCode = null;
         errorMessage = null;
+        nextRetryAt = null;
     }
 
     @PrePersist

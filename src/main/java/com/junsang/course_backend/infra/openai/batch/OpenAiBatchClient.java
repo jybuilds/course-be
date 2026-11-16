@@ -33,9 +33,11 @@ public class OpenAiBatchClient {
     private final RestClient.Builder restClientBuilder;
 
     // JSONL 요청 파일을 업로드한 뒤 OpenAI Batch Job을 제출한다.
-    public String submit(String jsonLines) {
-        requireConfigured();
-        RestClient client = client();
+    public String submit(String jsonLines) { return submit(jsonLines, properties.provider()); }
+
+    public String submit(String jsonLines, String provider) {
+        requireConfigured(provider);
+        RestClient client = client(provider);
         String stage = "FILE_UPLOAD";
         try {
             MultipartBodyBuilder body = new MultipartBodyBuilder();
@@ -56,7 +58,7 @@ public class OpenAiBatchClient {
 
             // OmniRoute 파일 메타데이터에는 status가 없으며 Batch 생성 시 파일을 검증한다.
             stage = "FILE_PROCESSING";
-            if ("OPENAI".equalsIgnoreCase(properties.provider())) {
+            if ("OPENAI".equalsIgnoreCase(provider)) {
                 awaitFileProcessing(client, fileId);
             }
 
@@ -82,15 +84,13 @@ public class OpenAiBatchClient {
                     && (exception.getStatusCode().is5xxServerError() || exception.getStatusCode().value() == 408)) {
                 throw new SubmissionUnknownException(exception);
             }
-            log.warn("AI Batch HTTP failure: provider={}, stage={}, status={}, response={}",
-                    properties.provider(), stage, exception.getStatusCode(),
-                    exception.getResponseBodyAsString().replace(properties.selected().apiKey(), "[REDACTED]"));
+            log.warn("AI Batch HTTP failure: provider={}, stage={}, status={}", provider, stage, exception.getStatusCode());
             throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);
         } catch (RestClientException | IllegalStateException exception) {
             if ("BATCH_CREATE".equals(stage)) {
                 throw new SubmissionUnknownException(exception);
             }
-            log.warn("AI Batch request failure: provider={}, stage={}", properties.provider(), stage, exception);
+            log.warn("AI Batch request failure: provider={}, stage={}, type={}", provider, stage, exception.getClass().getSimpleName());
             throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);
         }
     }
@@ -130,73 +130,56 @@ public class OpenAiBatchClient {
         }
     }
 
-    // 완료된 OpenAI Batch의 결과 JSONL을 반환하고, 아직 처리 중이면 null을 반환한다.
+    public record BatchPoll(String status, String output, JsonNode errors) {
+        public boolean terminal() { return java.util.Set.of("completed", "failed", "expired", "cancelled").contains(status); }
+    }
+
+    public BatchPoll poll(String batchId, String provider) {
+        requireConfigured(provider);
+        RestClient client = client(provider);
+        JsonNode batch = client.get().uri("/v1/batches/{batchId}", batchId).retrieve().body(JsonNode.class);
+        String status = requiredText(batch, "status");
+        BatchPoll state = new BatchPoll(status, "", batch.path("errors"));
+        if (!state.terminal()) return state;
+        java.util.List<String> outputs = new java.util.ArrayList<>();
+        for (String field : java.util.List.of("output_file_id", "error_file_id")) {
+            JsonNode file = batch.path(field);
+            if (file.isTextual() && !file.asText().isBlank()) {
+                String text = client.get().uri("/v1/files/{id}/content", file.asText()).retrieve().body(String.class);
+                if (text != null && !text.isBlank()) outputs.add(text.strip());
+            }
+        }
+        return new BatchPoll(status, String.join("\n", outputs), batch.path("errors"));
+    }
+
+    // 기존 단건 호출자와 테스트 호환용. 파이프라인은 종료 상태의 부분 결과도 받는 poll을 사용한다.
     public String completedOutput(String batchId) {
-        requireConfigured();
-        try {
-            JsonNode batch = client().get()
-                    .uri("/v1/batches/{batchId}", batchId)
-                    .retrieve()
-                    .body(JsonNode.class);
-            String status = batch.path("status").asText();
-            if ("failed".equals(status) || "expired".equals(status) || "cancelled".equals(status)) {
-                throw new IllegalStateException("OpenAI Batch가 완료되지 않았습니다: " + status);
-            }
-            if (!"completed".equals(status)) {
-                return null;
-            }
-            // 실패 줄은 별도 error 파일에 있으므로 성공·실패 결과를 함께 수집한다.
-            java.util.List<String> outputs = new java.util.ArrayList<>();
-            for (String field : java.util.List.of("output_file_id", "error_file_id")) {
-                JsonNode fileId = batch.path(field);
-                if (fileId.isTextual() && !fileId.asText().isBlank()) {
-                    String content = client().get()
-                            .uri("/v1/files/{fileId}/content", fileId.asText())
-                            .retrieve()
-                            .body(String.class);
-                    if (content != null && !content.isBlank()) {
-                        outputs.add(content.strip());
-                    }
-                }
-            }
-            if (outputs.isEmpty()) {
-                throw new IllegalStateException("완료된 AI Batch에 성공·실패 결과 파일이 없습니다: " + batchId);
-            }
-            return String.join("\n", outputs);
-        } catch (RestClientException exception) {
-            throw new BusinessException(ErrorCode.OPENAI_API_REQUEST_FAILED, exception);
-        }
+        BatchPoll result = poll(batchId, properties.provider());
+        if (!result.terminal()) return null;
+        if (!"completed".equals(result.status())) throw new IllegalStateException("원격 Batch 종료: " + result.status());
+        if (result.output().isBlank()) throw new IllegalStateException("완료된 Batch 결과 파일 없음");
+        return result.output();
     }
 
-    private RestClient client() {
+    private RestClient client(String provider) {
+        var settings = properties.selected(provider);
         RestClient.Builder builder = restClientBuilder.clone();
-        if ("OMNIROUTE".equalsIgnoreCase(properties.provider())) {
-            // 로컬 Node 게이트웨이의 h2c 업그레이드 연결 종료를 피한다.
-            builder.requestFactory(new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_1_1)
-                    .build()));
-        }
-        return builder
-                .baseUrl(properties.selected().baseUrl().toString())
-                .defaultHeaders(this::applyAuthentication)
-                .build();
+        // 외부 호출은 수집 lease보다 짧게 제한해 무한 대기를 막는다.
+        var factory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
+                .connectTimeout(java.time.Duration.ofSeconds(10)).version(HttpClient.Version.HTTP_1_1).build());
+        factory.setReadTimeout(java.time.Duration.ofSeconds(60));
+        builder.requestFactory(factory);
+        return builder.baseUrl(settings.baseUrl().toString()).defaultHeaders(headers -> {
+            headers.setBearerAuth(settings.apiKey());
+            if (StringUtils.hasText(settings.organization())) headers.set("OpenAI-Organization", settings.organization());
+            if (StringUtils.hasText(settings.project())) headers.set("OpenAI-Project", settings.project());
+        }).build();
     }
 
-    // 파일과 Batch 요청이 반드시 같은 조직·프로젝트 컨텍스트에서 실행되도록 공통 헤더를 적용한다.
-    private void applyAuthentication(HttpHeaders headers) {
-        headers.setBearerAuth(properties.selected().apiKey());
-        if (StringUtils.hasText(properties.selected().organization())) {
-            headers.set("OpenAI-Organization", properties.selected().organization());
-        }
-        if (StringUtils.hasText(properties.selected().project())) {
-            headers.set("OpenAI-Project", properties.selected().project());
-        }
-    }
-
-    private void requireConfigured() {
-        if (!properties.isConfigured()) {
+    private void requireConfigured(String provider) {
+        var active = properties.selected(provider);
+        if (active == null || active.baseUrl() == null || !StringUtils.hasText(active.apiKey()) || !StringUtils.hasText(active.model()))
             throw new BusinessException(ErrorCode.OPENAI_API_KEY_NOT_CONFIGURED);
-        }
     }
 
     private String requiredText(JsonNode node, String field) {

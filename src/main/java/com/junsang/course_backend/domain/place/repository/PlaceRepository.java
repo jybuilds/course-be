@@ -34,4 +34,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
     List<Place> findAllByIdGreaterThanOrderByIdAsc(Long id, Pageable pageable);
 
     long countByAreaId(Long areaId);
+
+    // idx_places_area_type_active 인덱스를 그대로 사용한다.
+    List<Place> findByAreaIdAndPlaceTypeAndIsActiveTrue(Long areaId, PlaceType placeType);
 }

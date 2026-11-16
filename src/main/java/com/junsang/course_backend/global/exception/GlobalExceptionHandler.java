@@ -1,13 +1,16 @@
 package com.junsang.course_backend.global.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -23,7 +26,15 @@ public class GlobalExceptionHandler {
     }
 
     // ── 요청 검증 예외 ────────────────────────────────────────────────────
-    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, HttpMessageNotReadableException.class})
+    // 쿼리 파라미터 누락·타입 불일치도 서버 오류가 아니라 잘못된 입력으로 처리한다.
+    @ExceptionHandler({
+            MethodArgumentNotValidException.class,
+            BindException.class,
+            HttpMessageNotReadableException.class,
+            MissingServletRequestParameterException.class,
+            MethodArgumentTypeMismatchException.class,
+            ConstraintViolationException.class
+    })
     public ResponseEntity<ErrorResponse> handleInvalidRequest(Exception exception) {
         log.warn("[InvalidRequest] type={} message={}", exception.getClass().getSimpleName(), exception.getMessage());
         return ResponseEntity.badRequest().body(ErrorResponse.from(ErrorCode.INVALID_INPUT));

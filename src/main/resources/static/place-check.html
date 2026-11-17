@@ -18,6 +18,11 @@
     .filters { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
     .filters button { border-radius:999px; padding:0 16px; }
     .filters button.selected { border-color:var(--blue); color:#fff; background:var(--blue); }
+    .area-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:0 0 14px; }
+    .area-select { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:14px; }
+    select { min-width:220px; height:40px; padding:0 11px; border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); font:inherit; }
+    .area-counts { display:flex; flex-wrap:wrap; align-items:center; gap:7px; color:var(--muted); font-size:13px; }
+    .count-chip { padding:5px 9px; border-radius:999px; background:#fff; border:1px solid var(--line); white-space:nowrap; }
     .priority-badge { white-space:nowrap; }
     button { min-height:36px; padding:0 12px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); font:inherit; cursor:pointer; }
     button:hover:not(:disabled) { border-color:var(--blue); color:var(--blue); }
@@ -62,7 +67,7 @@
 <body>
 <main>
   <h1>장소 DB 검토</h1>
-  <p class="intro">DB의 <code>places</code>와 연결 태그를 확인합니다. 유형별로 필터링하고 추천 우선도 순으로 확인합니다.</p>
+  <p class="intro">DB의 <code>places</code>와 연결 태그를 확인합니다. 지역과 유형별 장소 수를 확인하고 추천 우선도 순으로 살펴봅니다.</p>
 
   <div class="toolbar">
     <input id="search" type="search" placeholder="현재 페이지에서 이름, 주소, 카테고리, 태그 검색" aria-label="장소 검색" />
@@ -74,11 +79,20 @@
     </div>
   </div>
 
+  <div class="area-toolbar">
+    <label class="area-select" for="area-filter">지역
+      <select id="area-filter" aria-label="지역 필터">
+        <option value="">전체 지역</option>
+      </select>
+    </label>
+    <div id="area-counts" class="area-counts" aria-live="polite"></div>
+  </div>
+
   <nav id="type-filters" class="filters" aria-label="장소 유형 필터">
-    <button type="button" data-type="ALL" class="selected" aria-pressed="true">전체</button>
-    <button type="button" data-type="CAFE" aria-pressed="false">CAFE</button>
-    <button type="button" data-type="MEAL" aria-pressed="false">MEAL</button>
-    <button type="button" data-type="ACTIVITY" aria-pressed="false">ACTIVITY</button>
+    <button type="button" data-type="ALL" data-label="전체" class="selected" aria-pressed="true">전체</button>
+    <button type="button" data-type="CAFE" data-label="CAFE" aria-pressed="false">CAFE</button>
+    <button type="button" data-type="MEAL" data-label="MEAL" aria-pressed="false">MEAL</button>
+    <button type="button" data-type="ACTIVITY" data-label="ACTIVITY" aria-pressed="false">ACTIVITY</button>
   </nav>
   <section id="places" aria-live="polite"></section>
   <div id="empty" class="empty" hidden>표시할 장소가 없습니다.</div>
@@ -90,12 +104,16 @@
   const places = document.querySelector('#places');
   const empty = document.querySelector('#empty');
   const search = document.querySelector('#search');
+  const areaFilter = document.querySelector('#area-filter');
+  const areaCounts = document.querySelector('#area-counts');
   const typeFilters = document.querySelector('#type-filters');
   const previous = document.querySelector('#previous');
   const next = document.querySelector('#next');
   let currentPage = 0;
   let totalPages = 0;
   let selectedType = 'ALL';
+  let selectedAreaId = '';
+  let placeSummary = null;
 
   // 현재 유형에 맞는 페이지를 API에서 추천 우선도 순으로 가져온다.
   async function loadPlaces(page) {
@@ -104,7 +122,8 @@
     next.disabled = true;
     try {
       const typeQuery = selectedType === 'ALL' ? '' : `&placeType=${selectedType}`;
-      const response = await fetch(`api/places/check?page=${page}&size=${pageSize}${typeQuery}`);
+      const areaQuery = selectedAreaId ? `&areaId=${selectedAreaId}` : '';
+      const response = await fetch(`api/places/check?page=${page}&size=${pageSize}${typeQuery}${areaQuery}`);
       if (!response.ok) throw new Error('장소 목록을 불러오지 못했습니다.');
       const data = await response.json();
       currentPage = data.page;
@@ -115,6 +134,39 @@
       places.replaceChildren();
       empty.hidden = false;
       empty.textContent = '장소 목록을 불러오지 못했습니다.';
+    }
+  }
+
+  async function loadPlaceSummary() {
+    try {
+      const response = await fetch('api/places/check/summary');
+      if (!response.ok) throw new Error('지역별 장소 수를 불러오지 못했습니다.');
+      placeSummary = await response.json();
+      for (const area of placeSummary.areas) {
+        const option = document.createElement('option');
+        option.value = area.areaId;
+        option.textContent = `${area.cityName} · ${area.areaName} (${area.total.toLocaleString()})`;
+        areaFilter.append(option);
+      }
+      renderPlaceCounts();
+    } catch (error) {
+      areaCounts.textContent = error.message;
+    }
+  }
+
+  function renderPlaceCounts() {
+    if (!placeSummary) return;
+    const area = placeSummary.areas.find(item => String(item.areaId) === selectedAreaId);
+    const counts = area ?? placeSummary;
+    const areaLabel = area ? `${area.cityName} · ${area.areaName}` : '전체 지역';
+    areaCounts.replaceChildren(textElement('strong', `${areaLabel} · 총 ${counts.total.toLocaleString()}개`, ''));
+    for (const [label, value] of [['CAFE', counts.cafe], ['MEAL', counts.meal], ['ACTIVITY', counts.activity]]) {
+      const chip = textElement('span', `${label} ${value.toLocaleString()}개`, 'count-chip');
+      areaCounts.append(chip);
+    }
+    for (const button of typeFilters.querySelectorAll('button[data-type]')) {
+      const count = button.dataset.type === 'ALL' ? counts.total : counts[button.dataset.type.toLowerCase()];
+      button.textContent = `${button.dataset.label} (${count.toLocaleString()})`;
     }
   }
 
@@ -311,9 +363,14 @@
     }
     loadPlaces(0);
   });
+  areaFilter.addEventListener('change', () => {
+    selectedAreaId = areaFilter.value;
+    renderPlaceCounts();
+    loadPlaces(0);
+  });
   previous.addEventListener('click', () => loadPlaces(currentPage - 1));
   next.addEventListener('click', () => loadPlaces(currentPage + 1));
-  loadPlaces(currentPage);
+  loadPlaceSummary().then(() => loadPlaces(currentPage));
 </script>
 </body>
 </html>

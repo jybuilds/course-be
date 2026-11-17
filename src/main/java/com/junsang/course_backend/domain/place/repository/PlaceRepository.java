@@ -23,13 +23,32 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
     @Query("""
             select p from Place p
             where (:placeType is null or p.placeType = :placeType)
+              and (:areaId is null or p.area.id = :areaId)
             order by (coalesce(p.priorityExperience, 0)
                     + coalesce(p.priorityDistinctiveness, 0)) desc, p.id asc
             """)
     Page<Place> findAllForCheckOrderByPriority(
             @Param("placeType") PlaceType placeType,
+            @Param("areaId") Long areaId,
             Pageable pageable
     );
+
+    @Query("""
+            select a.id as areaId, a.name as areaName, a.city.name as cityName,
+                   p.placeType as placeType, count(p.id) as placeCount
+            from Area a left join Place p on p.area.id = a.id
+            group by a.id, a.name, a.city.name, p.placeType
+            order by a.city.id, a.id
+            """)
+    List<PlaceCheckAreaCount> findPlaceCheckCountsByArea();
+
+    interface PlaceCheckAreaCount {
+        Long getAreaId();
+        String getAreaName();
+        String getCityName();
+        PlaceType getPlaceType();
+        Long getPlaceCount();
+    }
 
     List<Place> findAllByIdGreaterThanOrderByIdAsc(Long id, Pageable pageable);
 

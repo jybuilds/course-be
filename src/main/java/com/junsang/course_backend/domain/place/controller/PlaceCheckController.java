@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,9 +56,14 @@ public class PlaceCheckController {
     public PlaceCheckPageResponse getPlaces(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "50") @Min(1) @Max(100) int size,
-            @RequestParam(required = false) PlaceType placeType
+            @RequestParam(required = false) PlaceType placeType,
+            @RequestParam(required = false) Long areaId
     ) {
-        Page<Place> placePage = placeRepository.findAllForCheckOrderByPriority(placeType, PageRequest.of(page, size));
+        Page<Place> placePage = placeRepository.findAllForCheckOrderByPriority(
+                placeType,
+                areaId,
+                PageRequest.of(page, size)
+        );
         Set<Long> placeIds = placePage.getContent().stream()
                 .map(Place::getId)
                 .collect(java.util.stream.Collectors.toSet());
@@ -80,6 +86,48 @@ public class PlaceCheckController {
                 placePage.getTotalPages(),
                 placePage.getTotalElements()
         );
+    }
+
+    @GetMapping("/api/places/check/summary")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public PlaceCheckSummaryResponse getPlaceCheckSummary() {
+        Map<Long, AreaPlaceCount> countsByArea = new LinkedHashMap<>();
+        long cafeCount = 0;
+        long mealCount = 0;
+        long activityCount = 0;
+
+        for (PlaceRepository.PlaceCheckAreaCount row : placeRepository.findPlaceCheckCountsByArea()) {
+            AreaPlaceCount counts = countsByArea.computeIfAbsent(
+                    row.getAreaId(),
+                    ignored -> new AreaPlaceCount(row.getAreaId(), row.getCityName(), row.getAreaName())
+            );
+            long count = row.getPlaceCount();
+            counts.total += count;
+            if (row.getPlaceType() == null) {
+                continue;
+            }
+            switch (row.getPlaceType()) {
+                case CAFE -> {
+                    counts.cafe += count;
+                    cafeCount += count;
+                }
+                case MEAL -> {
+                    counts.meal += count;
+                    mealCount += count;
+                }
+                case ACTIVITY -> {
+                    counts.activity += count;
+                    activityCount += count;
+                }
+            }
+        }
+
+        List<AreaPlaceCountResponse> areas = countsByArea.values().stream()
+                .map(AreaPlaceCount::toResponse)
+                .toList();
+        long totalCount = areas.stream().mapToLong(AreaPlaceCountResponse::total).sum();
+        return new PlaceCheckSummaryResponse(totalCount, cafeCount, mealCount, activityCount, areas);
     }
 
     // 저장된 장소의 네이버 검색 링크만 현재 생성 규칙으로 일괄 갱신한다.
@@ -121,6 +169,46 @@ public class PlaceCheckController {
             int totalPages,
             long totalElements
     ) {
+    }
+
+    public record PlaceCheckSummaryResponse(
+            long total,
+            long cafe,
+            long meal,
+            long activity,
+            List<AreaPlaceCountResponse> areas
+    ) {
+    }
+
+    public record AreaPlaceCountResponse(
+            Long areaId,
+            String cityName,
+            String areaName,
+            long total,
+            long cafe,
+            long meal,
+            long activity
+    ) {
+    }
+
+    private static class AreaPlaceCount {
+        private final Long areaId;
+        private final String cityName;
+        private final String areaName;
+        private long total;
+        private long cafe;
+        private long meal;
+        private long activity;
+
+        private AreaPlaceCount(Long areaId, String cityName, String areaName) {
+            this.areaId = areaId;
+            this.cityName = cityName;
+            this.areaName = areaName;
+        }
+
+        private AreaPlaceCountResponse toResponse() {
+            return new AreaPlaceCountResponse(areaId, cityName, areaName, total, cafe, meal, activity);
+        }
     }
 
     public record PlaceCheckRowResponse(

@@ -6,7 +6,6 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientResponseException;
@@ -43,14 +42,20 @@ public class CollectionBudgetService {
                 catch (Exception invalid) { body = json.createObjectNode(); }
                 JsonNode detail = body != null && body.has("error") ? body.path("error") : body;
                 String code = detail == null ? "" : detail.path(scope == ApiScope.NAVER_SEARCH ? "errorCode" : "code").asText("");
-                // NCP 공통 gateway는 errorCode=400, Kakao는 code=-10으로 쿼터 소진을 알린다.
+                int status = error.getStatusCode().value();
+                String message = detail == null ? "" : detail.path("message").asText("");
+                boolean naverDailyQuota = scope == ApiScope.NAVER_SEARCH && status == 429
+                        && "429".equals(code) && message.contains("일별 사용량 한도") && message.contains("초과");
+                // 기존 NCP gateway의 400 응답과 Kakao quota 응답은 기존 정책대로 처리한다.
                 boolean quota = scope == ApiScope.NAVER_SEARCH
                         ? error.getStatusCode().value() == 429 && "400".equals(code)
                         : "-10".equals(code) || "-11".equals(code);
-                int status = error.getStatusCode().value();
                 String reason;
                 Instant until;
-                if (quota) {
+                if (naverDailyQuota) {
+                    reason = "QUOTA_DAILY";
+                    until = nextMidnight(ZoneId.of("Asia/Seoul"));
+                } else if (quota) {
                     reason = "QUOTA";
                     until = nextReset(scope);
                 } else if (status == 401 || status == 403) {
@@ -74,7 +79,11 @@ public class CollectionBudgetService {
         ZonedDateTime now = ZonedDateTime.now(clock);
         return scope == ApiScope.NAVER_SEARCH
                 ? now.toLocalDate().withDayOfMonth(1).plusMonths(1).atStartOfDay(clock.getZone()).toInstant()
-                : now.toLocalDate().plusDays(1).atStartOfDay(clock.getZone()).toInstant();
+                : nextMidnight(clock.getZone());
+    }
+
+    private Instant nextMidnight(ZoneId zone) {
+        return LocalDate.now(clock.withZone(zone)).plusDays(1).atStartOfDay(zone).toInstant();
     }
 
     private Instant retryAfter(RestClientResponseException error) {

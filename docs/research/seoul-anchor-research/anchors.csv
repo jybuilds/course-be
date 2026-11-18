@@ -1,0 +1,347 @@
+area_code,anchor_id,anchor_name,anchor_type,address_or_scope,parent_anchor_id,availability_note,checked_at
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-419-CAFE,수유 4·19 카페거리,STREET,"강북구 수유동 4.19로, 국립4·19민주묘지 인근에서 근현대사기념관 방향 카페 밀집 구간",,점포별 영업 확인; 거리의 모든 카페가 현재 운영한다는 뜻은 아님,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-MIZZLE,미즐카페엠,VENUE,서울 강북구 4.19로 107 (수유동 535-11),A-SEOUL-BG-419-CAFE,음료·브런치 운영 조건 별도 확인; 창가 좌석 보장 안 됨,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SUYEONSANBANG,수연산방,VENUE,서울 성북구 성북로26길 8 (성북동),,월·화 휴무 안내. 방문 전 영업·좌석 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-CLUBESPRESSO-BUAM,클럽 에스프레소 부암점,VENUE,서울 종로구 창의문로 132 (부암동),,설악 매장과 별개 지점. 운영시간은 방문 전 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEONUNGAK,선운각,VENUE,서울 강북구 삼양로173길 223 (우이동 260-6),,예식·대관에 따라 이용 구역 제한; 당일 공지·주차료 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SANMOTOONGI,산모퉁이,VENUE,서울 종로구 백석동길 153 (부암동 97-5),,가파른 접근로·협소한 주차; 시간·가격 현행 확인 필요,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEONGBUK-BREAD,성북동빵공장 성북동점,VENUE,서울 성북구 대사관로 40 B동 (성북동 330-105),,남양주·다산 지점과 구분. 계단 동선·주차 조건 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-HYUNDAI-MIA,현대백화점 미아점,VENUE,서울 성북구 동소문로 315 (길음동),,공식 지점 휴점·영업 안내 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEOUL-MUSEUM,석파정 서울미술관,VENUE,서울 종로구 창의문로11길 4-1 (부암동),,"수~일 운영·통합권. 정원 종료시간이 공식 페이지 간 상충(17/18시), 당일 확인.",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEMA-ART-ARCHIVE,서울시립 미술아카이브,VENUE,서울 종로구 평창문화로 101 (평창동),,"오윤 전시 2027-02-14까지 안내. 월 휴관 원칙, 동절기 주말 시간 별도.",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-WHANKI-MUSEUM,환기미술관,VENUE,서울 종로구 자하문로40길 63 (부암동),,월 휴관 안내. 전시·관람권·예약 조건은 방문 전 확인.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-KANSONG-BOHWAGAK,간송미술관 보화각,VENUE,서울 성북구 성북로 102-11 (성북동),,상서 전시 2026-10-07~12-06 안내. 전시기간 외 개방을 보장하지 않음.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEONGBUK-MUSEUM,성북구립미술관 본관,VENUE,서울 성북구 성북로 134 (성북동),,어루만지다 전시10-20~12-20 안내. 월 휴관. 분관 최만린미술관·김중업 건축문화의 집과 별개.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-GANA-ART-CENTER,가나아트센터,VENUE,서울 종로구 평창30길 28 (평창동),,리첸 전시10-15~11-22. 공동 주최기관 원문 확인. 자체 웹502. 다른 가나 지점과 구분.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-TOTAL-MUSEUM,토탈미술관,VENUE,서울 종로구 평창32길 8 (평창동),,한국미술0년10-16~2027-02-28. 월·공휴일·전시준비기간 휴관 안내; 해당 전시 관람 조건 재확인.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEONJAM,성북선잠박물관,VENUE,서울 성북구 성북로96 (성북동),,화~일10~18시·무료 안내. 월요일·명절 등 휴관;전시 일정 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-MHMH,근현대사기념관,VENUE,서울 강북구4.19로114 (수유동),,무료·월휴관 안내. 운영자 웹 접근 실패;방문 전 당일 개관 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-MOKIN,목인박물관 목석원,VENUE,서울 종로구 창의문로5길46-1 (부암동),,"월요일 등 휴관·계절별 운영시간.유료,당일 운영·요금 확인",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-CHOIMANLIN,성북구립 최만린미술관,VENUE,서울 성북구 솔샘로7길23 (정릉동),,"집:두 조각가를 잇다11월28일까지.화~토10~18시,일월·공휴일 휴관.비전시일 사전문의",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-KIMJUNGUP,김중업 건축문화의 집,VENUE,서울 성북구 장위로21나길11 (장위동),,"이정윤:노래하는 집11월21일까지.화~토10~17시,일월·공휴일 휴관",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-KIMCHANGYEUL,김창열 화가의 집,VENUE,서울 종로구 평창7길74 (평창동),,개관전12월20일까지 연장 안내.화~일10~18시·유료;휴관일·당일조건 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-KIMJONGYOUNG,김종영미술관,VENUE,서울 종로구 평창32길30 (평창동),,가을 두 전시는11월1일 종료.일반운영·전시 교체기 개방 여부 사전문의;현행 전시명 미확정,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-YOUNGIN,영인문학관,VENUE,서울 종로구 평창30길81 (평창동),,"한글서화부채전10월31일 종료.비전시기간 토일공휴일 휴관 안내,전시 중과 휴관요일 다름.방문 전 관람범위 문의",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-LITERATURE,성북근현대문학관,VENUE,서울 성북구 성북로21길24 (성북동113-86),,"화~일10~18시·무료,월휴관.님의침묵 특별전10월25일 종료;상설·후속전시 확인",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-KOREA-MUSEUM,고려대학교박물관,VENUE,서울 성북구 안암로145 고려대 백주년기념삼성관 (안암동5가),,"화~토10~17시·무료,일월·법정공휴일 휴관 안내.개별 전시 운영 사전확인",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SANGSANG,북서울꿈의숲 상상톡톡미술관,VENUE,서울 강북구 월계로173 북서울꿈의숲 (번동),A-SEOUL-BG-DREAM-FOREST,"빠씨를 찾아서10월25일 종료.후속전시 미확정,전시가 있는 날에 방문;상시관람 보장 안 됨",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-YUKSA,문화공간 이육사,VENUE,서울 성북구 종암로21가길36-1 (종암동),,"화~토10~18시·일월휴관 안내,17:30입장마감.상설·기획전 이용조건은 방문 전 확인",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SUYU-MARKET,수유시장(수유전통·수유재래시장 포함),DISTRICT,강북구 수유동 도봉로67길18 건물시장과 인접 수유전통·수유재래 골목시장 방문권역,,점포별 휴무·시간 상이.2026수유미식회는10월10일 종료.별도 등록시장들을 서비스 방문권역 하나로 묶음.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-JEONGNEUNG-MARKET,정릉시장(개울장 포함),DISTRICT,성북구 정릉동 보국문로11길 시장 및 정릉시장 입구23번지 인근 정릉천변 개울장 구간,,상설시장과 계절 장터 구분.2026기관 소개는4~11월 반복 운영;개별 개최일·우천변경 별도 확인.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-DONAM-MARKET,돈암시장,DISTRICT,성북구 동소문동5가59-1 일대 동소문로18길12-3·20길16 시장 구간,,돈암제일시장은 별칭.점포별 영업·휴일 확인;옛 탐방기사 가격은 현행으로 안내하지 않음.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-ARIRANG-MARKET,정릉아리랑시장,DISTRICT,성북구 정릉동 정릉로26가길36 일대·아리랑로19길10(정릉동966-56) 시장 구간,,보국문로 정릉시장과 별개.옛 점포·주차정보는 현행 재확인.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-GIREUM-MARKET,길음시장,VENUE,서울 성북구 동소문로227(길음동),,점포별 시간·휴무 상이.2015탐방기사 점포·요금은 현재 보장하지 않음.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-ROSE-MARKET,장미원골목시장,DISTRICT,강북구 수유동 삼양로123길 일대(삼양로464 인근 진입부),,2026년6월12일 야시장은 종료.평상시 점포별 영업과 후속 야시장 일정 별도 확인.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-100-MARKET,백년시장,DISTRICT,강북구 수유동 한천로144길16 인근 시장 골목 일대,,백년나이트·백맥축제는 개최일 한정.2026년10월30~31일 행사는 종료;다음 일정 미확인.,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEONGBUK-WALK,성북동 문화유산 골목길(심우장·북정마을),ROUTE,성북구 성북동 만해의 산책공원~심우장~성북로23길 북정마을~마을 암문·성북동 성곽 외측~성북근현대문학관 연결 구간,,"주거지 통행·계단·경사 주의.해설은 사전예약·최소인원 조건,개별 고택 내부개방 별도 확인.와룡공원 등 외부 Area는 제외",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-PINE-WALK,북한산둘레길 소나무숲길,ROUTE,강북구 우이동 우이우이령길 입구~솔밭근린공원 상단 북한산둘레길1구간,,국립공원 기상·산불·정비통제 확인.우이령길 본구간과 다른 길,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-PILGRIM-WALK,북한산둘레길 순례길,ROUTE,강북구 수유동 솔밭근린공원 상단~국립4·19민주묘지 조망구간~이준열사묘역 입구,,묘역 참배와 산책로 이용조건 구분.당일 탐방통제 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-BAEKSASIL-WALK,백사실계곡·백석동천 숲길,ROUTE,종로구 부암동 능금마을~백석동천 별서터~현통사 구간의 지정 탐방로(세검정로6길98 인근),,"생태경관보전지역.지정 탐방로 이용·계곡 출입제한 준수,우천·정비통제 확인",2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-UI-WALK,우이천 수유동 수변산책길,ROUTE,강북구 수유동647-4 인근 우이교~수유교 사이 강북구측(남측) 산책로·데크 구간,,홍수·우천 통제와 시설별 운영 별도 확인.도봉구 맞은편·노원구 하류는 이번 범위 제외,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEONGBUKCHEON-WALK,성북천 삼선교·구청 수변산책길,ROUTE,한성대입구역 분수마루~성북구청 앞 수변거점의 성북천 공개 산책로,,홍수·우천·정비 통제 확인.청계천 합류부까지 확장하지 않음,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-BUGAK-SKY-WALK,북악하늘길 2산책로,ROUTE,성북동 하늘교~하늘전망대~호경암~남마루~성북천 발원지 약1.95km,,경사·오르내림 있음.삼청동 연결1산책로 제외·당일 통제 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-WHITE-CLOUD-WALK,북한산둘레길 흰구름길,ROUTE,이준열사묘역입구~북한산생태숲앞(수유·정릉 일대) 4.1km,,경사·계단·기복 및 국립공원 기상·산불·정비통제 확인.무장애 산책로 아님,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SOLSAEM-WALK,북한산둘레길 솔샘길,ROUTE,북한산생태숲앞~정릉주차장(정릉동) 2.1km,,경사·계단·기복 및 국립공원 기상·산불·정비통제 확인.무장애 산책로 아님,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-MEDITATION-WALK,북한산둘레길 명상길,ROUTE,정릉주차장~북악공원지킴터~형제봉입구(정릉·평창 연결) 2.4km,,경사·계단·기복 및 국립공원 기상·산불·정비통제 확인.무장애 산책로 아님,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-PYEONGCHANG-WALK,북한산둘레길 평창마을길,ROUTE,종로구 평창동 형제봉입구~탕춘대성암문입구5km,,포장 주택가·경사 포함.사생활·차량 주의·당일 통제 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SAMSEON-WALL-WALK,한양도성 삼선동 외측 성곽길,ROUTE,한성대입구역 인근 성곽 외측 들머리~369마을~장수마을~낙산공원 진입 암문 바깥 삼선동1가 구간,,주거지 소음·사생활·계단 주의.혜화문·낙산 정상·이화동·흥인지문 제외,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-UIREUNG-FOREST-WALK,의릉 천장산 숲길,ROUTE,성북구 석관동 화랑로32길146-20 의릉 관람구역 안 개방 숲길,,2026가을10월1일~11월29일.11월09:00~16:30·월요일휴관·기상조정.시즌 이후 재확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-JEONGNEUNGCHEON-WALK,정릉천 정릉시장·경국사 산책길,ROUTE,성북구 정릉동 정릉시장 주변~경국사 방향의 공개 수변산책로,,우천·홍수·정비 통제 확인.2020방문·2023기관자료로 최신 현장 상태는 미확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-JEONGNEUNG-ROYAL-WALK,서울 정릉 숲길,ROUTE,성북구 아리랑로19길116(정릉동) 정릉 관람구역 내 공개 순환 숲길,,월요일 정기휴관·공휴일 예외 확인.계절별 관람시간·입장료는 방문 전 공식 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-HONGJERAK-WALK,홍제락길 홍지문·세검정 구간,ROUTE,종로구 홍지동 홍지문·오간대수문~신영동 세검정~신영교 천변 보행로,,우천·홍수·정비 통제 확인.서대문구 옥천암·홍제폭포 제외.백사실계곡은 별도 숲길,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-OPAE-JARAK-WALK,오패산 자락길,ROUTE,강북구 번동 강북구민운동장 주변~금호아파트 뒤 자작나무숲~오동근린공원 실내배드민턴장·번동주공5단지 공개 데크산책로,,기상·정비 통제 확인.무장애 데크 구간과 전체 산길 구분.공식 본문2km·표1.5km 상충,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-GAEUN-WALK,개운산근린공원,VENUE,성북구 안암동·종암동·돈암동 개운산 공개 둘레길(성북구의회 주변~명상의길·연인의길~산마루·사색의길 연결); 공원 공개 쉼터·정자·녹지 포함,,계단·경사 있음.2026걷기대회2km와 옛전체3.4km를 혼용하지 않음.군부대 구역 제외,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-WOLGOK-WALK,오동근린공원 월곡산 구역,VENUE,성북구 상월곡동 산1-1·장월로3길93-27 일대 오동근린공원 공개 둘레길과 애기능터 연결; 공원 공개 쉼터·정자·녹지 포함,,동덕여대 내부 통과를 필수 진입로로 안내하지 않음.경사·계단·정비 통제 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-JEONGNEUNG-JARAK-WALK,북한산자락길 정릉동 구간,ROUTE,성북구 정릉동 정릉초 뒤~솔샘마당·만남의장 일대 공개 자락길 데크 구간,,솔샘길과 접속·일부 보행 동선 겹침.홍은동 북한산자락길과 별개.당일 통제 확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-DREAM-FOREST,북서울꿈의숲,VENUE,서울 강북구 월계로173(번동) 공원 공개구역·월영지·잔디광장·숲 산책로,,공원 상시개방.전시·공연·전망대는 별도시간.오동공원 연계둘레길 전체를 공원 내부노선으로 혼용하지 않음,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-GILSANGSA,길상사,VENUE,서울 성북구 선잠로5길68(성북동) 공개 경내 나무그늘·마당·물길 산책구역,,예불·행사·공사에 따른 출입구역·당일 개방시간 사전 확인.사찰 예절·정숙 준수,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SOLBAT-PARK,솔밭근린공원,VENUE,서울 강북구 삼양로561(우이동) 소나무숲 공원 공개구역,,공원내그늘·광장·쉼터.맨발길당일정비·기상조건확인.둘레길1·2구간전체와구분,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SEONGBUK-PARK,성북근린공원,VENUE,성북구 성북·돈암·정릉동 인접 공원 공개녹지와 성북로4길177 하늘한마당 접근부,,시설별정비·기상통제확인.북악하늘길·와룡공원등연결길전체포함안함,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-DREAM-PERFORMANCE,꿈의숲아트센터 공연장,VENUE,서울 강북구 월계로173(번동) 꿈의숲아트센터 콘서트홀·퍼포먼스홀,A-SEOUL-BG-DREAM-FOREST,공연별일정·관람연령·예매조건확인.과거가족공연·8월연주회는종료.두홀은한시설권역으로묶음,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-KKUMBIT-THEATER,꿈빛극장,VENUE,서울 성북구 길음로7길20(길음동) 서울성북미디어문화마루4층,,11월20~21일브런치공연예정.회차별발권·나이조건확인.공연날만객석관람,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-MIARI-THEATER,미아리고개예술극장,VENUE,서울 성북구 동소문로177(돈암동) 미아리고개 구름다리 아래,,11월5~8일나의돈키호테씨·11월26~12월6일생활풍경2026안내.공연별연령·접근성·예매확인,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-SMU-GYEDANG,상명아트센터 계당홀,VENUE,서울 종로구 홍지문2길20 상명대학교 서울캠퍼스(홍지동) 계당홀,,대학로아트홀과다른서울캠퍼스.언덕접근·공연별예매·현행공연편성확인.경연은일반관람조건별도,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-HADDANGSE-THEATER,하땅세극장1,VENUE,서울 성북구 성북로5-7(성북동1가) 지하1층,,그때변홍례확인예매페이지는10월3일종료.현재후속회차·좌석·연령은운영자확인.삼선동라이트하우스와별개,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-STC,서울연극창작센터,VENUE,서울 성북구 성북로8(동소문동1가) 서울연극창작센터 공개 공연장,,공연별회차·연령·발권조건확인.열람공간·전문교육과객석관람구분.내부101·202씨어터와야외공연을한시설로묶음,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-DREAM-VIEW,북서울꿈의숲 전망대,VENUE,"서울 강북구 월계로173(번동),북서울꿈의숲 내 전망대",A-SEOUL-BG-DREAM-FOREST,2026추석 운영 공지 확인.당시 외부 경사형 승강기 정비로 계단 이용;현재 복구·방문일 개방시간 확인.공원24시간과 구분,2026-11-05
+SEOUL_BUKHANSAN_GANGBUK,A-SEOUL-BG-BAEKUN-VIEW,북한산 백운대 우이동 조망 코스,ROUTE,강북 우이동 백운대탐방지원센터~하루재~백운대피소~백운봉암문~백운대 서울측 공식 접근 구간(편도1.9km).고양측 하산 제외,,급경사·와이어로프 구간.입산시간·기상·탐방로 통제 확인;야경용 도심 산책로로 안내하지 않음,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-GONG-CAFE,공릉 경춘선숲길 카페거리,STREET,노원구 공릉동 공릉역~동부아파트삼거리·경춘선숲길 양옆 카페권(태릉입구역 방향).경춘선 전체6.8km와 구분,,점포별 영업·좌석 확인.6월 커피축제는 종료,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-BLUEMILES,블루마일스 커피로스터스,VENUE,노원구 동일로190길65 우화빌딩2층(공릉동),,운영자 SNS timeout.현존 이용자 반복 방문과 주소 대조.이용시간·원두·좌석 확인,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-TRAINCAFE,카페 기차가 있는 풍경,VENUE,"노원구 화랑로608(공릉동),화랑대철도공원 내 카페",,공식2026안내 화~일11~21시·월요일휴무.배달기차 좌석 예약·층별 운영은 방문 전 확인,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-DEOSUP,더숲 노원,VENUE,노원구 노해로480 조광빌딩 지하1·2층(상계동),,공식10~22시.지하층·계단 이동 조건 확인.인왕산·북한산 등 다른 지점과 구분,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-MUSU,무수울,VENUE,도봉구 도봉로173길124 1층(도봉동),,운영자 원문 미확보.2026지인 방문과 주소 확인.실제 주차·영업·반려동물 조건 확인,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-DOBONGGWAN,도봉관,VENUE,도봉구 노해로261(창동700-27),,계단 가파름.디저트 소진·층별 이용·시간 확인.확보한 메뉴 가격끼리 차이 있어 현재 가격 미확정,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-BISCUIT,비스킷플로어,VENUE,공릉동 동일로190길6 1층6호,,"이전 후 소규모 바 매장.장시간 체류·단체 이용 제약,방문일 시간 확인",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-HOIPOLLOI,호이폴로이 커피로스터스,VENUE,공릉동 동일로186길64 1층,,"구 그루브커피로스터스 별칭 통합.운영자SNS 접근 실패,방문일 시간·원두 확인",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-LOWBEAR,로우베어,VENUE,공릉동506-29 동일로186길76 1층101호,,"동일 플랫폼의 복수 직접 이용자 확인.운영자·다른 원문 계열 보강 여지,방문일 시간 확인",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-FOREST,카페 포레스트(4rest),VENUE,"중계동산101-45 한글비석로12길51-49,불암산 정원지원센터 내",,"2026리모델링 후 확대 운영 확인.공사기간 임시 티하우스와 구분,계절 운영시간 확인",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-GYEONGCHUNMARU,노원경춘마루,VENUE,"월계동224-3 중랑천서자전거길1346 3층,경춘철교 상부",,"2026개점.화요일휴무·계절시간은 운영처 확인.열차모형 카페,실내 좌석 한정",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-DAWNMOSS,던모스,VENUE,공릉동320-107 공릉로27길8 1·2층,,디저트 소진·층별 노키즈·주차 조건은 방문 전 확인.옛10시/최근11시 개점 차이,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-DUMULMARU,노원두물마루 커피&스낵,VENUE,하계동354-4 중랑천·당현천 합류부 만남의광장 앞,,"수변 카페·편의점·루프탑 결합.계절시간·휴무 확인,한강 합류부로 오해하지 않음",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-LOTTE,롯데백화점 노원점,VENUE,노원구 동일로1414(상계동713),,정상10:30~20시·연장·휴점은 공식 달력 확인.과거 예약가격·브랜드 층수 현행 보장 안 함.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-STARFIELD-WOLGYE,스타필드 마켓 월계점,VENUE,"노원구 마들로3길15(월계동333-1),인접 트레이더스 월계점 마들로3길17과 연계 쇼핑권",,2026년8월27일 리뉴얼.공식10~23시·테넌트별 시간 상이.11월8·22일 휴점 안내.유니클로·무인양품11월OPEN예정은 완료로 보지 않음.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-NAM,노원아트뮤지엄,VENUE,노원구 중계로181 노원문화예술회관4층(중계동),,"시선의 결2026-10-15~11-29 무료·화~일10~18시·입장마감17:30,월요일휴관.이후전시·요금 확인.일반소개19시와현행전시18시구분.",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-BUKSEOUL-MUSEUM,서울시립 북서울미술관,VENUE,"노원구 동일로1238(중계동),등나무공원 내",,"화~목10~20시·금21시,주말동절기18시/하절기19시.마감1시간전입장.11월5일까지전시실6·라운지3등일부제한.특별전요금별도.",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-PHOTO-SEMA,서울시립 사진미술관,VENUE,도봉구 마들로13길68(창동),,"평일10~20시,주말동절기18시/하절기19시·마감1시간전입장·무료.월/1월1일휴관(공휴일월요일개관).라이브러리별도휴실.",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-DOOLYMUSEUM,둘리뮤지엄,VENUE,도봉구 시루봉로1길6(쌍문동),,"10~18시·입장17시마감,월요일/명절연휴휴관(공휴일월요일다음날).주중4000원·주말5000원·감면별도.과거2회차제현행미확정.",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-LIFE-MUSEUM,서울생활사박물관,VENUE,"노원구 동일로174길27(공릉동),구 서울북부지방법원",,"09~18시·입장17:30마감·무료.공휴일외월요일·1월1일휴관.상설자유관람,옴팡어린이체험별도예약.",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-SCIENCE-CENTER,서울시립과학관,VENUE,노원구 한글비석로160(하계동21),,09:30~17:30·상설전연령무료.월요일휴관(공휴일이면화요일)·1월1일·설추석당일.전시체험현장예약·특별교육사전예약구분.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-KIMSUYOUNG-MUSEUM,김수영문학관,VENUE,도봉구 해등로32길80(방학동),,09~18시무료·월요일휴관(공휴일월요일다음날)·1월1일·설추석연휴.전시·도서관이용시간별도확인.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-HAM-MEMORIAL,함석헌기념관,VENUE,도봉구 도봉로123길33-6(쌍문동),,09~18시무료·월요일휴관(공휴일월요일다음날)·1월1일·설추석연휴.기획전별일정확인.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-TRAINVILLAGE,노원기차마을,VENUE,"노원구 화랑로622(공릉동),화랑대철도공원 내 스위스관·이탈리아관",,화~일10~19시·입장18시마감·월/설추석당일휴관.일반성인4000원·아동청소년2000원·노원구민할인.두관관람범위는문의.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-MATH-MUSEUM,노원수학문화관,VENUE,노원구 한글비석로19길28(중계동453),,"10~17:30·월휴관(공휴일이면화요일)·1월1일설추석당일휴관.2025유료전환,현행금액은방문전확인.옛타임뮤지엄이전전시는내부구역으로통합.",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-ROYALTOMB-MUSEUM,조선왕릉전시관,VENUE,"노원구 화랑로681(공릉동산223-19),태릉 입구 전시관",,"태강릉입장권으로이용·월휴관.11~1월09~17:20관람표이나매표16:30와종료1시간전입장문구상충,늦은입장전문의.태릉과강릉숲길계절개방은별도.",2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-COSMOS-MUSEUM,노원천문우주과학관,VENUE,노원구 동일로205길13(중계동507-1),,전시09:30~17:30·입장17시마감·월/1월1일설추석당일휴관.성인2000원·6~19세1000원·5세이하무료.천문관측은별도예약·날씨조건확인.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-GONG-MARKET,공릉동도깨비시장,DISTRICT,노원구 공릉동 동일로180길37 중심 시장골목~경춘선숲길 후문(동일로180길61-1 부근),,점포별 영업시간 상이.고객센터·주차타워시간을 시장시간으로 통합하지 않음.과거 축제는 종료,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-BANG-MARKET,방학동도깨비시장,DISTRICT,도봉구 방학동 도당로85-7 고객지원센터·시장2문 주변 및 인접 시장골목,,점포별 시간·휴무 확인.방학로10길51은 공영주차장.옛 먹거리 가격·VIP존 상충시간을 현행으로 안내하지 않음,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-SINCHANG-MARKET,창동신창시장,DISTRICT,도봉구 창동 덕릉로57길17 중심 시장골목,,창동골목시장과 길 건너 별도 시장.점포별 시간 확인.센터 운영시간을 시장 전체에 적용하지 않음,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-CHANGDONG-MARKET,창동골목시장,DISTRICT,도봉구 창동 덕릉로54가길17 중심 시장골목,,신창시장 맞은편 별도 시장.점포별 휴무·시간 확인.토스트집 대기줄을 시장 전체 혼잡도로 쓰지 않음,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-SSANGMUN-MARKET,쌍문시장,DISTRICT,"도봉구 쌍문동 도봉로113길23 중심,쌍문역3출구 인근 시장골목",,상인회시간과 점포시간 구별.육육난장10월10일행사는 종료.인접 둘러상점가 전체를 같은 시장으로 확대하지 않음,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-MAHLWERK,노원 커피그라인더 전시관 말베르크,VENUE,노원구 공릉동 공릉동도깨비시장 내 동일로180길52 상가2~3층(공식 상세안내 기준;후기·구정현황은53표기),A-SEOUL-DN-GONG-MARKET,화~일10~19시·월2·3층전체휴관·기획전입장18:30마감.3층성인4000원·소인등2500원·카페이용할인.52/53번상충으로 입구는방문전확인.중구옛점포와구분,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-GYEONGCHUN-WALK,경춘선숲길 월계·공릉 구간,ROUTE,노원구 월계동 경춘철교에서 공릉동 화랑대철도공원으로 이어지는 서울 구간,,계절·날씨와 현장 통제 확인. 내부 세부 구간을 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-CHANGPO,서울창포원,VENUE,"서울 도봉구 마들로 916, 도봉동",,계절·날씨와 현장 통제 확인. 내부 세부 구간을 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-MUSUGOL-WALK,무수골 무수천 산책길,ROUTE,도봉동 무수천을 따라 무수골 녹색복지센터로 접근하는 저지대 구간,,계절·날씨와 현장 통제 확인. 내부 세부 구간을 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-BULAM-HEALING,불암산 힐링타운,VENUE,노원구 중계동 한글비석로12길 51-27 일대 순환산책로,,계절 풍경과 이용 제한은 방문일에 확인. 정상 등산 전체를 포함하지 않음.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-CHOAN-HEALING,초안산 힐링타운·수국동산,VENUE,노원구 월계동 초안산 수국동산과 연결 숲길,,계절 풍경과 이용 제한은 방문일에 확인. 정상 등산 전체를 포함하지 않음.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-DANGHYEON-WALK,당현천 상계·중계 산책길,ROUTE,노원구 상계역 주변에서 중계역 당현1교까지 당현천 구간,,계절 풍경과 이용 제한은 방문일에 확인. 정상 등산 전체를 포함하지 않음.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-HWARANG-PARK,화랑대철도공원,VENUE,서울 노원구 공릉동 29-51,,야외 공원과 내부 유료·기간 시설의 이용 조건은 구분.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-ARTSCENTER,노원문화예술회관,VENUE,서울 노원구 중계로181 (중계동),,예매한 공연 일정에 맞춰 방문. 전시 공간은 별도 기존 앵커와 구분.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-CHILDRENTHEATER,노원어린이극장,VENUE,서울 노원구 노해로502 KT노원지사 지하1층 (상계동),,가족·어린이 공연 중심. 연령 제한과 예매 확인.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-POTTERY,초안산도자기체험장,VENUE,서울 노원구 월계동 초안산도자기체험장 (산17-7 일대),,사전 예약·일일체험 편성 확인. 소성 후 작품 수령이 필요할 수 있음.,2026-11-05
+SEOUL_DOBONG_NOWON,A-SEOUL-DN-WOODYE,노원 목예원 목공예체험장,VENUE,서울 노원구 화랑로620 (공릉동),,예약형 목공 체험. 현행 대상·품목 확인.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-YOURMIND,유어마인드,VENUE,서대문구 연희로122 경교빌딩302호,,이전·현행 운영 및 방문일 공지를 확인. 과거 행사정보는 상시 이용과 구분.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-POSET,포셋 연희,VENUE,서대문구 증가로18 연희빌딩3층,,이전·현행 운영 및 방문일 공지를 확인. 과거 행사정보는 상시 이용과 구분.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-PROTOKOLL,프로토콜 연희,VENUE,서대문구 연희로109 2층,,이전·현행 운영 및 방문일 공지를 확인. 과거 행사정보는 상시 이용과 구분.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-CAFE-WATERFALL,카페폭포,VENUE,서대문구 연희로262-24,,이전·현행 운영 및 방문일 공지를 확인. 과거 행사정보는 상시 이용과 구분.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-BANUL,바늘이야기 연희점,VENUE,서대문구 연희동 연희로11가길15,,이전·현행 운영 및 방문일 공지를 확인. 과거 행사정보는 상시 이용과 구분.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-ONEONE,1인1잔,VENUE,은평구 연서로534 (진관동),,계절·행사·현장 운영은 방문일 확인. 사유 공간은 공개 구역만 포함.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-HANOKMUSEUM,은평역사한옥박물관,VENUE,은평구 연서로50길8 (진관동),,계절·행사·현장 운영은 방문일 확인. 사유 공간은 공개 구역만 포함.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-NATURALMUSEUM,서대문자연사박물관,VENUE,서대문구 연희동 서대문자연사박물관,,계절·행사·현장 운영은 방문일 확인. 사유 공간은 공개 구역만 포함.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-YEONSEO-MARKET,연서시장,VENUE,은평구 불광동 연서시장 방문권,,계절·행사·현장 운영은 방문일 확인. 사유 공간은 공개 구역만 포함.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-HANOKVILLAGE,은평한옥마을,DISTRICT,은평구 진관동 한옥마을 공개 골목,,계절·행사·현장 운영은 방문일 확인. 사유 공간은 공개 구역만 포함.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-YEONHUI-FOREST,연희숲속쉼터,VENUE,서대문구 연희동 안산 자락의 공개 쉼터,,계절·행사·현장 운영은 방문일 확인. 사유 공간은 공개 구역만 포함.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-SAVINA,사비나미술관,VENUE,은평구 진관1로93 (진관동),,안국동 옛 주소와 구분. 전시 일정 확인.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-GEUMAM,삼각산금암미술관,VENUE,은평구 진관길21-2,,기획전 일정에 따라 방문.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-HONGJE-YUYEON,홍제유연,VENUE,서대문구 통일로484 유진상가 하부 (홍제동),,하천·현장 통제 시 접근 제한 가능.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-EP-ARTSCENTER,은평문화예술회관,VENUE,은평구 녹번로16 (녹번동),,예매 공연 일정에 맞춰 방문.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-MASIL-PARK,마실길근린공원,VENUE,은평구 진관동 한옥마을 인접 마실길근린공원,,전체 북한산 마실길 노선과 공원은 구분.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-BUKHAN-ECO,북한산생태공원,VENUE,은평구 불광동 산42-5,,북한산 전체 등산과 구분.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-HONGJE-WATERFALL,홍제폭포 공개 감상 구역,VENUE,서대문구 연희로32길170-181 일대,,폭포 가동·기상·현장 통제 확인.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-BULGWANG-WALK,불광천 응암·증산 산책길,ROUTE,은평구 응암동에서 증산동·서대문구 북가좌동으로 잇는 Area 내부 수변 구간,,마포구 구간은 포함하지 않음.,2026-11-05
+SEOUL_EUNPYEONG_YEONHUI,A-SEOUL-EP-JINGWANSA,진관사 공개 경내·진입길,VENUE,은평구 진관길73,,사찰 예절과 공개 구역 준수.,2026-11-05
+SEOUL_SINCHON_EWHA,A-SEOUL-SC-EAGLE,독수리다방,VENUE,서울 서대문구 연세로36 독수리빌딩8층 (창천동),,복층 공간과 카페 방문 목적. 기존 주소와 현행 검색 위치 일치; 영업일 확인.,2026-11-05
+SEOUL_SINCHON_EWHA,A-SEOUL-SC-HONGIKBOOK,홍익문고,VENUE,서울 서대문구 신촌역 앞 창천동 홍익문고,,신촌 지역서점. 홍대 Area와 혼동하지 않음.,2026-11-05
+SEOUL_SINCHON_EWHA,A-SEOUL-SC-UPLEX,현대백화점 신촌 유플렉스,VENUE,서울 서대문구 연세로13 (창천동),,캐릭터·게임·뷰티 팝업은 교체 운영. 방문일 현행 회차 확인. 내부 팝업존은 별도 앵커로 중복 생성하지 않음.,2026-11-05
+SEOUL_SINCHON_EWHA,A-SEOUL-SC-STARPLAZA,신촌 유플렉스 앞 스타광장,VENUE,서울 서대문구 창천동 연세로13 유플렉스 앞 공개 광장,,공연 편성일에만 공연 목적 성립. 쇼핑 건물과 독립된 야외 공연 장소.,2026-11-05
+SEOUL_SINCHON_EWHA,A-SEOUL-SC-MINERVA,미네르바,VENUE,서울 서대문구 명물길18 2층 (창천동13-26),,원두 커피·옛 대학가 공간 방문. 현행 영업일 확인.,2026-11-05
+SEOUL_SINCHON_EWHA,A-SEOUL-SC-YONSEIRO-WALK,연세로·신촌 문학의거리 산책,ROUTE,창천동 신촌역 홍익문고 앞~연세로~창천문화공원~연세대 정문 공개 보행 구간,,보행전용 도로로 가정하지 않음. 사유 매장 입장은 별도. 기념물은 구간 설명에 포함.,2026-11-05
+SEOUL_SINCHON_EWHA,A-SEOUL-SC-YONSEI-WALK,연세대 신촌캠퍼스 역사건축 산책,ROUTE,"서울 서대문구 연세로50 (신촌동), 정문~수경원터 외부~언더우드관 앞 공개 보행 구간",,학습 공간이다. 건물 실내 자유입장·전면 개방을 보장하지 않으며 출입 제한 시 제외.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-CAMEL,카멜커피 서촌점,VENUE,서울 종로구 효자로31 1·2층 (통의동),,커피·돌담 조망 목적 방문. 창가 이용 가능 여부는 현장 조건.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-ONEMORE,원모어백,VENUE,서울 종로구 필운대로6-1 2층 (필운동),,잡화 탐색·작가 기획 팝업. 종료된 회차는 현재 이용 가능하지 않음.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-PARKNOSU,종로구립 박노수미술관,VENUE,서울 종로구 옥인1길34 (옥인동),,전시 교체·관람 가능일 확인. 가옥·정원은 하나의 미술관 앵커.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-SANGCHON,상촌재,VENUE,서울 종로구 자하문로17길12-11 (누하동),,전통문화 전시와 한옥 관람. 제작 체험은 별도 편성·예약.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-TONGIN,통인시장,VENUE,서울 종로구 자하문로15길18 (통인동),,시장 전체를 앵커로 채택. 도시락·점포 운영일 확인.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-SUSEONG,수성동계곡,VENUE,서울 종로구 옥인동 인왕산 자락 계곡·기린교 공개 산책 구간,,계곡 유량·날씨에 따라 경관 변화. 정상 산행 제외.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-CHEONGUN,청운공원,VENUE,서울 종로구 청운동 청운문학도서관 뒤~윤동주 시인의 언덕 공개 휴게 구역,,경사지·계절성 꽃. 내부 정자는 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-SEOCHEON-WALK,서촌 옥류동천길·골목 산책,ROUTE,종로구 통인동 통인시장 바깥~누하동 옥인길~옥인동 박노수미술관 앞~수성동계곡 입구 공개 골목,,주거 골목 소음·사생활 배려. 매장 실내입장과 별개 보행 구간.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-SEJONG,세종문화회관,VENUE,서울 종로구 세종대로175 (세종로),,공연장별 예매 회차 확인. 대극장·M·S·체임버홀을 하나의 시설 앵커로 묶음.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-BOAN,보안1942·보안책방,VENUE,"서울 종로구 효자로33 (통의동), 구관 전시장·신관2층 책방",,연결된 복합문화공간을 단일 앵커로 사용. 태그마다 서점·전시 방문 목적을 분리. 현재 전시·휴관 확인.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-GOGUNG,국립고궁박물관,VENUE,서울 종로구 효자로12 (세종로),,조선 왕실·대한제국 유물 상설 및 기획전. 개별 기획전은 방문일 확인.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-SEOULHISTORY,서울역사박물관,VENUE,서울 종로구 새문안로55 (신문로2가),,서울 역사 상설전시·도시모형·기획전 관람. 현행 휴관·전시 확인.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-MUCH,대한민국역사박물관,VENUE,서울 종로구 세종대로198 (세종로),,대한민국 근현대사 상설·기획전 관람. 옥상 전망은 별도 태그 근거 조사 전 자동 연결하지 않음.,2026-11-05
+SEOUL_GWANGHWAMUN_SEOCHON,A-SEOUL-GS-DAELIM,대림미술관,VENUE,서울 종로구 자하문로4길21 (통의동35-1),,기획전 관람 목적지. 현행 전시는2차 플랫폼에서 확인; 공식 사이트 동적 본문 제한으로 예약 확인 필요.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-NAKWON,낙원역,VENUE,서울 종로구 익선동 수표로28길33-5,,철길 콘셉트 한옥 카페. 실제 철도역이 아님. 방문일 영업 확인.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-CHEONGSU,청수당 익선,VENUE,서울 종로구 돈화문로11나길31-9 (익선동144),,대나무 정원·한옥 공간의 커피·디저트 목적지. 방문일 운영 확인.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-CHATEUL,차마시는뜰(차뜰),VENUE,서울 종로구 북촌로11나길26 1층 (삼청동),,한옥 전통차·다과 공간. 좌식 이용·휴무 확인.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-SSAMZIE,쌈지길,VENUE,서울 종로구 인사동길44 (관훈동) 공예 쇼핑 공간,,공예·잡화 쇼핑 목적. 개별 체험공방은 방문일 운영 확인.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-CRAFTMUSEUM,서울공예박물관,VENUE,서울 종로구 율곡로3길4 (안국동),,전시 관람과 어린이 공예마을 제작 체험을 한 시설 ID로 연결. 체험은 연령·보호자·예약 조건 확인.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-MMCA,국립현대미술관 서울,VENUE,서울 종로구 삼청로30 (소격동) 서울관,,기획전별 회차·예매 정책 확인. 과천·덕수궁·청주관과 구분.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-GWANGJANG,광장시장,VENUE,"서울 종로구 창경궁로88 (예지동·종로5가 시장권), 먹자골목·2층 수입구제상가",,시장 경험과 의류·원단 상품 탐색 목적을 태그별로 구분. 북촌과는 떨어진 방문권. 점포·층별 운영일 확인.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-SAMCHEONGPARK,삼청공원,VENUE,"서울 종로구 북촌로134-1 (삼청동), 공원 공개 산책로",,유아숲 전용구역과 등산 심화구간을 일반 산책코스에 포함하지 않음.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-BUKCHONLANES,북촌 한옥마을 공개 골목길,ROUTE,가회동11·31번지~삼청동 돌계단 공개 골목 (종로구),,주거지 공개 도로만 대상으로 함. 북촌로11길 레드존 관광객10~17시 방문 제한 적용; 사유지·개별 전망대 제외.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-DONHWAMUN,서울돈화문국악당,VENUE,서울 종로구 율곡로102 (와룡동),,공연 일정·예매가 있는 날 방문하는 공연장. 과거 축제를 상설로 안내하지 않음.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-KYOBO,교보문고 광화문점,VENUE,서울 종로구 종로1 지하1층 (종로1가),,광화문이라는 이름과 별개로 종로1가 경계에 따라 이 Area에 배정.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-ANYOUNG,안녕인사동,VENUE,"서울 종로구 인사동길49 (관훈동), 공개 상업층",,입점 점포·전시 교체 가능. 호텔 객실 및 임시 장터는 앵커 범위 제외.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-IKSUNLANES,익선동 한옥거리,DISTRICT,익선동 돈화문로11길·수표로28길 주변 공개 상업골목,,개별 매장 입점변동 가능. 공개골목을 하나의 방문권으로 저장하며 기존 카페와 별도 중복 장소로 세지 않음.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-DOOSAN,두산아트센터,VENUE,"서울 종로구 종로33길15 (연지동), 연강홀·Space111",,작품별 예매일정에 방문. 공연장 내부 홀은 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_BUKCHON_INSADONG_IKSUN,A-SEOUL-BI-CHANGDEOK,창덕궁·후원,VENUE,"서울 종로구 율곡로99 (와룡동), 전각 공개관람구역·별도 관람권 후원",,후원은 별도 관람권·회차·공개동선 확인 필요. 꽃·단풍은 계절별. 폐쇄구간·건물 내부 자동포함 안함.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-HAKRIM,학림다방,VENUE,서울 종로구 대학로119 2층 (명륜4가94-2),,오래된 다방 공간과 커피 목적방문. 내부 다락방을 별도 앵커로 생성하지 않음.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-TOYSTREET,창신동 문구완구거리,DISTRICT,"서울 종로구 종로52길36 일대 (창신동), 종로52·54길 문구완구상가",,동대문문구완구시장·동묘완구거리 별칭을 동일앵커로 통합. 점포별 영업·취급품목 다름.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-DONGYANG,동양서림,VENUE,서울 종로구 창경궁로271-1 1층 (혜화동),,동양서림과2층 별도 시집서점은 동일업체로 단정하지 않음. 이번에는 동양서림만 채택.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-NAKSAN,낙산공원·종로측 성곽길,VENUE,서울 종로구 낙산길41 (동숭동) 공원 및 종로측 공개 성곽길,,성북구측 구간까지 자동 확대하지 않음. 언덕·계단 있음. 같은 전망지·성벽을 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-IHWALANES,이화동 벽화마을 공개 골목,DISTRICT,서울 종로구 낙산4길49 일대 (이화동) 공개 골목,,주거지 공개 도로만 대상. 사유지·폐쇄 계단·지워진 과거벽화는 포함하지 않음.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-MARRONNIER,마로니에공원,VENUE,서울 종로구 대학로8길1 (동숭동),,공원 공개 휴식공간. 버스킹·행사는 개최 확인 후 별도 안내.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-ARKOMUSEUM,아르코미술관,VENUE,서울 종로구 동숭길3 (동숭동),,전시 교체·설치기간에는 관람제한 가능. 인접 예술극장과 별도 시설.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-ARKOTHEATER,아르코예술극장,VENUE,서울 종로구 대학로8길7 (동숭동),,공연별 예매·회차 확인. 내부 대소극장은 한 앵커로 통합.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-DAEHAKROTHEATER,대학로예술극장,VENUE,서울 종로구 대학로10길17 (동숭동1-67),,공연별 예매·회차 확인. 내부 대소극장은 한 앵커로 통합.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-DONGMYO,동묘 벼룩시장·구제상점가,DISTRICT,서울 종로구 숭인동102-8 동묘 주변 공개 상점·좌판 구간,,청계천 남쪽 황학동·신설동 서울풍물시장으로 확장하지 않음. 좌판 출점·날씨·점포별 운영변동 있음.,2026-11-05
+SEOUL_DAEHAKRO_DONGDAEMUN,A-SEOUL-DD-HONGIK,홍익대 대학로 아트센터,VENUE,서울 종로구 대학로57 (연건동),,공연별 예매 확인. 대·소극장을 하나의 앵커로 저장하고 갤러리·상업시설은 자동연결하지 않음.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-HANYAK,커피한약방·혜민당 골목,VENUE,서울 중구 삼일대로12길16-6 및 맞은편 혜민당,,한 골목에서 커피와 양과자를 함께 즐기는 방문권으로 묶음. 건물별 영업변동 가능; 혜화·청량리 지점과 구분.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-DDP,동대문디자인플라자 DDP,VENUE,"서울 중구 을지로281 (을지로7가), 공개 전시공간",,전시·팝업은 행사별 일정 확인. 경관 연결은 사전예약형 루프탑 투어 운영시에만 유효하며 지붕 자유출입 아님.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-CENTRALMARKET,서울중앙시장,DISTRICT,서울 중구 퇴계로85길22~36 일대 (황학동·신당역 시장권),,시장 전체를 방문권으로 저장. 점포별 운영과 리뉴얼 동선변화 확인.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-YEJANG,남산예장공원,VENUE,서울 중구 예장동4-1 일대 공개 녹지·산책로,,내부 기념관은 별도 운영 확인 대상. 남산 전체로 범위를 확대하지 않음.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-ME-MUSINSA,무신사 스탠다드 명동점,VENUE,서울 중구 남대문로90 명동N빌딩 (남대문로2가),,명동중앙점과 다른 지점. 현재 영업과 입점 층수는 방문 전 확인.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-SIMSE,심세정,VENUE,서울 중구 퇴계로409-11 (흥인동),,옛 창고 공간을 활용한 베이커리카페. 본관·별관을 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-NOGARI,을지로 노가리골목,DISTRICT,서울 중구 을지로3가 충무로9길·을지로13길 일대,,술집 모임 중심의 골목. 야외테이블 운영과 개발·영업 상황은 방문시 확인.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-CHUNGMU,충무아트센터,VENUE,"서울 중구 퇴계로387 (흥인동), 공연장·갤러리신당",,공연과 전시는 각 편성·예매 확인. 건물 내부를 별도 앵커로 중복 집계하지 않음.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-DOOTA,두타몰,VENUE,서울 중구 장충단로275 (을지로6가),,방문일 입점·영업 확인. 인근 도매상가 전체를 포함하지 않음.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-MYEONGTHEATER,명동예술극장,VENUE,서울 중구 명동길35 (명동1가),,공연 일정·예매 확인. 외관촬영 수요를 공연수요로 대체하지 않음.,2026-11-05
+SEOUL_MYEONGDONG_EULJIRO,A-SEOUL-ME-NATIONALTHEATER,국립극장,VENUE,서울 중구 장충단로59 (장충동2가),,해오름 등 공연장 편성과 예매 확인. 남산 전체를 포함하지 않음.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-MARKET,남대문시장,DISTRICT,서울 중구 남대문시장4길21 일대 남창동·회현동 상품상가·먹거리 골목,,품목별 상가·점포 운영 차이 있음. 내부 점포를 무조건 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-SEOULLO,서울로7017,ROUTE,만리동광장–서울역–회현역 공중보행로 공개 구간,,청파동 등 연결 출입구는 타Area로 확장하지 않음. 임시통제·시설변경 확인.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-PIKNIC,피크닉 piknic,VENUE,서울 중구 퇴계로6가길30 (남창동),,카페와 전시는 별도 편성. 교체기간 전시휴관 확인. 내부 카페를 별도 앵커로 중복 집계하지 않음.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-284,문화역서울284,VENUE,서울 중구 통일로1 구서울역사 (봉래동2가),,전시·행사 없는 기간은 휴관. 건축공간투어는 별도 예약·편성 확인.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-INDEPENDENCE,서대문독립공원,VENUE,"서울 서대문구 통일로247 (현저동), 독립문·공개정원·휴식 구간",,형무소역사관 유료 관람은 별도. 내부 소정원을 별도 앵커로 늘리지 않음.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-CECIL,국립정동극장 세실,VENUE,서울 중구 세종대로19길16 (정동3-7),,정동길43 본극장과 구분. 공연 일정·예매 확인.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-SEMA,서울시립미술관 서소문본관,VENUE,서울 중구 덕수궁길61 (서소문동),,특별전은 별도요금·예매 가능. 전시실·부대공간을 별도 앵커로 중복하지 않음.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-DEOKSU,덕수궁,VENUE,"서울 중구 세종대로99 (정동), 공개 궁궐 관람구간",,입장권·휴궁·실내 예약시설은 별도 확인. 특정 전각을 숫자 늘리기 위해 분리하지 않음.,2026-11-05
+SEOUL_SEOUL_STATION_NAMDAEMUN,A-SEOUL-SN-JEONGDONG,덕수궁 돌담길·정동길,ROUTE,서울 중구 덕수궁길–정동길 공개 보행구간,,궁궐 유료구역과 구분. 대사관 인접길·행사통제는 현장안내 준수.,2026-11-05
+SEOUL_HONGDAE_YEONNAM,A-SEOUL-HY-LAYERED,카페 레이어드 연남점,VENUE,서울 마포구 성미산로161-4 (연남동),,커피·스콘·케이크와 카페공간 방문. 안국 등 타지점과 구분.,2026-11-05
+SEOUL_HONGDAE_YEONNAM,A-SEOUL-HY-OBJECT,오브젝트 서교점,VENUE,서울 마포구 와우산로35길13 (서교동),,내부 층·팝업은 교체 가능. 상설상품 방문과 팝업 방문은 별도 근거 판단.,2026-11-05
+SEOUL_HONGDAE_YEONNAM,A-SEOUL-HY-FOREST,경의선숲길 연남동 구간,VENUE,홍대입구역3번출구–연남사거리 사이 연남동 공개 녹지·보행로,,전체6.3km가 아니라 연남동 구간만. 식재·시설·행사통제 변동 가능.,2026-11-05
+SEOUL_HONGDAE_YEONNAM,A-SEOUL-HY-SSMD,KT&G 상상마당 홍대,VENUE,서울 마포구 어울마당로65 (서교동367-5),,디자인스퀘어·갤러리·라이브홀을 한 시설 ID로 연결. 공연·전시는 해당일 편성과 예매 확인.,2026-11-05
+SEOUL_HONGDAE_YEONNAM,A-SEOUL-HY-REDROAD,홍대 걷고싶은거리·레드로드 서교·동교 구간,STREET,홍대입구역 일대 걷고싶은거리와 서교동 어울마당로 상권 (상수·합정 구간 제외),,거리 자체 목적 방문. 모든 골목상점을 개별 앵커로 확장하지 않음. 버스킹은 상시 보장하지 않음.,2026-11-05
+SEOUL_HONGDAE_YEONNAM,A-SEOUL-HY-MUSINSA-STORE,무신사 스토어 홍대,VENUE,서울 마포구 양화로164 (동교동),,다중브랜드 플래그십. 팝업은 교체되므로 해당일 일정 확인. 테라스·스탠다드와 구분.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-JEBI,제비다방·취한제비,VENUE,서울 마포구 와우산로24 (상수동330-12),,낮과 밤의 이름은 같은 시설. 공연일정·좌석상황 확인 필요.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-MANGWON-MARKET,망원시장,DISTRICT,서울 마포구 포은로6길27 일대 (망원동),,점포별 운영 상이. 개별 먹거리 점포를 모두 독립 앵커로 늘리지 않음.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-HANGANG,망원한강공원 공개 수변,VENUE,망원동 마포나루길467 안내센터 일대 공개녹지·보행로·한강 수변,,공원 전체7.4km 대신 망원동 수변 구간만. 유료 서울함공원과 구분하며 홍수·행사통제 확인.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-SEOULSHIP,서울함공원,VENUE,망원한강공원 내 퇴역 서울함·참수리정·잠수함 전시구역 (망원동),A-SEOUL-SHM-HANGANG,유료 내부 관람과 공개 수변을 구분. 실제 관람가능 함정 및 일정 확인.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-BPLATFORM,비플랫폼,VENUE,서울 마포구 독막로2길22 3층 (합정동),,아트북 서점·갤러리·제본스튜디오 같은 공간. 현재 강좌·전시 일정 별도확인.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-DEEPBLUE,딥블루레이크 커피&로스터스 망원,VENUE,서울 마포구 포은로6길11 (망원동411-12),,커피·원두와 파란 외관 공간 방문. 타지점과 구분.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-ANTHRACITE,앤트러사이트 합정점,VENUE,서울 마포구 토정로5길10 (합정동),,공장 재생 공간과 커피 목적 방문. 서교점·한남점과 구분.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-ZEROSPACE,제로스페이스 망원,VENUE,서울 마포구 희우정로16길32 (망원동398-2),,제로퍼제로 문구·생활소품 쇼룸. 내부 미피구역은 별도앵커로 늘리지 않음.,2026-11-05
+SEOUL_SANGSU_HAPJEONG_MANGWON,A-SEOUL-SHM-MANGRIDAN,망원동 망리단길·포은로 골목,DISTRICT,망원시장 인근 망원동 포은로·희우정로 일대 카페·소품숍 보행 상권,,주거지 포함 골목. 관광범위를 서교동까지 임의확장하지 않음. 점포목록은 변동 가능.,2026-11-05
+SEOUL_MAPO_GONGDEOK,A-SEOUL-MP-FRITZ,프릳츠 도화점,VENUE,서울 마포구 새창로2길17 (도화동),,커피·베이커리·레트로 공간 목적 방문. 원서·장충 등 타지점과 구분.,2026-11-05
+SEOUL_MAPO_GONGDEOK,A-SEOUL-MP-KOFA,한국영화박물관,VENUE,서울 마포구 월드컵북로400 한국영상자료원 (상암동),,상설·기획전과 영화매체 전시 방문. 같은 건물 영화도서관을 서점으로 분류하지 않음.,2026-11-05
+SEOUL_MAPO_GONGDEOK,A-SEOUL-MP-PEACE,평화의공원,VENUE,"서울 마포구 월드컵로251 일대 (성산동·상암동 월드컵공원), 난지연못·주제정원 공개구역",,하늘공원과 독립된 평지공원. 계절시설·행사는 일정변동.,2026-11-05
+SEOUL_MAPO_GONGDEOK,A-SEOUL-MP-SKYPARK,하늘공원,VENUE,상암동 월드컵공원 내 하늘공원 정상 초원·공개 전망구역,,정상 접근 경사·계단 부담. 전망조형물 개방·계절행사·입장통제는 별도확인.,2026-11-05
+SEOUL_MAPO_GONGDEOK,A-SEOUL-MP-FOREST,경의선숲길 공덕·대흥·신수 구간,ROUTE,공덕역1번출구부터 대흥·염리·신수동을 잇는 옛철길 공개 보행구간,,연남동 구간과 별도 범위로 기록. 정확한 개별 접근로는 현장지도 확인.,2026-11-05
+SEOUL_MAPO_GONGDEOK,A-SEOUL-MP-ARTCENTER,마포아트센터,VENUE,서울 마포구 대흥로20길28 (대흥동),,아트홀맥·플레이맥 등 같은 공연시설을 하나의 앵커로 통합. 공연일 예매확인.,2026-11-05
+SEOUL_MAPO_GONGDEOK,A-SEOUL-MP-MILMUL,책방밀물,VENUE,서울 마포구 성미산로15길37 1층 (성산동619-6),,서점큐레이션·독서활동. 모임페이지의 다른서점 주소와 혼동하지 않음.,2026-11-05
+SEOUL_SEONGSU,A-SEOUL-SS-LCDC,LCDC SEOUL,VENUE,서울 성동구 연무장17길10 (성수동2가),,상설편집숍·카페·작은 브랜드공간을 같은 시설로 연결. 층별 운영변경 확인.,2026-11-05
+SEOUL_SEONGSU,A-SEOUL-SS-SEOULFOREST,서울숲,VENUE,"서울 성동구 뚝섬로273 (성수동1가), 가족마당·연못·공개도시숲·산책로",,행사구역·생태숲·시설별 출입통제 가능. 개별정원과 가족마당을 별도앵커로 늘리지 않음.,2026-11-05
+SEOUL_SEONGSU,A-SEOUL-SS-YEONMU,성수 연무장길 브랜드·팝업 상권,STREET,성수동2가 연무장길 중심 브랜드매장·팝업 보행구간,,"종료된 행사명이 아닌 거리형 앵커. 방문일 팝업지도·예약 확인, 주거·산업공간 출입구분.",2026-11-05
+SEOUL_SEONGSU,A-SEOUL-SS-WATERMUSEUM,수도박물관,VENUE,"서울 성동구 왕십리로27 (성수동1가), 본관·수도전시구역",,수도역사·산업유산 전시 목적. 공식예약안내는27로 표기하며 옛의회문서25와 구분.,2026-11-05
+SEOUL_SEONGSU,A-SEOUL-SS-NOTJUST,낫저스트북스,VENUE,서울 성동구 서울숲길44 3층 (성수동1가),,독립서점 큐레이션 탐색. 구주소·다른층 혼동 주의. 입장·촬영 안내 준수.,2026-11-06
+SEOUL_SEONGSU,A-SEOUL-SS-HYUNG,가죽공방 형공방,VENUE,서울 성동구 상원2길3 3층 (성수동1가),,예약형 카드지갑·가죽공예 체험. 상품·예약채널별 조건은 확인 필요.,2026-11-06
+SEOUL_SEONGSU,A-SEOUL-SS-DAELIMCAFE,성수동 대림창고 갤러리 카페,VENUE,서울 성동구 성수이로78 (성수동2가),,성수이로74 무신사스토어와 별개. 갤러리 이름만으로 EXHIBITION 자동연결하지 않음.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-INDEX,인덱스숍,VENUE,서울 광진구 아차산로200 커먼그라운드3층 (자양동),A-SEOUL-WK-COMMON,독서·서가 탐색 중심. 커먼그라운드 내부지만 독립 방문 목적의 책방카페.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-COMMON,커먼그라운드,VENUE,서울 광진구 아차산로200 (자양동),,컨테이너 복합쇼핑공간. 개별 입점 브랜드·팝업의 현행 편성은 별도 확인.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-SUP,서울새활용플라자,VENUE,서울 성동구 자동차시장길49 (용답동),,새활용 소재로 만드는 제작체험. 자율체험·예약수업 구분 확인.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-CHILDPARK,서울어린이대공원,VENUE,"서울 광진구 능동로216 (능동), 공개녹지·산책로",,PARK 연결은 공개녹지 나들이 목적. 유료 놀이동산을 별도 앵커로 세지 않음.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-TTUKSEOM,뚝섬한강공원 자양 수변,VENUE,"서울 광진구 자양동, 자양역·뚝섬선착장 인근 한강변 공개 산책로·잔디 구간",,자양동 수변에 한정. 자전거도로와 보행로 구분하고 날씨·침수통제 확인.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-LIGHT,빛의 시어터,VENUE,서울 광진구 워커힐로177 B1층 (광장동),,몰입형 미디어아트 전시공간. 회차별 전시·예매 확인.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-MAJANG,마장축산물시장,DISTRICT,서울 성동구 마장동 축산물 도소매 점포·시장 통로,,축산물 선택·구매와 시장 구경. 개별 식당을 시장과 중복 집계하지 않음.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-YES24,YES24 LIVE HALL,VENUE,서울 광진구 구천면로20 (광장동),,아티스트 콘서트·팬공연 목적. 예매 회차에 맞춰 방문.,2026-11-06
+SEOUL_WANGSIMNI_KONKUK,A-SEOUL-WK-EUNGBONG,응봉산 팔각정,VENUE,서울 성동구 응봉동 응봉산 팔각정·정상 조망지점,,계단·오르막 접근. 주택가 소음·차량진입을 피하고 도보 이용.,2026-11-06
+SEOUL_CHEONGNYANGNI_JUNGNANG,A-SEOUL-CN-KDCAFE,스타벅스 경동1960점,VENUE,서울 동대문구 고산자로36길3 경동시장 내 (제기동),A-SEOUL-CN-KDMARKET,계단식 옛 극장공간의 카페. 동명 경동1960 야시장과 별개.,2026-11-06
+SEOUL_CHEONGNYANGNI_JUNGNANG,A-SEOUL-CN-KDMARKET,경동시장,DISTRICT,서울 동대문구 제기동 경동시장 본관·신관 및 점포 통로,,장보기·품목탐방. 주변 모든 시장을 한 시장으로 합치지 않음.,2026-11-06
+SEOUL_CHEONGNYANGNI_JUNGNANG,A-SEOUL-CN-HERB,서울약령시장,DISTRICT,서울 동대문구 제기동 약령중앙로 일대 한약재 전문점포 구역,,경동시장 길건너 약령시 구역. 한약재 선택·시장 구경 목적.,2026-11-06
+SEOUL_CHEONGNYANGNI_JUNGNANG,A-SEOUL-CN-MUSEUM,서울약령시한의약박물관,VENUE,서울 동대문구 약령중앙로26 서울한방진흥센터2층 (제기동),,한의약 역사·약재 전시. 홈페이지 점검 중이므로 공식예약·SNS 확인.,2026-11-06
+SEOUL_CHEONGNYANGNI_JUNGNANG,A-SEOUL-CN-ROSE,중랑장미공원·묵동 수변 산책길,ROUTE,서울 중랑구 묵동 중랑장미공원·묵동교 인근 수변 및 수림대공원 연결구간,,장미 감상은 계절한정. 중랑천 전체·노원쪽 하천변으로 범위 확장하지 않음.,2026-11-06
+SEOUL_CHEONGNYANGNI_JUNGNANG,A-SEOUL-CN-PEACE,경희대학교 평화의전당,VENUE,서울 동대문구 경희대로26 (회기동),,예매 공연회차에 맞춰 방문. 대학 캠퍼스 일상출입과 구분.,2026-11-06
+SEOUL_CHEONGNYANGNI_JUNGNANG,A-SEOUL-CN-ANTIQUE,답십리 고미술상가,DISTRICT,서울 동대문구 답십리동 답십리역1번출구 인근 고미술상가1~3동 일대,,고미술·골동품을 비교하고 고르는 쇼핑목적. 매장별 영업일 확인.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-NODEUL,노들섬 공개 수변문화공간,ROUTE,서울 용산구 양녕로445 노들섬 공개 생태정원·순환산책로 (이촌동),,공개된 수변부만 포함. 공사중·향후 개방시설 제외.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-YONGRIDAN,용리단길 신용산·삼각지 상업골목,DISTRICT,서울 용산구 한강로1·2가 신용산역~삼각지역 사이 카페·상점 골목,,용산구 전체나 인근 박물관까지 상권으로 합치지 않음.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-APMA,아모레퍼시픽미술관,VENUE,서울 용산구 한강대로100 아모레퍼시픽 본사1층·B1 (한강로2가),,전시회차·예매 확인. 기업사옥 외관과 전시관람 목적 구분.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-GOYO,고요서사,VENUE,서울 용산구 신흥로15길18-4 1층 (용산동2가),,문학 큐레이션 책방. 과거 탐방주소 대신 현행공식주소 사용.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-BELIGHT,비라이트 캔들&향수공방,VENUE,서울 용산구 두텁바위로43 용암빌딩 (후암동),,예약형 캔들제작. 202·204호 자료차이가 있어 예약시 호수 확인.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-IPARK,아이파크몰 용산점,VENUE,서울 용산구 한강대로23길55 (한강로3가),,패션·리빙·취미상품 복합쇼핑. 내부매장 전체를 개별앵커로 늘리지 않음.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-DOPAMINE,아이파크몰 도파민 스테이션,VENUE,아이파크몰 용산점 리빙파크3층 (한강로3가),A-SEOUL-YS-IPARK,상설 취향매장과 교체형 팝업공간. 현재 팝업일정 별도확인.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-YONGMUN,용문전통시장,DISTRICT,서울 용산구 용문동 효창원로42길·용문시장 아케이드·점포통로,,시장 구경·식재료·간식 구매. 양평 용문시장과 별개.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-ICHON,이촌한강공원 이촌동 공개 강변,ROUTE,서울 용산구 이촌로72길62 인근 이촌동 강변·미루나무길·공개휴식 구간,,서빙고동 등 다른Area까지 전체공원으로 범위 확장하지 않음.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-LIVEHOUSE,노들섬 라이브하우스,VENUE,서울 용산구 양녕로445 노들섬 실내공연장 (이촌동),,예매회차에 맞춰 관람. 공개수변 산책과 다른 실내공연목적.,2026-11-06
+SEOUL_YONGSAN,A-SEOUL-YS-WAR,전쟁기념관,VENUE,서울 용산구 이태원로29 (용산동1가),,전쟁역사 전시·추모 목적. 어린이박물관·특별전은 해당예약 확인.,2026-11-06
+SEOUL_ITAEWON_HANNAM,A-SEOUL-IH-MUSEUM,국립중앙박물관,VENUE,서울 용산구 서빙고로137 (용산동6가),,상설유물·기획전 관람. 서비스Area는 이태원·한남.,2026-11-06
+SEOUL_ITAEWON_HANNAM,A-SEOUL-IH-FAMILYPARK,용산가족공원,VENUE,서울 용산구 서빙고로185 (용산동6가),,가족공원 잔디·연못·산책로. 박물관 정원과 구분.,2026-11-06
+SEOUL_ITAEWON_HANNAM,A-SEOUL-IH-ANTHRACITE,앤트러사이트 한남,VENUE,서울 용산구 이태원로240 1~3층 (한남동),,커피와 공간을 즐기는 목적방문.,2026-11-06
+SEOUL_ITAEWON_HANNAM,A-SEOUL-IH-DD,디앤디파트먼트 서울,VENUE,서울 용산구 이태원로240 (한남동),,생활도구·디자인 상품 편집숍. 현행 층배치 방문전 확인.,2026-11-06
+SEOUL_ITAEWON_HANNAM,A-SEOUL-IH-SHOWROOM-STREET,한남동 쇼룸·편집숍 골목,DISTRICT,한남동 한남대로27길·이태원로54길 브랜드 상업골목 공개구간,,주거골목 전체가 아닌 쇼룸 밀집 상업구간. W한남 한 건물과 동일시하지 않음.,2026-11-06
+SEOUL_ITAEWON_HANNAM,A-SEOUL-IH-MUSINSA,무신사 스페이스 한남,VENUE,서울 용산구 이태원로230 1층 (한남동),,교체형 팝업 공간. 진행중 행사 확인. 수요근거는 주최측 인터뷰 한계.,2026-11-06
+SEOUL_ITAEWON_HANNAM,A-SEOUL-IH-BLUE,블루스퀘어,VENUE,서울 용산구 이태원로294 (한남동),,뮤지컬·콘서트 예매 관람. 홀 명칭은 변경될 수 있음.,2026-11-06
+SEOUL_ITAEWON_HANNAM,A-SEOUL-IH-LEEUM,리움미술관,VENUE,서울 용산구 이태원로55길60-16 (한남동),,고미술·현대미술 전시 목적. 예약·기획전 확인.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-HYUNDAI,더현대 서울,VENUE,서울 영등포구 여의대로108 (여의도동),,패션·취향상품 쇼핑과 교체형 브랜드팝업. 종료행사 자체는 별도앵커로 두지 않음.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-CAMEL,카멜커피 더현대 서울점,VENUE,더현대 서울 지하1층 (여의도동),A-SEOUL-YW-HYUNDAI,음료 목적방문. 몰 전체 쇼핑과 구분.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-ALT,더현대 서울 ALT.1,VENUE,더현대 서울6층 (여의도동),A-SEOUL-YW-HYUNDAI,회차별 유료기획전 관람. 편성·예약 확인.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-HANGANG,여의도한강공원 여의나루·물빛광장 수변,ROUTE,서울 영등포구 여의도동 여의나루역~물빛광장 공개강변,,강변 산책·잔디휴식. 계절 물놀이·텐트규정 별도확인.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-PARK,여의도공원,VENUE,서울 영등포구 여의공원로68 일대 (여의도동),,지당연못·공개산책길과 녹지휴식. 한강공원과 다른공원.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-SEOULDAL,서울달,VENUE,서울 영등포구 여의공원로68 여의도공원 잔디마당,A-SEOUL-YW-PARK,계류식 기구 탑승 조망. 기상변수·이용조건 확인.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-KBS,KBS 신관 공개홀,VENUE,서울 영등포구 여의공원로13 (여의도동),,음악·코미디 방송녹화 방청. 당첨·회차별조건 필요.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-IFC,IFC몰,VENUE,서울 영등포구 국제금융로10 (여의도동),,여러 브랜드 비교 쇼핑. 내부 모든매장을 개별앵커로 늘리지 않음.,2026-11-06
+SEOUL_YEOUIDO,A-SEOUL-YW-BOOK,영풍문고 여의도 IFC몰점,VENUE,서울 영등포구 국제금융로10 IFC몰L2 (여의도동),A-SEOUL-YW-IFC,도서탐색·구매.2026리뉴얼 뒤 현행 이용상태는 방문전 확인.,2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-MULLAE,문래창작촌 예술·상업 골목,DISTRICT,서울 영등포구 문래동2·3가 도림로128가길·문래동우체국 인근 공개골목,,"실제 철공소가 운영되는 곳. 작업장 무단출입·촬영 금지, 공개상업골목만 탐방.",2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-SULSUL,술술센터,VENUE,서울 영등포구 도림로133길15 (문래동2가),,공공문화공간 전시·프로그램 확인. 대관공간 전체를 상시전시로 보지 않음.,2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-RUST,러스트 베이커리,VENUE,서울 영등포구 경인로79길15 (문래동2가),,음료·베이커리와 재생공간 목적방문.,2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-TIMES,타임스퀘어,VENUE,서울 영등포구 영중로15 (영등포동4가),,쇼핑과 아트리움·뉴웨이브존 교체형팝업. 신세계백화점별도건물 혼동주의.,2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-DAERIM,대림중앙시장,DISTRICT,서울 영등포구 대림동 도림로38길 일대 시장통로,,길거리음식·식재료와 시장점포 구경.,2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-SEONYU,선유도공원,VENUE,서울 영등포구 선유로343 양화동 선유도 공개정원·수변전망구간,,정수장재생 정원과 산책로·강변조망. 망원구간까지 확대하지 않음.,2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-BOX,문래예술공장 박스씨어터,VENUE,서울 영등포구 경인로88길5-4 (문래동1가),,공연발표 편성에 맞춘 관람. 상시자유입장 아님.,2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-BOOK,교보문고 영등포점,VENUE,서울 영등포구 영중로15 타임스퀘어2층 (영등포동4가),A-SEOUL-YM-TIMES,도서탐색·구매목적. 몰전체 쇼핑과 별개.,2026-11-06
+SEOUL_YEONGDEUNGPO_MULLAE,A-SEOUL-YM-RATTAN,댕댕라탄,VENUE,서울 영등포구 경인로715 대영빌딩206호 (문래동2가),,예약형 라탄제작. 클래스별 일정·장소 예약전확인.,2026-11-06
+SEOUL_MOKDONG_YANGCHEON,A-SEOUL-MK-TERRE,떼르드카페 목동 보타닉하우스,VENUE,서울 양천구 목동동로257 현대백화점목동점7층 (목동),A-SEOUL-MK-HYUNDAI,커피와 온실형카페 공간 목적방문. 보타닉하우스를 별도중복앵커로 늘리지 않음.,2026-11-06
+SEOUL_MOKDONG_YANGCHEON,A-SEOUL-MK-HYUNDAI,현대백화점 목동점,VENUE,서울 양천구 목동동로257 (목동),,패션·뷰티·생활상품 쇼핑. 인바운드보다 지역거주객 수요 중심.,2026-11-06
+SEOUL_MOKDONG_YANGCHEON,A-SEOUL-MK-KKAEBI,목동깨비시장,DISTRICT,서울 양천구 목동 목3동 등촌역 남쪽 깨비시장 공개점포통로,,시장구경·먹거리·생활점포 탐방. 강서등촌동으로 오인하지 않음.,2026-11-06
+SEOUL_MOKDONG_YANGCHEON,A-SEOUL-MK-LAKE,서서울호수공원,VENUE,서울 양천구 신월동 옛신월정수장 중앙호수·몬드리안정원·공개산책로,,낙우송전망대는 내부 방문구역. 월드컵공원과 별개.,2026-11-06
+SEOUL_GANGSEO_MAGOK,A-SEOUL-GS-LAKE,서울식물원 열린숲·호수원,VENUE,서울 강서구 마곡동로161 서울식물원 공개 열린숲·호수원 수변길,,온실·주제정원의 유료입장구간과 구분. 습지원까지 범위확대는 추가검토.,2026-11-06
+SEOUL_GANGSEO_MAGOK,A-SEOUL-GS-LG,LG아트센터 서울,VENUE,서울 강서구 마곡중앙로136 (마곡동),,공연예매 목적방문. 과거페스티벌과 현행편성 구분.,2026-11-06
+SEOUL_GANGSEO_MAGOK,A-SEOUL-GS-SPACEK,스페이스K 서울,VENUE,서울 강서구 마곡중앙8로32 (마곡동),,현대미술 기획전 관람. 전시교체·예약확인.,2026-11-06
+SEOUL_GANGSEO_MAGOK,A-SEOUL-GS-TERRACE,마곡·발산 테라스 상업거리,DISTRICT,서울 강서구 마곡역~발산역 사이 마곡문화공원 인접 공개상업보행구간,,주거·연구시설 전체가 아니라 카페·식음·테라스 상업구간.,2026-11-06
+SEOUL_GANGSEO_MAGOK,A-SEOUL-GS-BOOK,교보문고 원그로브점,VENUE,서울 강서구 마곡동 원그로브몰 지하1층,,도서탐색·구매목적. 문구상설코너와 기간팝업 구분.,2026-11-06
+SEOUL_GANGSEO_MAGOK,A-SEOUL-GS-LOTTE,롯데몰 김포공항점,VENUE,서울 강서구 하늘길77 김포공항 연계쇼핑몰 (방화동),,국내 방문자의 몰 상품탐색·쇼핑 목적. 과거 개별브랜드목록은 현행으로 안내하지 않음.,2026-11-06
+SEOUL_GURO_GEUMCHEON,A-SEOUL-GG-INC,인크커피 가산점,VENUE,서울 금천구 가산디지털2로127-20 (가산동),,음료·베이커리와 공간목적방문. 상층이용현황은방문전확인.,2026-11-06
+SEOUL_GURO_GEUMCHEON,A-SEOUL-GG-ARBORETUM,푸른수목원,VENUE,서울 구로구 서해안로2117 (항동) 주제정원·항동저수지 공개구간,,정원·저수지 산책·녹지휴식. 계절꽃·야경은시기별차이.,2026-11-06
+SEOUL_GURO_GEUMCHEON,A-SEOUL-GG-RAIL,항동철길 수목원 인접 산책구간,ROUTE,서울 구로구 항동 광덕사거리 인접공개철길~푸른수목원 출입구 연결구간,,부천옥길동까지전체철길로 확대하지 않음. 현장출입통제 준수.,2026-11-06
+SEOUL_GURO_GEUMCHEON,A-SEOUL-GG-SEMA,서울시립 서서울미술관,VENUE,서울 금천구 독산동 금나래중앙공원 인접 미술관,,뉴미디어·작가기획전 관람. 퍼포먼스는 회차예약확인.,2026-11-06
+SEOUL_GURO_GEUMCHEON,A-SEOUL-GG-MARIO,마리오아울렛,VENUE,서울 금천구 가산동 디지털로185·벚꽃로266 일대1~3관,,패션·생활브랜드 비교쇼핑. 일반지점모두를개별앵커로늘리지않음.,2026-11-06
+SEOUL_GWANAK_SADANG,A-SEOUL-GW-SHARO,샤로수길 카페·상업골목,STREET,서울 관악구 봉천동 관악로14길 서울대입구역~낙성대초입,,개별 카페 운영은 방문 전 확인. 골목 자체가 목적지.,2026-11-06
+SEOUL_GWANAK_SADANG,A-SEOUL-GW-BORAMAE,보라매공원,VENUE,서울 동작구 신대방동 보라매공원 숲길·연못·정원,,공원 내부 정원·연못을 별도 앵커로 증식하지 않음.,2026-11-06
+SEOUL_GWANAK_SADANG,A-SEOUL-GW-VIEW,용양봉저정공원,VENUE,서울 동작구 본동 한강대교 남단 언덕 전망공원,,오르막·계단이 있는 전망 목적지. 인접 역사유적과 구분.,2026-11-06
+SEOUL_GWANAK_SADANG,A-SEOUL-GW-MARKET,노량진수산시장,VENUE,서울 동작구 노량진동 노들로674 소매시장,,소매시장 구경·구매 목적. 도매경매는 시간대가 별도.,2026-11-06
+SEOUL_GWANAK_SADANG,A-SEOUL-GW-MUSEUM,서울시립 남서울미술관,VENUE,서울 관악구 남현동 남부순환로2076,,전시 교체·휴관일 확인.,2026-11-06
+SEOUL_GWANAK_SADANG,A-SEOUL-GW-MALL,타임스트림 신림,VENUE,서울 관악구 신림동 신림로330,,개별 입점매장 전부를 앵커로 늘리지 않음.,2026-11-06
+SEOUL_GWANAK_SADANG,A-SEOUL-GW-BOOK,영풍문고 신림타임스트림점,VENUE,서울 관악구 신림동 신림로330 타임스트림7층,A-SEOUL-GW-MALL,서가·도서 탐색 목적.,2026-11-06
+SEOUL_GWANAK_SADANG,A-SEOUL-GW-STAGE,관악아트홀 공연장,VENUE,서울 관악구 신림동 신림로3길35,,작품별 사전예매·관람연령 확인. 전시실과 구분.,2026-11-06
+SEOUL_SEOCHO_BANPO,A-SEOUL-SB-CAFE,밤부 베이커리&브루잉 서래,VENUE,서울 서초구 방배동 동광로77,,개별 베이커리카페 목적방문. 합정점과 구분.,2026-11-07
+SEOUL_SEOCHO_BANPO,A-SEOUL-SB-GOTO,고투몰,VENUE,서울 서초구 반포동 신반포로194 고속터미널 지하쇼핑센터,,생활·패션 상가 비교쇼핑. 개별점포 전부를 앵커로 늘리지 않음.,2026-11-07
+SEOUL_SEOCHO_BANPO,A-SEOUL-SB-SSG,신세계백화점 강남점,VENUE,서울 서초구 반포동 신반포로176,,백화점 쇼핑 및 스위트파크·행사장 팝업. 기간별 내용 확인.,2026-11-07
+SEOUL_SEOCHO_BANPO,A-SEOUL-SB-EXH,예술의전당 운영 전시공간,VENUE,서울 서초구 서초동 남부순환로2406 제7전시실·한가람디자인미술관·서울서예박물관,,공사중 본관과 구분. 관람할 기획전 장소를 확인.,2026-11-07
+SEOUL_SEOCHO_BANPO,A-SEOUL-SB-STAGE,예술의전당 오페라극장,VENUE,서울 서초구 서초동 남부순환로2406 오페라하우스,,작품별 예매·좌석·공연일 확인.,2026-11-07
+SEOUL_SEOCHO_BANPO,A-SEOUL-SB-FLOWER,양재꽃시장,VENUE,서울 서초구 양재동 강남대로27 화훼공판장 소매구역·분화온실,,소매구경·꽃구매 목적. 경매시간과 혼동하지 않음.,2026-11-07
+SEOUL_SEOCHO_BANPO,A-SEOUL-SB-PARK,반포한강공원·서래섬 공개 수변,VENUE,서울 서초구 반포동 서래섬~세빛섬 인접 수변·산책길,,침수통제·계절꽃·분수 운영 조건 확인. 섬별 인공시설로 중복증식 안함.,2026-11-07
+SEOUL_SEOCHO_BANPO,A-SEOUL-SB-BOOK,교보문고 강남점,VENUE,서울 서초구 서초동 강남대로465 교보타워 지하1~2층,,도서·서가 탐색 목적. 강남역삼Area로 오배정하지 않음.,2026-11-07
+SEOUL_GANGNAM_YEOKSAM,A-SEOUL-GY-CAFE,셀렉티드닉스,VENUE,서울 강남구 역삼동 테헤란로4길37,,층별카페·디저트 목적. 카페분위기와 정식전시를 구분.,2026-11-07
+SEOUL_GANGNAM_YEOKSAM,A-SEOUL-GY-APPLE,Apple 강남,VENUE,서울 강남구 역삼동 강남대로464,,제품체험·비교쇼핑 목적. 단순AS만을 앵커근거로 쓰지 않음.,2026-11-07
+SEOUL_GANGNAM_YEOKSAM,A-SEOUL-GY-TEUM,U+일상비일상의틈,VENUE,서울 강남구 역삼동 강남대로426,,참여형미술·문화체험 공간. 2026개편후 프로그램 확인.,2026-11-07
+SEOUL_GANGNAM_YEOKSAM,A-SEOUL-GY-MARKET,도곡시장,VENUE,서울 강남구 역삼동 도곡로 일대 전통시장,,소매식품·생활품구경. 법정동 도곡동으로 오인하지 않음.,2026-11-07
+SEOUL_GANGNAM_YEOKSAM,A-SEOUL-GY-PARK,율현공원,VENUE,서울 강남구 율현동 밤고개로24길 일대,,잔디·정원·장미원 산책. 실제Area는 강남역삼.,2026-11-07
+SEOUL_GANGNAM_YEOKSAM,A-SEOUL-GY-STAGE,GS아트센터,VENUE,서울 강남구 역삼동 논현로508 GS타워,,예매작품 일정에 맞춰 방문. 옛LG아트센터와 구분.,2026-11-07
+SEOUL_GANGNAM_YEOKSAM,A-SEOUL-GY-BOOK,최인아책방 본점(선릉),VENUE,서울 강남구 역삼동 선릉로521 4층,,주제별서가·선별도서 탐색. 폐점GFC점과구분.,2026-11-07
+SEOUL_APGUJEONG_CHEONGDAM,A-SEOUL-AC-SONGEUN,송은,VENUE,서울 강남구 청담동 압구정로75길6,,전시교체·관람예약 확인.,2026-11-07
+SEOUL_APGUJEONG_CHEONGDAM,A-SEOUL-AC-BBCH,광림아트센터 BBCH홀,VENUE,서울 강남구 신사동 논현로163길33,,작품별예매·관람연령 확인.,2026-11-07
+SEOUL_APGUJEONG_CHEONGDAM,A-SEOUL-AC-HOUSE,하우스 노웨어 도산,VENUE,서울 강남구 신사동 압구정로46길50,,젠틀몬스터·탬버린즈 쇼핑·브랜드공간 탐방. 성수지점과구분.,2026-11-07
+SEOUL_APGUJEONG_CHEONGDAM,A-SEOUL-AC-NUDAKE,누데이크 하우스 노웨어 도산,VENUE,서울 강남구 신사동 압구정로46길50 지하1층,A-SEOUL-AC-HOUSE,디저트·음료 목적 카페. 건물내다른브랜드를 개별앵커로 전부늘리지 않음.,2026-11-07
+SEOUL_APGUJEONG_CHEONGDAM,A-SEOUL-AC-PARK,도산공원,VENUE,서울 강남구 신사동649-9 도산대로45길20 일대,,공개공원 산책·휴식. 내부기념시설 공사와 공원전체개방을 구분.,2026-11-07
+SEOUL_APGUJEONG_CHEONGDAM,A-SEOUL-AC-MARKET,강남 영동전통시장,VENUE,서울 강남구 논현동 논현역인근 영동시장 골목,,충북영동시장과 구분. 음식·소매구경목적.,2026-11-07
+SEOUL_SAMSUNG_COEX,A-SEOUL-CX-CAFE,테라로사 포스코센터점,VENUE,서울 강남구 대치동 테헤란로440 포스코센터,,북카페체류·음료목적. 판매서점으로자동연결안함.,2026-11-07
+SEOUL_SAMSUNG_COEX,A-SEOUL-CX-PARK,삼성해맞이공원,VENUE,서울 강남구 삼성동 언덕 전망공원,,휴식·전망 목적. 전망데크를다른앵커로늘리지않음.,2026-11-07
+SEOUL_SAMSUNG_COEX,A-SEOUL-CX-SEOLLEUNG,선정릉 공개 관람 숲길,ROUTE,서울 강남구 삼성동 선릉로100길1,,문화유산관람 공개동선. 능침제한구역과구분.,2026-11-07
+SEOUL_SAMSUNG_COEX,A-SEOUL-CX-BONGEUN,봉은사 공개 경내·산책길,VENUE,서울 강남구 삼성동 봉은사로531,,기도공간예절과공개동선 준수.,2026-11-07
+SEOUL_SAMSUNG_COEX,A-SEOUL-CX-MALL,스타필드 코엑스몰,VENUE,서울 강남구 삼성동 영동대로513,,쇼핑·교체형팝업거점. 지점혼동주의.,2026-11-07
+SEOUL_SAMSUNG_COEX,A-SEOUL-CX-STAGE,코엑스아티움 우리은행홀,VENUE,서울 강남구 삼성동 영동대로513 코엑스아티움,,작품별예매·공연일확인.,2026-11-07
+SEOUL_SAMSUNG_COEX,A-SEOUL-CX-BOOK,영풍문고 스타필드코엑스몰점,VENUE,서울 강남구 삼성동 영동대로513 몰내서점,A-SEOUL-CX-MALL,책판매·서가탐색. 별마당도서관과구분.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-SOMA,소마미술관,VENUE,서울 송파구 방이동 올림픽공원 내 소마미술관1·2관,,관람전시가 열리는 관을확인. 조각공원전체와구분.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-CONCERT,롯데콘서트홀,VENUE,서울 송파구 신천동 올림픽로300 롯데월드몰8층,,공연일·예매·연령확인.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-KNOT,노트수 스튜디오,VENUE,서울 송파구 송파동8 산동빌딩2층,,매듭팔찌 제작 예약형. 현행위치예약확인.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-SONGRI,송리단길 카페 골목,STREET,서울 송파구 송파동 백제고분로45길·석촌호수 동남쪽 골목,,개별매장 영업 변동. 골목을 단일 앵커로 묶음.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-MALL,롯데월드몰,VENUE,서울 송파구 신천동 올림픽로300,,종료된 팝업을 상설로 취급하지 않음. 방문일 편성 확인.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-OLY,올림픽공원 피크닉·몽촌토성 구역,VENUE,서울 송파구 방이동 올림픽공원 피크닉장·몽촌토성 주변,,강동구 경계 밖 구역과 구분. 행사 통제·이용구역 확인.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-LAKE,석촌호수 산책로,ROUTE,서울 송파구 잠실동·신천동 석촌호수 동호·서호 호숫가,,특별 축제 종료와 일반 호숫가 산책을 구분.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-SKY,서울스카이,VENUE,서울 송파구 신천동 올림픽로300 롯데월드타워 전망대,,전망대 입장·날씨 확인. 몰쇼핑과 방문 목적 구분.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-BOOK,교보문고 잠실점,VENUE,서울 송파구 신천동 올림픽로269 롯데캐슬플라자 지하1층,,롯데월드몰 내부 서점이 아님.,2026-11-07
+SEOUL_JAMSIL_SONGPA,A-SEOUL-JS-MARKET,잠실 새마을전통시장,DISTRICT,서울 송파구 잠실동 석촌호수로12길 일대,,간식·점포 구경을 시장 단위로 연결.,2026-11-07
+SEOUL_GANGDONG,A-SEOUL-GD-HYUNDAI,현대백화점 천호점,VENUE,서울 강동구 천호동 천호대로1005,,쇼핑과 기간별 팝업 목적을 구분.당일편성확인.,2026-11-07
+SEOUL_GANGDONG,A-SEOUL-GD-ART,강동아트센터 공연장,VENUE,서울 강동구 상일동 동남로870,,예매·공연일확인.,2026-11-07
+SEOUL_GANGDONG,A-SEOUL-GD-ARTRANG,강동아트센터 아트랑,VENUE,서울 강동구 상일동 동남로870 아트랑 전시장,,공연장과 목적다른 전시장.전시기간확인.,2026-11-07
+SEOUL_GANGDONG,A-SEOUL-GD-AMSA,암사생태공원 공개 탐방로·전망데크,VENUE,서울 강동구 암사동624-1일대 광나루한강공원 내 생태공원,,보전구역출입제한·홍수통제확인.광진구강변과구분.,2026-11-07
+SEOUL_GANGDONG,A-SEOUL-GD-MARKET,암사종합시장,DISTRICT,서울 강동구 암사동 암사역1번출구 인근 상암로 일대,,시장점포구경·먹거리포장 목적.,2026-11-07
+SEOUL_GANGDONG,A-SEOUL-GD-CRAFT,엔젤공방거리,STREET,서울 강동구 성내동 성안로101~109·허브센터108 인근,,거리내수업을 선택·예약.모든공방을별도앵커로증식안함.,2026-11-07

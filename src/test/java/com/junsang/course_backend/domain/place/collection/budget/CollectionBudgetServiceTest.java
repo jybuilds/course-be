@@ -48,6 +48,13 @@ class CollectionBudgetServiceTest {
                 .isInstanceOf(CollectionDeferredException.class);
         assertThat(calls).hasValue(0);
     }
+    @Test void dailyNaverQuotaWaitsForKoreanMidnightEvenWhenClockUsesUtc() {
+        var utcService = new CollectionBudgetService(writer, clock.withZone(ZoneOffset.UTC), new ObjectMapper());
+        assertThatThrownBy(() -> utcService.execute(ApiScope.NAVER_SEARCH, keys, key -> {
+            throw response(429, "{\"error\":{\"errorCode\":429,\"message\":\"일별 사용량 한도가 초과하였습니다.\"}}");
+        })).isInstanceOfSatisfying(CollectionDeferredException.class, e ->
+                assertThat(e.retryAt()).isEqualTo(Instant.parse("2026-11-16T15:00:00Z")));
+    }
     @Test void unknown429IsShortCooldownNotMonthlyQuota() {
         assertThatThrownBy(() -> service.execute(ApiScope.NAVER_SEARCH, keys.subList(0,1), key -> {
             throw response(429, "{\"error\":{\"errorCode\":\"420\"}}");

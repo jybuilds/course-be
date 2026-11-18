@@ -1,0 +1,13 @@
+area_code,tag_code,anchor_id,visit_purpose,selection_reason,evidence_ids
+SEOUL_BUKHANSAN_GANGBUK,CAFE,A-SEOUL-BG-419-CAFE,북한산 자락 카페 공간을 찾아가 머무르고 여러 카페를 비교하는 방문,약 600m의 카페 밀집 거리와 국내 방문 후기가 확인되어 거리 단위로 채택.,"[""SRC-419-CITY"",""SRC-419-VISIT""]"
+SEOUL_BUKHANSAN_GANGBUK,SHOPPING,A-SEOUL-BG-HYUNDAI-MIA,패션·생활·식품 등 백화점 상품 탐색과 구매,공식 주소가 길음동이며 현장 후기에 백화점 쇼핑·식사 수요가 확인된다.,"[""SRC-HYUNDAI-OFFICIAL"",""SRC-HYUNDAI-VISIT""]"
+SEOUL_BUKHANSAN_GANGBUK,EXHIBITION,A-SEOUL-BG-SEOUL-MUSEUM,"기획 전시와 미술관 콘텐츠, 석파정 정원 관람","현재 진행 중인 기획전과 통합 관람, 국내 실제 관람 기록을 확인했다.","[""SRC-SEOULMUSEUM-INFO"",""SRC-SEOULMUSEUM-EXHIBITIONS"",""SRC-SEOULMUSEUM-VISIT""]"
+SEOUL_BUKHANSAN_GANGBUK,MARKET,A-SEOUL-BG-SUYU-MARKET,전통시장 골목과 먹거리·점포를 둘러보는 시장 방문,시민기자의 현장 방문 글은 수유역 일대 시장과 먹거리 탐방을 구체적으로 다룬다. 최근 방문객 수는 확인되지 않았다.,"[""SRC-SUYU-CITY-VISIT""]"
+SEOUL_BUKHANSAN_GANGBUK,WALK,A-SEOUL-BG-SEONGBUK-WALK,성북동의 한옥·문학·역사 유산을 잇는 도보 탐방,서울시 현장 탐방 및 2026년 정기 해설 프로그램이 성북동의 목적형 도보 방문을 뒷받침한다.,"[""SRC-SEONGBUK-SEOUL-VISIT"",""SRC-SEONGBUK-SEOULPN""]"
+SEOUL_BUKHANSAN_GANGBUK,WALK,A-SEOUL-BG-BUKHANSAN-COURSE-2,숲길과 독립유공자 묘역을 지나는 걷기 코스,강북구 공식 걷기 코스와 구간 안내가 솔밭공원 상단~이준열사묘역 입구로 일치한다.,"[""SRC-BUKHANSAN-GANGBUK"",""SRC-BUKHANSAN-EVERYTRAIL""]"
+SEOUL_BUKHANSAN_GANGBUK,WALK,A-SEOUL-BG-NEULPUREUN-ROUTE,강북 자연·역사·시장 거점을 잇는 테마 산책,강북구가 조성한 코스의 구간이 명시되어 있고 서울 시민기자가 중심 거점의 실제 이용을 기록했다.,"[""SRC-NEULPUREUN-YNA"",""SRC-SOLBAT-SEOUL-VISIT""]"
+SEOUL_BUKHANSAN_GANGBUK,PARK,A-SEOUL-BG-DREAMFOREST-PARK,숲·잔디·연못에서 휴식하고 피크닉하는 공원 나들이,공식 공원 안내와 국내 주말 방문 기록이 녹지 휴식 목적을 함께 뒷받침한다.,"[""SRC-DREAMFOREST-PARK-OFFICIAL"",""SRC-DREAMFOREST-PARK-VISIT""]"
+SEOUL_BUKHANSAN_GANGBUK,PARK,A-SEOUL-BG-SOLBAT-PARK,소나무 숲과 산책로에서 쉬고 걷는 공원 나들이,시민기자가 직접 방문해 소나무숲·산책·피크닉 이용을 기록했고 시 안내가 주소를 확인해 준다.,"[""SRC-SOLBAT-SEOUL-VISIT"",""SRC-SOLBAT-SEOUL-ADDRESS""]"
+SEOUL_BUKHANSAN_GANGBUK,PERFORMANCE,A-SEOUL-BG-DREAMFOREST-ARTCENTER,공연 일정에 맞춰 예매하고 공연장에서 관람,콘서트홀·퍼포먼스홀과 2026년 공연 일정이 확인됐다. 실제 이용은 일정별로 확인한다.,"[""SRC-DREAMFOREST-PARK-OFFICIAL"",""SRC-DREAMFOREST-PERFORMANCE""]"
+SEOUL_BUKHANSAN_GANGBUK,SCENIC_VIEW,A-SEOUL-BG-BUKAK-PAVILION,북악산에서 서울 전경과 야경 조망,평창동 주소 및 국내 방문자의 야경 조망·주말 저녁 방문 기록을 확인했다.,"[""SRC-BUKAK-ADDRESS"",""SRC-BUKAK-VISIT""]"
+SEOUL_BUKHANSAN_GANGBUK,SCENIC_VIEW,A-SEOUL-BG-DREAMFOREST-OBSERVATORY,전망대에서 서울 북부 산세와 공원 풍경 조망,서울시 자료가 전망대 조망·운영 정보를 안내하고 시민기자 방문 기록이 확인된다.,"[""SRC-DREAMFOREST-OBSERVATORY"",""SRC-DREAMFOREST-OBSERVATORY-VISIT""]"

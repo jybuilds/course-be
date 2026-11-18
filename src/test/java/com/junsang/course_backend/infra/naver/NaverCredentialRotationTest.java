@@ -31,7 +31,7 @@ class NaverCredentialRotationTest {
         var blog = new NaverBlogClient(properties, builder, new ObjectMapper(), budget);
         server.expect(header("X-NCP-APIGW-API-KEY-ID", "id-a"))
                 .andRespond(withStatus(HttpStatus.TOO_MANY_REQUESTS).contentType(MediaType.APPLICATION_JSON)
-                        .body("{\"error\":{\"errorCode\":\"400\",\"message\":\"Quota Exceeded\"}}"));
+                        .body("{\"error\":{\"errorCode\":429,\"message\":\"일별 사용량 한도가 초과하였습니다.\"}}"));
         server.expect(header("X-NCP-APIGW-API-KEY-ID", "id-b"))
                 .andExpect(queryParam("query", "%EC%84%B1%EC%88%98%20%EC%B9%B4%ED%8E%98"))
                 .andRespond(withSuccess("{\"items\":[]}", MediaType.APPLICATION_JSON));
@@ -40,6 +40,16 @@ class NaverCredentialRotationTest {
                 .andRespond(withSuccess("{\"items\":[]}", MediaType.APPLICATION_JSON));
         assertThat(local.search("성수 카페").items()).isEmpty();
         assertThat(blog.search("성수 카페").items()).isEmpty();
+        assertThat(blocks.get("main").reason()).isEqualTo("QUOTA_DAILY");
         server.verify();
+    }
+
+    @Test void dropsMalformedTeamCredentialBeforeSendingAnyRequestWithIt() {
+        var main = new ApiCredential("main", "id-a", "key-a");
+        var team = new ApiCredential("team", "팀원 아이디", "팀원 키");
+        var baseUrl = URI.create("https://test.invalid");
+
+        assertThat(new NaverSearchProperties(baseUrl, List.of(main, team)).credentials()).containsExactly(main);
+        assertThat(new NaverSearchProperties(baseUrl, List.of(team)).isConfigured()).isFalse();
     }
 }

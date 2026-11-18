@@ -1,0 +1,30 @@
+area_code,area_name,status,reviewed_tag_count,selected_anchor_count,updated_at,note
+SEOUL_BUKHANSAN_GANGBUK,북한산·강북,IN_PROGRESS,8,12,2026-11-05,기존 작성 모델 이력 미기재. 사용자 지시에 따라 Sol 기준 원문 재검증·누락 후보 탐색 중; 기존 완료 판정 재개방.
+SEOUL_DOBONG_NOWON,도봉·노원,PENDING,0,0,2026-11-05,앞선 북한산·강북 Sol 재검토 완료 후 순차 조사
+SEOUL_EUNPYEONG_YEONHUI,은평·서대문,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_SINCHON_EWHA,신촌·이대,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_GWANGHWAMUN_SEOCHON,광화문·서촌,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_BUKCHON_INSADONG_IKSUN,북촌·인사동·종로,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_DAEHAKRO_DONGDAEMUN,대학로·동대문,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_MYEONGDONG_EULJIRO,명동·을지로,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_SEOUL_STATION_NAMDAEMUN,서울역·남대문,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_HONGDAE_YEONNAM,홍대·연남,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_SANGSU_HAPJEONG_MANGWON,상수·합정·망원,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_MAPO_GONGDEOK,마포,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_SEONGSU,성수,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_WANGSIMNI_KONKUK,왕십리·건대,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_CHEONGNYANGNI_JUNGNANG,청량리,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_YONGSAN,용산,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_ITAEWON_HANNAM,이태원·한남,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_YEOUIDO,여의도,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_YEONGDEUNGPO_MULLAE,영등포·문래,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_MOKDONG_YANGCHEON,목동·양천,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_GANGSEO_MAGOK,강서·김포,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_GURO_GEUMCHEON,구로·금천,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_GWANAK_SADANG,관악·사당,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_SEOCHO_BANPO,서초·반포,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_GANGNAM_YEOKSAM,강남·역삼,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_APGUJEONG_CHEONGDAM,압구정·청담,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_SAMSUNG_COEX,삼성·코엑스,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_JAMSIL_SONGPA,잠실·송파,PENDING,0,0,,앞선 Area 검토 후 순차 조사
+SEOUL_GANGDONG,강동,PENDING,0,0,,앞선 Area 검토 후 순차 조사

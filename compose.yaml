@@ -15,6 +15,11 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "5"
 
   app:
     build:
@@ -44,11 +49,24 @@ services:
       SERVER_CONTEXT_PATH: ${SERVER_CONTEXT_PATH:-/course}
       PLACE_COLLECTION_RECOVERY_SINGLE_INSTANCE: "${PLACE_COLLECTION_RECOVERY_SINGLE_INSTANCE:-true}"
       PLACE_COLLECTION_SCHEDULING_ENABLED: "${PLACE_COLLECTION_SCHEDULING_ENABLED:-false}"
+      LOGGING_FILE_NAME: /var/log/course/application.log
+      LOGGING_LOGBACK_ROLLINGPOLICY_MAX_FILE_SIZE: 50MB
+      LOGGING_LOGBACK_ROLLINGPOLICY_MAX_HISTORY: "30"
+      LOGGING_LOGBACK_ROLLINGPOLICY_TOTAL_SIZE_CAP: 2GB
+      LOGGING_LOGBACK_ROLLINGPOLICY_CLEAN_HISTORY_ON_START: "true"
     ports:
       - "${APP_PORT:-8080}:8080"
+    volumes:
+      - course-app-logs:/var/log/course
     depends_on:
       postgres:
         condition: service_healthy
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "5"
 
 volumes:
   course-postgres-data:
+  course-app-logs:

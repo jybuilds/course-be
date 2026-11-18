@@ -5,6 +5,7 @@ import com.junsang.course_backend.domain.place.collection.pipeline.naver.service
 
 import com.junsang.course_backend.domain.place.collection.scheduling.policy.CollectionPolicy;
 import com.junsang.course_backend.domain.place.collection.scheduling.service.*;
+import com.junsang.course_backend.infra.naver.config.NaverSearchProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,6 +20,7 @@ public class NaverRefinementScheduler {
     private final CollectionPolicy policy;
     private final PlaceRefinementService service;
     private final CollectionExecutionState state;
+    private final NaverSearchProperties naverSearch;
 
     @Scheduled(fixedDelayString="#{@collectionPolicy.settings().naver.intervalMillis}", scheduler="naverCollectionScheduler")
     public void run() {
@@ -32,7 +34,7 @@ public class NaverRefinementScheduler {
     }
 
     private void execute() {
-        if (!state.canStartWork()) return;
+        if (!naverSearch.isConfigured() || !state.canStartWork()) return;
         int capacity = state.naverCapacity();
         if (capacity > 0) service.refinePending(capacity);
     }

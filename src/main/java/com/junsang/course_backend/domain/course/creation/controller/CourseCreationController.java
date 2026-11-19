@@ -8,6 +8,8 @@ import com.junsang.course_backend.domain.course.creation.service.CourseCandidate
 import com.junsang.course_backend.domain.course.creation.service.CourseCreationService;
 import com.junsang.course_backend.domain.course.creation.service.CourseDraftService;
 import com.junsang.course_backend.domain.course.entity.CourseItemRole;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -36,6 +38,8 @@ public class CourseCreationController {
 
     // 앞 칸의 추천 장소를 기준으로 칸마다 추천순 후보를 이어 붙인 코스 초안을 만든다.
     @GetMapping("/draft")
+    @Tag(name = "3. 코스 추천")
+    @Operation(summary = "앵커 기준 코스 초안 조회")
     public CourseDraftResponse draft(
             @RequestParam @NotNull(message = "앵커 장소는 필수입니다.") Long anchorPlaceId,
             @RequestParam(required = false) @Size(max = 10, message = "칸은 최대 10개까지 만들 수 있습니다.")
@@ -48,6 +52,8 @@ public class CourseCreationController {
 
     // 직전 장소를 기준으로 다음 일정 후보를 조회한다. 후보가 없으면 빈 목록을 준다.
     @GetMapping("/candidates")
+    @Tag(name = "4. 사용자 커스텀")
+    @Operation(summary = "일정 칸 후보 장소 조회")
     public List<CourseCandidateResponse> findCandidates(
             @RequestParam @NotNull(message = "앵커 장소는 필수입니다.") Long anchorPlaceId,
             @RequestParam @NotNull(message = "일정 유형은 필수입니다.") CourseItemRole role,
@@ -64,6 +70,8 @@ public class CourseCreationController {
     // 사용자가 확정한 앵커와 일정 장소를 코스로 저장한다.
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Tag(name = "5. 코스 저장")
+    @Operation(summary = "직접 생성 코스 저장")
     public CreatedCourseResponse create(@Valid @RequestBody CourseCreateRequest request) {
         return courseCreationService.create(request);
     }

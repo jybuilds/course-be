@@ -2,6 +2,7 @@
 
 HTTP Client가 없는 환경에서 같은 요청 파일을 터미널로 재생하기 위한 도구다.
 기대 상태 코드는 요청 제목에 적힌 마지막 HTTP 코드를 쓰고, 없으면 GET은 200, POST는 201로 본다.
+앞선 응답이 courseId를 주면 이후 요청의 {{courseId}} 를 그 값으로 바꾼다.
 
 사용법: python3 tools/http/run-http.py http/course-creation.http
 """
@@ -58,6 +59,8 @@ def summarize(data):
             first = slot["places"][0]["name"] if slot["places"] else "(후보 없음)"
             parts.append(f"{slot['order']}.{slot['role']} {first} 외 {max(len(slot['places']) - 1, 0)}곳")
         return " → ".join(parts)
+    if "published" in data and "tags" in data:
+        return f"코스 {data['courseId']} 공개={data['published']}, 태그={data['tags']}"
     if "courseId" in data:
         orders = [item["itemOrder"] for item in data["scheduleItems"]]
         return f"코스 {data['courseId']} 저장, 공개={data['published']}, 순서={orders}, 태그={data['generatedTags']}"
@@ -76,8 +79,18 @@ def main():
         return 1
 
     passed = 0
+    course_id = None
     for number, (title, method, url, body, expected) in enumerate(requests, start=1):
+        # 공개 전환은 저장된 코스 ID가 필요하므로 앞선 저장 응답의 값을 물려받는다.
+        if "{{courseId}}" in url:
+            if course_id is None:
+                print(f"❌ {title}")
+                print("     앞선 요청에서 courseId를 받지 못했습니다.")
+                continue
+            url = url.replace("{{courseId}}", str(course_id))
         status, data = send(method, url, body)
+        if isinstance(data, dict) and "courseId" in data:
+            course_id = data["courseId"]
         ok = status == expected
         passed += ok
         print(f"{'✅' if ok else '❌'} {title}")

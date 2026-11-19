@@ -167,7 +167,7 @@ Started CourseBackendApplication in 2.5 seconds
 진행률이 `80% EXECUTING`에서 멈춰 있는 게 **정상**이다 (서버가 살아 있다는 뜻). 이 터미널은 그대로 두고,
 **새 터미널(`Cmd+T`)을 열어** 다음 단계로 간다. 서버를 멈출 땐 이 터미널에서 `Ctrl+C`.
 
-> **5~13번을 한 번에 하려면** 새 터미널에서 `make course-check`를 실행한다. `http/course-creation.http`의 요청 16개를
+> **5~13-1번을 한 번에 하려면** 새 터미널에서 `make course-check`를 실행한다. `http/course-creation.http`의 요청 19개를
 > 순서대로 실행하고, 기대한 상태 코드와 같으면 ✅, 다르면 ❌로 보여준다. 아래 단계별 curl은 하나씩 자세히 볼 때용이다.
 
 포트가 이미 쓰인다고 하면 누가 쓰는지 확인한다.
@@ -514,6 +514,61 @@ role 오타 / role 누락 / 앵커 누락 / 앵커가 숫자 아님  → 전부 
 
 ---
 
+## 13-1. 코스를 공개해서 추천 대상으로 만들기
+
+### 무엇을 하나
+
+저장한 코스는 **비공개로 시작**한다. 공개로 바꿔야 대표 코스 추천에 잡힌다.
+10번에서 저장한 코스 ID(`courseId`)를 쓴다.
+
+### 이거 하셈
+
+```bash
+curl -s -X POST http://localhost:8081/api/v1/courses/1/publish | python3 -m json.tool
+```
+
+> `1` 자리에 10번에서 받은 `courseId`를 넣는다.
+
+### 이렇게 나오면 정상
+
+- `HTTP 200`
+- `"published": true`
+- `tags`에 태그 코드가 들어있다
+
+```json
+{
+  "courseId": 1,
+  "title": "성수 하루 코스",
+  "published": true,
+  "tags": ["DESSERT", "KOREAN_FOOD", "POPUP"]
+}
+```
+
+**`tags`가 비어 있으면 공개해도 태그로는 추천에 안 잡힌다.** 코스에 담은 장소에 태그가 없다는 뜻이다.
+
+### 공개 시점에 태그를 다시 계산한다
+
+저장할 때 장소에 태그가 없었어도, 그 뒤에 수집 파이프라인이 태그를 붙였다면
+**공개할 때 다시 계산해서 반영한다.** 저장 시점의 태그에 묶이지 않는다.
+
+### 되돌리기
+
+```bash
+curl -s -X POST http://localhost:8081/api/v1/courses/1/unpublish | python3 -m json.tool
+```
+
+`"published": false`로 돌아온다. 같은 요청을 여러 번 보내도 결과는 같다.
+
+### 막혀야 하는 것
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:8081/api/v1/courses/999999/publish
+```
+
+`404`가 나와야 한다 (`COURSE_NOT_FOUND`).
+
+---
+
 ## 14. 뒷정리
 
 ### 무엇을 하나
@@ -620,6 +675,19 @@ POST /api/v1/courses   → 201
 - `scheduleItems`의 **배열 순서가 곧 방문 순서**다. 서버가 1부터 다시 매긴다
 - 코스의 지역은 앵커의 지역을 따라간다
 - 저장 직후 코스 태그를 자동 계산한다
+- **비공개로 저장된다.** 공개는 아래 API로 따로 전환한다
+
+### 코스 공개 전환
+
+```
+POST /api/v1/courses/{courseId}/publish     → 200  published=true
+POST /api/v1/courses/{courseId}/unpublish   → 200  published=false
+```
+
+- **공개된 코스만 대표 코스 추천 대상**이 된다
+- 공개 직전에 **코스 태그를 다시 계산**한다. 저장 이후 장소 태그가 수집되었다면 그 결과가 반영된다
+- 같은 요청을 반복해도 결과가 같다
+- 없는 코스는 404 `COURSE_NOT_FOUND`
 
 ---
 
@@ -630,7 +698,6 @@ POST /api/v1/courses   → 201
 | 없는 것 | 영향 |
 |---|---|
 | `GET /api/v1/courses/{id}` | 저장한 코스를 다시 조회할 방법이 없다 |
-| 코스 공개 전환 API | `is_published`가 계속 `false`라 **대표 코스 추천에 절대 안 나온다** |
 | 코스 수정 · 삭제 API | 저장 후 고칠 수 없다 |
 | 앵커 목록 조회 API | 앵커를 "둘러보기"로 찾을 수 없다. 키워드 검색만 가능하다 |
 

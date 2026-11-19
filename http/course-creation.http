@@ -101,3 +101,12 @@ GET {{host}}/api/v1/courses/candidates?anchorPlaceId=931001&role=ACTIVIT
 
 ### 16. [실패해야 함] 초안 칸이 11개 — 400 INVALID_INPUT
 GET {{host}}/api/v1/courses/draft?anchorPlaceId=931001&roles=ACTIVITY,MEAL,CAFE,ACTIVITY,MEAL,CAFE,ACTIVITY,MEAL,CAFE,ACTIVITY,MEAL
+
+### 17. 코스 공개 — 200, published=true (10번에서 저장한 코스를 쓴다)
+POST {{host}}/api/v1/courses/{{courseId}}/publish
+
+### 18. 코스 비공개 — 200, published=false
+POST {{host}}/api/v1/courses/{{courseId}}/unpublish
+
+### 19. [실패해야 함] 없는 코스 공개 — 404 COURSE_NOT_FOUND
+POST {{host}}/api/v1/courses/999999/publish

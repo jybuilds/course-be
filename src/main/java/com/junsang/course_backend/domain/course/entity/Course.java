@@ -103,6 +103,11 @@ public class Course {
         isPublished = true;
     }
 
+    // 대표 코스를 추천 대상에서 제외한다.
+    public void unpublish() {
+        isPublished = false;
+    }
+
     @jakarta.persistence.PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now();

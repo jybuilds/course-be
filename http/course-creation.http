@@ -110,3 +110,15 @@ POST {{host}}/api/v1/courses/{{courseId}}/unpublish
 
 ### 19. [실패해야 함] 없는 코스 공개 — 404 COURSE_NOT_FOUND
 POST {{host}}/api/v1/courses/999999/publish
+
+### 20. [실패해야 함] 비공개 코스 상세 — 404 COURSE_NOT_FOUND (18번에서 비공개로 돌렸다)
+GET {{host}}/api/v1/courses/{{courseId}}
+
+### 21. 코스 다시 공개 — 200
+POST {{host}}/api/v1/courses/{{courseId}}/publish
+
+### 22. 코스 상세 조회 — 200, 도시·지역·앵커·방문 순서·태그
+GET {{host}}/api/v1/courses/{{courseId}}
+
+### 23. [실패해야 함] 없는 코스 상세 — 404 COURSE_NOT_FOUND
+GET {{host}}/api/v1/courses/999999

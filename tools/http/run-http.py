@@ -59,6 +59,10 @@ def summarize(data):
             first = slot["places"][0]["name"] if slot["places"] else "(후보 없음)"
             parts.append(f"{slot['order']}.{slot['role']} {first} 외 {max(len(slot['places']) - 1, 0)}곳")
         return " → ".join(parts)
+    if "scheduleItems" in data and "courseTags" in data:
+        places = " → ".join(item["place"]["name"] for item in data["scheduleItems"])
+        tags = [tag["code"] for tag in data["courseTags"]]
+        return f"{data['title']} / {data['area']['name']} / {data['anchorPlace']['name']} → {places} / 태그={tags}"
     if "published" in data and "tags" in data:
         return f"코스 {data['courseId']} 공개={data['published']}, 태그={data['tags']}"
     if "courseId" in data:

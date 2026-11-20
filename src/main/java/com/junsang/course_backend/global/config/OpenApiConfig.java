@@ -33,6 +33,10 @@ import org.springframework.context.annotation.Configuration;
                 description = "사용자가 완성한 코스를 저장하고 서버에서 제목을 생성하는 단계입니다."
         ),
         @Tag(
+                name = "6. 코스 상세",
+                description = "선택한 코스의 앵커, 방문 순서, 코스 태그를 조회하는 단계입니다."
+        ),
+        @Tag(
                 name = "코스 추천 API - 미사용",
                 description = "대표 코스 추천 API입니다. 신규 Area·앵커 추천 구현 전까지 호환성을 위해 유지합니다."
         ),

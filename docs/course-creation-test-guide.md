@@ -167,7 +167,7 @@ Started CourseBackendApplication in 2.5 seconds
 진행률이 `80% EXECUTING`에서 멈춰 있는 게 **정상**이다 (서버가 살아 있다는 뜻). 이 터미널은 그대로 두고,
 **새 터미널(`Cmd+T`)을 열어** 다음 단계로 간다. 서버를 멈출 땐 이 터미널에서 `Ctrl+C`.
 
-> **5~13-1번을 한 번에 하려면** 새 터미널에서 `make course-check`를 실행한다. `http/course-creation.http`의 요청 19개를
+> **5~13-2번을 한 번에 하려면** 새 터미널에서 `make course-check`를 실행한다. `http/course-creation.http`의 요청 23개를
 > 순서대로 실행하고, 기대한 상태 코드와 같으면 ✅, 다르면 ❌로 보여준다. 아래 단계별 curl은 하나씩 자세히 볼 때용이다.
 
 포트가 이미 쓰인다고 하면 누가 쓰는지 확인한다.
@@ -569,6 +569,63 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:8081/api/v1/co
 
 ---
 
+## 13-2. 코스 상세 조회하기
+
+### 무엇을 하나
+
+공개한 코스의 **도시·지역·앵커·방문 순서·태그**를 한 번에 가져온다. 상세 화면에 쓰는 API다.
+
+### 이거 하셈
+
+```bash
+curl -s http://localhost:8081/api/v1/courses/1 | python3 -m json.tool
+```
+
+> `1` 자리에 10번에서 받은 `courseId`를 넣는다. **13-1에서 공개해 둔 상태여야 한다.**
+
+### 이렇게 나오면 정상
+
+- `HTTP 200`
+- `scheduleItems`가 **방문 순서대로 1, 2, 3**
+- 장소마다 `latitude`·`longitude`가 들어있다 (지도용)
+- `courseTags`가 **가중치 높은 순**
+
+```json
+{
+  "courseId": 1,
+  "title": "성수 하루 코스",
+  "city": {"cityId": 1, "code": "SEOUL", "name": "서울"},
+  "area": {"areaId": 930001, "code": "CREATION_SEOUL", "name": "코스 생성 시뮬레이션 지역"},
+  "anchorPlace": {"placeId": 931001, "name": "성수 복합문화공간", "latitude": 37.5445, ...},
+  "scheduleItems": [
+    {"itemOrder": 1, "role": "ACTIVITY", "place": {"placeId": 931003, ...}}
+  ],
+  "courseTags": [{"code": "DESSERT", "displayName": "디저트", "weight": 60}]
+}
+```
+
+### 꼭 확인할 것 — 장소가 중복되지 않는지
+
+`scheduleItems`의 개수가 **실제로 담은 장소 수와 같아야 한다.**
+
+장소 3개를 담았는데 **9개로 나오면 버그**다. 태그 수만큼 곱해져서 나오는 현상이고,
+한 번 고쳤지만 쿼리를 건드리면 다시 생길 수 있다.
+
+### 막혀야 하는 것
+
+```bash
+# 비공개 코스 → 404
+curl -s -X POST http://localhost:8081/api/v1/courses/1/unpublish > /dev/null
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8081/api/v1/courses/1
+
+# 없는 코스 → 404
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8081/api/v1/courses/999999
+```
+
+둘 다 `404`가 나와야 한다. **비공개 코스는 아직 대표 코스가 아니므로 없는 코스와 같게 다룬다.**
+
+---
+
 ## 14. 뒷정리
 
 ### 무엇을 하나
@@ -689,6 +746,18 @@ POST /api/v1/courses/{courseId}/unpublish   → 200  published=false
 - 같은 요청을 반복해도 결과가 같다
 - 없는 코스는 404 `COURSE_NOT_FOUND`
 
+### 코스 상세 조회
+
+```
+GET /api/v1/courses/{courseId}   → 200
+```
+
+- `courseId`, `title`, `description`, `city`, `area`, `anchorPlace`, `scheduleItems`, `courseTags`
+- `scheduleItems`는 **방문 순서대로**, 장소마다 좌표와 외부 링크를 포함한다
+- `courseTags`는 **가중치 내림차순**
+- **공개된 코스만** 조회된다. 비공개·없는 코스는 404 `COURSE_NOT_FOUND`
+- 운영 정보(영업시간)는 **수집 단계에서 들어오지 않아 응답에 없다**
+
 ---
 
 ## 부록 B. 지금 없는 기능 (테스트해도 안 나온다)
@@ -697,7 +766,6 @@ POST /api/v1/courses/{courseId}/unpublish   → 200  published=false
 
 | 없는 것 | 영향 |
 |---|---|
-| `GET /api/v1/courses/{id}` | 저장한 코스를 다시 조회할 방법이 없다 |
 | 코스 수정 · 삭제 API | 저장 후 고칠 수 없다 |
 | 앵커 목록 조회 API | 앵커를 "둘러보기"로 찾을 수 없다. 키워드 검색만 가능하다 |
 

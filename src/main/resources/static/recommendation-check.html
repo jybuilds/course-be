@@ -29,6 +29,8 @@
     .results-head h2 { margin:0; font-size:20px; }
     .results { display:grid; gap:12px; }
     .area { padding:18px 20px; border:1px solid var(--line); border-radius:12px; background:var(--paper); }
+    .area-name { min-height:40px; padding:0 6px; border:0; background:transparent; color:#1849a9; text-align:left; }
+    .area-name:hover { text-decoration:underline; }
     .area-picker { margin-top:14px; font-size:14px; }
     .area-picker summary { cursor:pointer; color:#1849a9; font-weight:700; }
     .area-picker details { margin-top:12px; }
@@ -53,7 +55,7 @@
 <body>
 <main>
   <h1>지역 추천 테스트</h1>
-  <p>추천 입력을 보내고 API가 반환한 Area 후보를 순위대로 전부 확인합니다. 결과 개수는 화면에서 자르지 않습니다.</p>
+  <p>태그로 추천받은 지역을 선택하고, 그 지역에서 방문할 앵커를 골라보세요.</p>
   <section class="panel" aria-label="추천 조건">
     <div class="fields">
       <label class="field">도시<select id="city"></select></label>
@@ -64,8 +66,17 @@
     <div id="tags" class="tags"></div>
     <div class="actions"><button id="submit" type="button" disabled>지역 추천 요청</button><span id="status" role="status">선택지를 불러오는 중...</span></div>
   </section>
-  <div class="results-head"><h2>추천 결과</h2><span id="result-count" class="muted"></span></div>
-  <section id="results" class="results" aria-live="polite"></section>
+  <section id="area-results" aria-labelledby="area-results-title">
+    <div class="results-head"><h2 id="area-results-title">추천 지역</h2><span id="result-count" class="muted"></span></div>
+    <div id="results" class="results" aria-live="polite"></div>
+  </section>
+  <section id="anchor-results" aria-labelledby="anchor-title" hidden>
+    <div class="results-head">
+      <h2 id="anchor-title" tabindex="-1"></h2>
+      <button id="back-to-areas" type="button">지역 목록으로</button>
+    </div>
+    <div id="anchor-options" class="area"></div>
+  </section>
 </main>
 <script>
   const citySelect = document.querySelector('#city');
@@ -75,6 +86,11 @@
   const submitButton = document.querySelector('#submit');
   const status = document.querySelector('#status');
   const resultsRoot = document.querySelector('#results');
+  const areaResults = document.querySelector('#area-results');
+  const anchorResults = document.querySelector('#anchor-results');
+  const anchorTitle = document.querySelector('#anchor-title');
+  const anchorOptions = document.querySelector('#anchor-options');
+  const backToAreas = document.querySelector('#back-to-areas');
   const resultCount = document.querySelector('#result-count');
   const tagCount = document.querySelector('#tag-count');
   const MAX_TAGS = 15;
@@ -135,6 +151,8 @@
     status.className = '';
     status.textContent = '추천 요청 중...';
     resultsRoot.replaceChildren();
+    anchorOptions.replaceChildren();
+    showAreas();
     resultCount.textContent = '';
     const request = {
       cityId: Number(citySelect.value),
@@ -177,7 +195,12 @@
       rank.className = 'rank';
       rank.textContent = index + 1;
       const name = document.createElement('h3');
-      name.textContent = area.areaName;
+      const chooseArea = document.createElement('button');
+      chooseArea.type = 'button';
+      chooseArea.className = 'area-name';
+      chooseArea.textContent = area.areaName;
+      chooseArea.addEventListener('click', () => showAnchors(area, tagCodes, chooseArea));
+      name.append(chooseArea);
       const id = document.createElement('span');
       id.className = 'area-id';
       id.textContent = `Area ID ${area.areaId}`;
@@ -188,10 +211,33 @@
       const areaTags = area.areaTags ?? [];
       for (const tag of areaTags) matchedTags.append(tagCard(tag));
       card.append(matchedTags);
-      const selectableTags = areaTags.filter(tag => tag.recommendedVisitPlaces?.length);
-      if (selectableTags.length) card.append(anchorPicker(selectableTags, tagCodes));
       resultsRoot.append(card);
     });
+  }
+
+  function showAreas() {
+    anchorResults.hidden = true;
+    areaResults.hidden = false;
+  }
+
+  function showAnchors(area, tagCodes, chooseArea) {
+    const tags = (area.areaTags ?? []).filter(tag => tag.recommendedVisitPlaces?.length);
+    anchorTitle.textContent = `${area.areaName} 앵커 선택`;
+    anchorOptions.replaceChildren();
+    if (tags.length) {
+      anchorOptions.append(anchorPicker(tags, tagCodes));
+    } else {
+      const empty = document.createElement('p');
+      empty.textContent = '이 지역에 선택할 수 있는 앵커가 없습니다.';
+      anchorOptions.append(empty);
+    }
+    backToAreas.onclick = () => {
+      showAreas();
+      chooseArea.focus();
+    };
+    areaResults.hidden = true;
+    anchorResults.hidden = false;
+    anchorTitle.focus();
   }
 
   function tagCard(tag) {
@@ -210,11 +256,8 @@
   }
 
   function anchorPicker(tags, tagCodes) {
-    const picker = document.createElement('details');
+    const picker = document.createElement('div');
     picker.className = 'area-picker';
-    const summary = document.createElement('summary');
-    summary.textContent = '앵커 선택';
-    picker.append(summary);
     const more = document.createElement('details');
     const moreSummary = document.createElement('summary');
     moreSummary.textContent = '다른 앵커 보기';

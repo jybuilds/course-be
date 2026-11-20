@@ -78,14 +78,14 @@ public interface AreaTagRepository extends JpaRepository<AreaTag, Long> {
             @Param("tagCodes") List<String> tagCodes);
 
     @Query(value = """
-            select ata.area_tag_id as "areaTagId", p.id as "placeId", p.name as name
+            select at.id as "areaTagId", p.id as "placeId", p.name as name
             from area_tag_anchors ata
-            join places p on p.provider = ata.provider
-                        and p.provider_place_id = ata.provider_place_id
-            where ata.area_tag_id in (:areaTagIds)
+            join area_tags at on at.area_id = ata.area_id and at.tag_id = ata.tag_id
+            join places p on p.id = ata.place_id
+            where at.id in (:areaTagIds)
               and p.is_active
               and p.is_anchor_candidate
-            order by ata.area_tag_id, p.name, p.id
+            order by at.id, p.name, p.id
             """, nativeQuery = true)
     List<RecommendedAnchor> findRecommendedAnchors(@Param("areaTagIds") Set<Long> areaTagIds);
 

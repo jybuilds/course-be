@@ -14,7 +14,9 @@ import com.junsang.course_backend.domain.place.repository.CityRepository;
 import com.junsang.course_backend.domain.place.repository.TagRepository;
 import com.junsang.course_backend.recommendation.calculator.AreaRecommendationCalculator;
 import com.junsang.course_backend.recommendation.dto.request.RecommendationRequest;
+import com.junsang.course_backend.recommendation.dto.response.recommendationAreas.RecommendationAreasResponse.RecommendedVisitPlace;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class RecommendationServiceTest {
@@ -33,11 +35,27 @@ class RecommendationServiceTest {
                 .thenReturn(rows);
         when(areas.findByCity_IdAndRankIsNotNullOrderByRankAscIdAsc(eq(1L), any()))
                 .thenReturn(List.of());
+        var anchors = List.of(new RecommendedVisitPlace(11L, "A"), new RecommendedVisitPlace(12L, "B"),
+                new RecommendedVisitPlace(13L, "C"), new RecommendedVisitPlace(14L, "D"));
+        long cafeTagId = rows.get(1).getId();
+        List<AreaTagRepository.RecommendedAnchor> anchorRows = anchors.stream().map(anchor -> {
+            var row = mock(AreaTagRepository.RecommendedAnchor.class);
+            when(row.getAreaTagId()).thenReturn(cafeTagId);
+            when(row.getPlaceId()).thenReturn(anchor.placeId());
+            when(row.getName()).thenReturn(anchor.name());
+            return row;
+        }).toList();
+        when(areaTags.findRecommendedAnchors(Set.of(
+                rows.get(0).getId(), cafeTagId, rows.get(2).getId(), rows.get(3).getId())))
+                .thenReturn(anchorRows);
         var result = service.recommendationAreas(request(List.of("CAFE", "SHOPPING", "GAME")));
         assertThat(result.areas()).extracting(r -> r.areaId()).containsExactly(1L, 2L);
         assertThat(result.areas().getFirst().areaTags()).hasSize(2);
         assertThat(result.areas().getFirst().areaTags().getFirst().recommendedVisitPlaces())
-                .containsExactly("place");
+                .containsExactlyElementsOf(anchors);
+        assertThat(result.areas().getFirst().areaTags().getLast().recommendedVisitPlaces()).isEmpty();
+        assertThat(result.areas().getLast().areaTags().getFirst().recommendedVisitPlaces()).isEmpty();
+        verify(areaTags).findRecommendedAnchors(any());
         verify(areaTags, times(1)).findRankedByCityAndTagCodes(1L, List.of("CAFE", "SHOPPING"));
         verify(areaTags, never()).findAllByAreaIds(any());
     }
@@ -102,7 +120,8 @@ class RecommendationServiceTest {
         when(row.getArea()).thenReturn(area);
         when(row.getTag()).thenReturn(tag);
         when(row.getRecommendationRank()).thenReturn(rank);
-        when(row.getRecommendVisitPlaces()).thenReturn(List.of("place"));
+        long areaTagId = area.getId() * 2 + ("CAFE".equals(code) ? 0 : 1);
+        when(row.getId()).thenReturn(areaTagId);
         return row;
     }
 }

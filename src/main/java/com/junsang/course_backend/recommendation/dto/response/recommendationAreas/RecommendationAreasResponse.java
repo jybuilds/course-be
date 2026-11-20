@@ -14,9 +14,12 @@ public record RecommendationAreasResponse(
 
     public record AreaTagResponse(
             String tagName,
-            List<String> recommendedVisitPlaces,
+            List<RecommendedVisitPlace> recommendedVisitPlaces,
             List<String> attractionFeatures,
             List<String> differentiators
     ) {
+    }
+
+    public record RecommendedVisitPlace(Long placeId, String name) {
     }
 }

@@ -29,6 +29,12 @@
     .results-head h2 { margin:0; font-size:20px; }
     .results { display:grid; gap:12px; }
     .area { padding:18px 20px; border:1px solid var(--line); border-radius:12px; background:var(--paper); }
+    .area-picker { margin-top:14px; font-size:14px; }
+    .area-picker summary { cursor:pointer; color:#1849a9; font-weight:700; }
+    .area-picker details { margin-top:12px; }
+    .area-picker h4 { margin:12px 0 4px; }
+    .area-picker ul { margin:4px 0 0; padding-left:22px; }
+    .area-picker a { color:#1849a9; }
     .area-top { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
     .rank { display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:#eff6ff; color:#1849a9; font-weight:800; }
     .area h3 { margin:0; font-size:18px; }
@@ -142,7 +148,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
       });
-      render(await readResponse(response));
+      render(await readResponse(response), request.tagCodes);
       status.textContent = '추천이 완료됐습니다.';
     } catch (error) {
       status.textContent = error.message;
@@ -152,7 +158,7 @@
     }
   }
 
-  function render(data) {
+  function render(data, tagCodes) {
     const areas = data.areas ?? [];
     resultCount.textContent = `총 ${areas.length}개`;
     if (!areas.length) {
@@ -179,8 +185,11 @@
       card.append(top);
       const matchedTags = document.createElement('div');
       matchedTags.className = 'matched';
-      for (const tag of area.areaTags ?? []) matchedTags.append(tagCard(tag));
+      const areaTags = area.areaTags ?? [];
+      for (const tag of areaTags) matchedTags.append(tagCard(tag));
       card.append(matchedTags);
+      const selectableTags = areaTags.filter(tag => tag.recommendedVisitPlaces?.length);
+      if (selectableTags.length) card.append(anchorPicker(selectableTags, tagCodes));
       resultsRoot.append(card);
     });
   }
@@ -191,10 +200,49 @@
     const title = document.createElement('h4');
     title.textContent = tag.tagName;
     section.append(title);
-    appendDetail(section, '추천 방문 지역', tag.recommendedVisitPlaces);
+    const anchors = tag.recommendedVisitPlaces ?? [];
+    const preview = anchors.slice(0, 1).map(anchor => anchor.name);
+    if (anchors.length > preview.length) preview.push(`외 ${anchors.length - preview.length}곳`);
+    appendDetail(section, '추천 방문 지역', preview);
     appendDetail(section, '매력', tag.attractionFeatures);
     appendDetail(section, '차별점', tag.differentiators);
     return section;
+  }
+
+  function anchorPicker(tags, tagCodes) {
+    const picker = document.createElement('details');
+    picker.className = 'area-picker';
+    const summary = document.createElement('summary');
+    summary.textContent = '앵커 선택';
+    picker.append(summary);
+    const more = document.createElement('details');
+    const moreSummary = document.createElement('summary');
+    moreSummary.textContent = '다른 앵커 보기';
+    more.append(moreSummary);
+    for (const tag of tags) {
+      const anchors = tag.recommendedVisitPlaces;
+      appendAnchorGroup(picker, tag.tagName, anchors.slice(0, 1), tagCodes);
+      if (anchors.length > 1) appendAnchorGroup(more, tag.tagName, anchors.slice(1), tagCodes);
+    }
+    if (more.childElementCount > 1) picker.append(more);
+    return picker;
+  }
+
+  function appendAnchorGroup(parent, tagName, anchors, tagCodes) {
+    const title = document.createElement('h4');
+    title.textContent = tagName;
+    const list = document.createElement('ul');
+    for (const anchor of anchors) {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      const query = new URLSearchParams({ anchorPlaceId: anchor.placeId });
+      if (tagCodes.length) query.set('tagCodes', tagCodes.join(','));
+      link.href = `api/v1/courses/draft?${query}`;
+      link.textContent = anchor.name;
+      item.append(link);
+      list.append(item);
+    }
+    parent.append(title, list);
   }
 
   function appendDetail(parent, label, values) {

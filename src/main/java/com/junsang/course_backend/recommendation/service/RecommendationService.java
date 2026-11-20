@@ -11,6 +11,7 @@ import com.junsang.course_backend.domain.place.repository.TagRepository;
 import com.junsang.course_backend.recommendation.calculator.AreaRecommendationCalculator;
 import com.junsang.course_backend.recommendation.dto.request.RecommendationRequest;
 import com.junsang.course_backend.recommendation.dto.response.recommendationAreas.RecommendationAreasResponse;
+import com.junsang.course_backend.recommendation.dto.response.recommendationAreas.RecommendationAreasResponse.RecommendedVisitPlace;
 import com.junsang.course_backend.recommendation.dto.response.recommendationOptions.CompanionTypeOptionResponse;
 import com.junsang.course_backend.recommendation.dto.response.recommendationOptions.CityOptionResponse;
 import com.junsang.course_backend.recommendation.dto.response.recommendationOptions.RecommendationOptionsResponse;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,39 +89,14 @@ public class RecommendationService {
             List<Long> areaIds = rankedAreas.stream()
                     .map(Area::getId)
                     .toList();
-            Map<Long, List<AreaTag>> areaTagsByAreaId = areaTagRepository.findAllByAreaIds(areaIds)
-                    .stream()
-                    .collect(Collectors.groupingBy(areaTag -> areaTag.getArea().getId()));
-
-            List<RecommendationAreasResponse.areaResponse> areas = rankedAreas.stream()
-                    .map(area -> new RecommendationAreasResponse.areaResponse(
-                            area.getId(),
-                            area.getName(),
-                            areaTagsByAreaId.getOrDefault(area.getId(), List.of()).stream()
-                                    .map(this::toAreaTagResponse)
-                                    .toList()
-                    ))
-                    .toList();
-
-            return new RecommendationAreasResponse(areas);
+            return toAreaResponse(rankedAreas, groupByArea(areaTagRepository.findAllByAreaIds(areaIds)));
         }
 
         /// 사용자 태그 1개 고른경우
         if (selectedTags.size() == 1) {
             // 해당 태그의 랭킹 상위 10개 AreaTag를 각각 응답 Area로 변환한다.
-            List<RecommendationAreasResponse.areaResponse> areas = listByTagRank(
-                    request.cityId(),
-                    selectedTags.getFirst()
-            )
-                    .stream()
-                    .map(areaTag -> new RecommendationAreasResponse.areaResponse(
-                            areaTag.getArea().getId(),
-                            areaTag.getArea().getName(),
-                            List.of(toAreaTagResponse(areaTag))
-                    ))
-                    .toList();
-
-            return new RecommendationAreasResponse(areas);
+            List<AreaTag> rankedTags = listByTagRank(request.cityId(), selectedTags.getFirst());
+            return toAreaResponse(rankedTags.stream().map(AreaTag::getArea).toList(), groupByArea(rankedTags));
         }
 
         ///  사용자 태그 2개 이상 고른 경우
@@ -129,40 +106,49 @@ public class RecommendationService {
         List<Long> recommendedIds = areaRecommendationCalculator.recommend(
                 areaTags, selectedTags, CANDIDATE_LIMIT);
 
-        // 성수 ID → [성수의 카페 태그, 성수의 쇼핑 태그]
-        // 홍대 ID → [홍대의 카페 태그, 홍대의 쇼핑 태그]
-        Map<Long, List<AreaTag>> tagsByArea = areaTags.stream()
-                .collect(Collectors.groupingBy(areaTag -> areaTag.getArea().getId()));
+        Map<Long, List<AreaTag>> tagsByArea = groupByArea(areaTags);
+        List<Area> recommendations = new ArrayList<>(recommendedIds.stream()
+                .map(id -> tagsByArea.get(id).getFirst().getArea())
+                .toList());
 
-        List<RecommendationAreasResponse.areaResponse> responses = recommendedIds.stream()
-                .map(id -> {
-                    List<AreaTag> matchedTags = tagsByArea.get(id);
-                    Area area = matchedTags.getFirst().getArea();
-                    return new RecommendationAreasResponse.areaResponse(
-                            area.getId(), area.getName(),
-                            matchedTags.stream().map(this::toAreaTagResponse).toList());
-                })
-                .collect(Collectors.toCollection(java.util.ArrayList::new));
-
-        // 태그 기반 후보와 D를 모두 사용한 뒤에도 부족할 때만 도시 순위로 보충한다.
-        if (responses.size() < CANDIDATE_LIMIT) {
+        // 태그 기반 후보가 부족할 때 도시 순위로 보충한다.
+        if (recommendations.size() < CANDIDATE_LIMIT) {
             Set<Long> included = Set.copyOf(recommendedIds);
             List<Area> fallbackAreas = listByAreaRank(request.cityId()).stream()
                     .filter(area -> !included.contains(area.getId()))
-                    .limit(CANDIDATE_LIMIT - responses.size())
+                    .limit(CANDIDATE_LIMIT - recommendations.size())
                     .toList();
             if (!fallbackAreas.isEmpty()) {
-                Map<Long, List<AreaTag>> fallbackTags = areaTagRepository.findAllForAreasAndTags(
-                                fallbackAreas.stream().map(Area::getId).toList(), selectedTags)
-                        .stream().collect(Collectors.groupingBy(at -> at.getArea().getId()));
-                fallbackAreas.forEach(area -> responses.add(new RecommendationAreasResponse.areaResponse(
-                        area.getId(), area.getName(),
-                        fallbackTags.getOrDefault(area.getId(), List.of()).stream()
-                                .map(this::toAreaTagResponse).toList())));
+                tagsByArea.putAll(groupByArea(areaTagRepository.findAllForAreasAndTags(
+                        fallbackAreas.stream().map(Area::getId).toList(), selectedTags)));
+                recommendations.addAll(fallbackAreas);
             }
         }
 
-        return new RecommendationAreasResponse(responses);
+        return toAreaResponse(recommendations, tagsByArea);
+    }
+
+    private Map<Long, List<AreaTag>> groupByArea(List<AreaTag> tags) {
+        return tags.stream().collect(Collectors.groupingBy(tag -> tag.getArea().getId()));
+    }
+
+    private RecommendationAreasResponse toAreaResponse(List<Area> areas, Map<Long, List<AreaTag>> tagsByArea) {
+        Set<Long> areaTagIds = areas.stream()
+                .flatMap(area -> tagsByArea.getOrDefault(area.getId(), List.of()).stream())
+                .map(AreaTag::getId)
+                .collect(Collectors.toSet());
+        Map<Long, List<RecommendedVisitPlace>> anchorsByAreaTag = areaTagIds.isEmpty() ? Map.of()
+                : areaTagRepository.findRecommendedAnchors(areaTagIds).stream()
+                        .collect(Collectors.groupingBy(AreaTagRepository.RecommendedAnchor::getAreaTagId,
+                                Collectors.mapping(anchor -> new RecommendedVisitPlace(
+                                        anchor.getPlaceId(), anchor.getName()), Collectors.toList())));
+        return new RecommendationAreasResponse(areas.stream()
+                .map(area -> new RecommendationAreasResponse.areaResponse(
+                        area.getId(), area.getName(),
+                        tagsByArea.getOrDefault(area.getId(), List.of()).stream()
+                                .map(tag -> toAreaTagResponse(tag, anchorsByAreaTag.getOrDefault(tag.getId(), List.of())))
+                                .toList()))
+                .toList());
     }
 
     // 지정한 태그의 랭킹 순으로 최대 10개 AreaTag를 조회
@@ -182,10 +168,12 @@ public class RecommendationService {
         );
     }
 
-    private RecommendationAreasResponse.AreaTagResponse toAreaTagResponse(AreaTag areaTag) {
+    private RecommendationAreasResponse.AreaTagResponse toAreaTagResponse(
+            AreaTag areaTag, List<RecommendedVisitPlace> anchors
+    ) {
         return new RecommendationAreasResponse.AreaTagResponse(
                 areaTag.getTag().getDisplayName(),
-                areaTag.getRecommendVisitPlaces(),
+                anchors,
                 areaTag.getAttractionFeatures(),
                 areaTag.getDifferentiators()
         );
